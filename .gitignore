@@ -1,6 +1,6 @@
-*
-!*.*
-!Makefile
+*/*
+!*/*.*
+!*/Makefile
 .DS_Store
 
 # Prerequisites
