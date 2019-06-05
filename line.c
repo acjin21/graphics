@@ -92,10 +92,25 @@ void draw_diagonal(void)
     b = tmp;        \
 }
 
-void draw_line(float start_x, float start_y, float end_x, float end_y)
+void draw_line(float start_x, float start_y, float end_x, float end_y,
+               float start_r, float start_g, float start_b,
+               float end_r, float end_g, float end_b)
 {
+    
     float dy = end_y - start_y;
     float dx = end_x - start_x;
+    
+    float dr = end_r - start_r;
+    float dg = end_g - start_g;
+    float db = end_b - start_b;
+    
+    if( end_r > 1.0 || start_r > 1.0 || end_g > 1.0 || start_g < 0.0 ||
+        end_b > 1.0 || start_b < 0.0 )
+    {
+        printf("please enter in valid rgb values in range [0.0, 1.0]\n");
+        return;
+    }
+    
     int x_major = fabsf(dx) > fabsf(dy);
     
     if(start_x > end_x && x_major)
@@ -115,7 +130,8 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
     float step;
     float x = start_x;
     float y = start_y;
-
+    glColor4f(start_r, start_g, start_b, 1.0);
+    float scale;
     if(dx == 0 && dy == 0)
     {
         printf("point\n");
@@ -126,6 +142,10 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
         printf("horizontal\n");
         for(; x < end_x; x++)
         {
+            scale = (x - start_x)/dx;
+            glColor4f(start_r + dr * scale,
+                      start_g + dg * scale,
+                      start_b + db * scale, 1.0);
             draw_point(x, y);
         }
     }
@@ -134,6 +154,10 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
         printf("vertical\n");
         for(; y < end_y; y++)
         {
+            scale = (y - start_y)/dy;
+            glColor4f(start_r + dr * scale,
+                      start_g + dg * scale,
+                      start_b + db * scale, 1.0);
             draw_point(x, y);
         }
     }
@@ -145,6 +169,10 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
         float y = start_y;
         for(float x = start_x; x < end_x; x++)
         {
+            scale = (x - start_x)/dx;
+            glColor4f(start_r + dr * scale,
+                      start_g + dg * scale,
+                      start_b + db * scale, 1.0);
             draw_point(x, y);
             y += step;
         }
@@ -158,8 +186,11 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
         float x = start_x;
         for(float y = start_y; y < end_y; y++)
         {
+            scale = (y - start_y)/dy;
+            glColor4f(start_r + dr * scale,
+                      start_g + dg * scale,
+                      start_b + db * scale, 1.0);
             draw_point(x, y);
-//            printf("draw: (%f, %f)", x, y);
             x += step;
         }
     }
@@ -191,36 +222,21 @@ void display(void)
     /*
      * draw points
      */
-//    draw_line(0,0,40,1000); //y major
-//    draw_line(0,0,400,50);  //x major
-//    draw_line(0,0,0,0);  //x major
     
     float start_x = random_float(-400, 400);
     float start_y = random_float(-400, 400);
     float end_x = random_float(-400, 400);
     float end_y = random_float(-400, 400);
     
-    draw_line(start_x, start_y, end_x, end_y);
-////    glColor4f(1.0, 0.0, 0.0, 1.0);
-////    draw_line(22, 288, 245, 4.5);
-//
-//
-//    glColor4f(0.0, 1.0, 0.0, 1.0);
-//    draw_line(115, 75, -40, 332);
-//
-//    glColor4f(1.0, 0.0, 1.0, 1.0);
-//    draw_line(-39, 332, 115, 75);
-//
-//    glColor4f(1.0, 1.0, 1.0, 1.0);
-//    draw_line(-82, 375, 91, 25.8);
+    float start_r = random_float(0, 1);
+    float start_g = random_float(0, 1);
+    float start_b = random_float(0, 1);
+    float end_r = random_float(0, 1);
+    float end_g = random_float(0, 1);
+    float end_b = random_float(0, 1);
 
-
-//    draw_line(20,20,400,400);
-//    draw_line(300,-300,50,-50);
-//    draw_line(-40,-40,-300,-300);
-//    draw_line(-400,300,-200,100);
-//    draw_line(0, 0, -400, -400);
-
+    glPointSize(random_float(4, 10));
+    draw_line(start_x, start_y, end_x, end_y, start_r, start_g, start_b, end_r, end_g, end_b);
 
 
 
@@ -274,7 +290,7 @@ int main(int argc, char **argv)
      */
     glClearColor(0.0,0.0,0.0,1.0);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-    glPointSize(2.0);
+    glPointSize(4.0);
     glColor4f(1.0,0.0,0.0,1.0);
 
     /*
