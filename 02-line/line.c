@@ -117,11 +117,12 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
         SWAP(start_r, end_r);
         SWAP(start_g, end_g);
         SWAP(start_b, end_b);
+        
+        /* recalculate deltas */
+        dy = end_y - start_y;
+        dx = end_x - start_x;
     }
     
-    /* recalculate deltas */
-    dy = end_y - start_y;
-    dx = end_x - start_x;
     float dr = end_r - start_r;
     float dg = end_g - start_g;
     float db = end_b - start_b;
