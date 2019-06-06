@@ -200,6 +200,10 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     }
 }
 
+void draw_line_solid_color(float start_x, float start_y,
+                           float end_x, float end_y,
+                           float )
+
 /* draw a fan of lines */
 void draw_fan (void)
 {
