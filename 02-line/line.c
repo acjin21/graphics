@@ -24,13 +24,21 @@
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
+#define PI 3.1415926
 
+#define SWAP(a, b)  \
+{                   \
+    float tmp = a;  \
+    a = b;          \
+    b = tmp;        \
+}
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
 int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
+int draw_prog = 1;
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -57,8 +65,7 @@ void draw_point( float x, float y )
 
 }
 
-/* draw_horizontal()
- */
+/* draw a horizontal line from origin to right side of screen. */
 void draw_horizontal(void)
 {
     int y = 0;
@@ -68,6 +75,7 @@ void draw_horizontal(void)
     }
 }
 
+/* draw a vertical line from origin to top of screen. */
 void draw_vertical(void)
 {
     int x = 0;
@@ -77,23 +85,21 @@ void draw_vertical(void)
     }
 }
 
+/* draw a diagonal line from origin to top right corner of screen */
 void draw_diagonal(void)
 {
     int y;
     for(int x = 0; x < window_size; x++)
     {
         y = x;
-        draw_point(-x, -y);
+        draw_point(x, y);
     }
 }
 
-#define SWAP(a, b)  \
-{                   \
-    float tmp = a;  \
-    a = b;          \
-    b = tmp;        \
-}
-
+/*
+ * draw arbitrary slope line given the two endpoints and
+ *  starting/ending rgb values.
+ */
 void draw_line (float start_x, float start_y, float end_x, float end_y,
                 float start_r, float start_g, float start_b,
                 float end_r, float end_g, float end_b)
@@ -110,7 +116,7 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     
     int x_major = fabsf(dx) > fabsf(dy);
     
-    if(dx < 0 && x_major || dy < 0 && !x_major )
+    if((dx < 0 && x_major )|| (dy < 0 && !x_major) )
     {
         SWAP(start_x, end_x);
         SWAP(start_y, end_y);
@@ -150,7 +156,7 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
         }
     }
     /* vertical line */
-    else if(dx == 0) // vertical
+    else if(dx == 0)
     {
         for(; y < end_y; y++)
         {
@@ -163,7 +169,7 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     /* x-major diagonal line, i.e. 0 < |slope| < 1 */
     else if(x_major)
     {
-        printf("xmajor\n");
+//        printf("xmajor\n");
         step = dy / dx;
         float y = start_y;
         for(float x = start_x; x < end_x; x++)
@@ -177,9 +183,9 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
         }
     }
     /* y-major diagonal line, i.e. |slope| > 1 */
-    else if (!x_major) // y major
+    else if (!x_major)
     {
-        printf("ymajor\n");
+//        printf("ymajor\n");
         step = dx / dy;
         float x = start_x;
         for(float y = start_y; y < end_y; y++)
@@ -191,6 +197,24 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
             draw_point(x, y);
             x += step;
         }
+    }
+}
+
+/* draw a fan of lines */
+void draw_fan (void)
+{
+    glPointSize(1.0);
+    float r = window_size;
+    for(float i = 0; i < 800; i+= 4)
+    {
+        float theta = (i/800.0) * PI;
+        float end_x = r * cos(theta);
+        float end_y = r * sin(theta);
+        float rand_r = random_float(0, 1);
+        float rand_g = random_float(0, 1);
+        float rand_b = random_float(0, 1);
+
+        draw_line(0, 0, end_x, end_y, rand_r, rand_g, rand_b, rand_r, rand_g, rand_b);
     }
 }
 
@@ -267,11 +291,22 @@ void display(void)
     /*
      * draw points
      */
-//    draw_coord_grid();
-//    draw_random_line();
-    draw_line(100, 200, -100, -200, 1, 0, 0, 0, 0, 1);
-    draw_line(-100, -300, 100, 300, 1, 0, 0, 0, 0, 1);
-
+    if (draw_prog == 'r' )
+    {
+        draw_random_line();
+    }
+    else if (draw_prog == 'g')
+    {
+        draw_coord_grid();
+    }
+    else if (draw_prog == 'f')
+    {
+        draw_fan();
+    }
+    
+    
+//    draw_line(100, 200, -100, -200, 1, 0, 0, 0, 0, 1);
+//    draw_line(-100, -300, 100, 300, 1, 0, 0, 0, 0, 1);
 //    draw_line(50, -1, -1, -200, 1, 0, 0, 0, 0, 1);
     
     
@@ -294,6 +329,21 @@ static void Key(unsigned char key, int x, int y)
         case 'a':       draw_one_frame = 1;     glutPostRedisplay();    break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
+        case 'r':
+            draw_prog = 'r';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
+        case 'f':
+            draw_prog = 'f';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
+        case 'g':
+            draw_prog = 'g';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
     }
 }
 
