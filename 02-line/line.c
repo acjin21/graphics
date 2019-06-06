@@ -205,7 +205,7 @@ void draw_fan (void)
 {
     glPointSize(1.0);
     float r = window_size;
-    for(float i = 0; i < 800; i+= 4)
+    for(float i = 0; i < 800; i++)
     {
         float theta = (i/800.0) * PI;
         float end_x = r * cos(theta);
