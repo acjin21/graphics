@@ -17,7 +17,9 @@ void draw_quadratic (void)
 {
     draw_grid();
     glColor4f(1.0, 0.0, 0.0, 1.0);
-//    int max_x = round(pow(window_size, 0.5));
+    int max_x = window_size;
+    int min_x = 0;
+
     int end_x = window_size;
     int start_x = -window_size;
     int x_range = end_x - start_x;
