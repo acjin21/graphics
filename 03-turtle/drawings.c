@@ -92,6 +92,29 @@ void draw_V (float len)
     backward(len);
 }
 
+void draw_V_rec (float len)
+{
+    if(len < 1.0) return;
+    float theta = 30;
+    // heading = 90
+    left(theta);
+    forward(len);
+    right(theta);
+    //now at top left vertex, heading = 90.
+    
+    draw_V_rec (len / 2.0);
+    
+    //heading = 90 + theta (pointing to upper left)
+    left(theta);
+    backward(len);
+    //at vertex, pointing upper left
+    right(2 * theta);
+    // @ vertex, pointing upper right
+    forward(len);
+    backward(len);
+    left(theta);
+}
+
 /* draw witch hat centered (horizontally) at the origin, with edges length 'len' */
 void draw_witch_hat (float len)
 {
@@ -107,6 +130,24 @@ void draw_witch_hat (float len)
     left(60);
     forward(len);
 }
+
+void draw_witch_hat_rec (float len)
+{
+    if(len < 1) return;
+    set_heading(90);
+    right(90);
+    forward(len);
+    left(60);
+    forward(len);
+//    left(30);
+    draw_witch_hat_rec (len / 2);
+    right(150);
+    forward(len);
+    left(60);
+    forward(len);
+    set_heading(90);
+}
+
 /* draw triangle with side length 'len' */
 void draw_equil_tri (float len)
 {

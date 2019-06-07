@@ -32,6 +32,8 @@ extern void left(float);
 extern void forward(float);
 extern void backward(float);
 extern void set_xy(float, float);
+extern void set_heading(float);
+
 
 extern void draw_square(float);
 extern void draw_pinwheel();
@@ -40,7 +42,9 @@ extern void draw_circle(float);
 extern void draw_spiral(float r, int n_turns);
 extern void draw_star(float);
 extern void draw_V(float);
+extern void draw_V_rec(float);
 extern void draw_witch_hat(float);
+extern void draw_witch_hat_rec(float);
 extern void draw_equil_tri(float);
 extern void draw_pent(float);
 extern void draw_n_gon(int n, float len);

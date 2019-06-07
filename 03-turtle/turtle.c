@@ -7,7 +7,7 @@
  */
 #include "turtle.h"
 
-
+#include <time.h>
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -129,6 +129,10 @@ void set_xy(float x, float y)
     curr_y = y;
 }
 
+void set_heading(float theta)
+{
+    heading = theta;
+}
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -160,7 +164,9 @@ void display(void)
     /*
      * draw points
      */
-//    home();
+    home();
+    clock_t t0 = clock();
+    printf
 //    draw_square(100);
 //    draw_pinwheel();
 //    draw_square_rec(100);
@@ -177,7 +183,10 @@ void display(void)
     
 //    draw_random_shape();
     
-    draw_random_walk(counter++);
+//    draw_random_walk(counter++);
+//    draw_V_rec(100);
+    set_xy(-300, 0);
+    draw_witch_hat_rec(100);
 
     /*
      * show results
@@ -234,14 +243,15 @@ int main(int argc, char **argv)
     glPointSize(2.0);
     glColor4f(1.0,0.0,0.0,1.0);
 
-    do_random_walk();
+    /*
+     * generate random walk data once before main rendering loop
+     */
+//    do_random_walk();
 
     /*
      * start loop that calls display() and Key() routines
      */
-    
     glutMainLoop();
-//    glutIdleFunc (idle);
 
 
     return 0;
