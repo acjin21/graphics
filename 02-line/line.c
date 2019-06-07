@@ -32,6 +32,15 @@
     a = b;          \
     b = tmp;        \
 }
+
+/*************************************************************************/
+/* structs                                                               */
+/*************************************************************************/
+typedef struct point {
+    float position[4];
+    float color[4];
+} POINT;
+
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -200,6 +209,27 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     }
 }
 
+void draw_line_2 (POINT *p1, POINT *p2)
+{
+    POINT tmp1 = *p1;
+    POINT tmp2 = *p2;
+    
+    float start_x = tmp1.position[0];
+    float start_y = tmp1.position[1];
+    float end_x = tmp2.position[0];
+    float end_y = tmp2.position[1];
+    
+    float start_r = tmp1.color[0];
+    float start_g = tmp1.color[1];
+    float start_b = tmp1.color[2];
+    float end_r = tmp2.color[0];
+    float end_g = tmp2.color[1];
+    float end_b = tmp2.color[2];
+    draw_line(start_x, start_y, end_x, end_y, start_r, start_g, start_b,
+              end_r, end_g, end_b);
+
+}
+
 //void draw_line_solid_color(float start_x, float start_y,
 //                           float end_x, float end_y,
 //                           float )
@@ -218,7 +248,20 @@ void draw_fan (void)
         float rand_g = random_float(0, 1);
         float rand_b = random_float(0, 1);
 
-        draw_line(0, 0, end_x, end_y, rand_r, rand_g, rand_b, rand_r, rand_g, rand_b);
+        POINT p1 =
+        {
+            {0,0,0,0},
+            {rand_r, rand_g, rand_b}
+        };
+        
+        POINT p2 =
+        {
+            {end_x, end_y, 0, 0},
+            {rand_r, rand_g, rand_b}
+            
+        };
+        draw_line_2(&p1, &p2);
+//        draw_line(0, 0, end_x, end_y, rand_r, rand_g, rand_b, rand_r, rand_g, rand_b);
     }
 }
 
@@ -237,9 +280,21 @@ void draw_random_line (void)
     float end_g = random_float(0, 1);
     float end_b = random_float(0, 1);
 
+    POINT p1 =
+    {
+        {start_x, start_y, 0, 0},
+        {start_r, start_g, start_b, 1}
+        
+    };
+    
+    POINT p2 =
+    {
+        {end_x, end_y, 0, 0},
+        {end_r, end_g, end_b, 1}
+    };
+
     glPointSize(random_float(4, 10));
-    draw_line(start_x, start_y, end_x, end_y,
-              start_r, start_g, start_b, end_r, end_g, end_b);
+    draw_line_2(&p1, &p2);
 }
 
 /* draw coordinate grid filling the window */
@@ -297,8 +352,9 @@ void display(void)
     /*
      * draw points
      */
-    draw_random_line();
-    printf("line drawing\n");
+//    draw_random_line();
+//    printf("line drawing\n");
+    
 //    if (draw_prog == 'r' )
 //    {
 //        draw_random_line();
@@ -309,7 +365,7 @@ void display(void)
 //    }
 //    else if (draw_prog == 'f')
 //    {
-//        draw_fan();
+        draw_fan();
 //    }
     
     
