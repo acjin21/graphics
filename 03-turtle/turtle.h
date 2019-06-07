@@ -52,4 +52,4 @@ extern void draw_pent(float);
 extern void draw_n_gon(int n, float len);
 extern void raw_random_shape(void);
 extern void do_random_walk(void);
-extern void draw_random_walk(int);
+extern void draw_random_walk(int, int);

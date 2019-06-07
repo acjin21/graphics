@@ -8,6 +8,8 @@
 #include "turtle.h"
 
 #include <time.h>
+
+#define FPS 60.0
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -15,21 +17,17 @@ int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 
-//typedef Turtle = struct {
-//    float curr_x;
-//    float curr_y;
-//    float heading;
-//}
-
+//float start = 0;
+int display_timer = 0;
 float curr_x = 0;
 float curr_y = 0;
 float heading = 90;
 
+int head = 0;
 int counter = 0;
-time_t clk;
-float start;
-
-
+time_t start;
+int last_sec = 0;
+float framerate = 60;
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
@@ -145,6 +143,7 @@ void set_heading(float theta)
  */
 void display(void)
 {
+    display_timer++; //increases once every GLdisplay iteration
     /*
      * Necessary for Mojave.
      *  Input to glutReshapeWindow has to be different dimensions
@@ -162,39 +161,41 @@ void display(void)
     /*
      * draw points
      */
-    home();
+//    home();
     
     time_t seconds = time(NULL);
-    double delta_s = difftime(seconds, clk);
-
-    printf("%.3f seconds\n", (double) delta_s);
-    if(delta_s == 1)
-
+    int delta_s = (int) difftime(seconds, start);
+    if (delta_s != last_sec)
     {
-    
-        float tm = (float)clock()/(float)CLOCKS_PER_SEC;
-//        printf("%.3f seconds\n", tm - start);
-
-//        glColor4f(random_float(0, 1), random_float(0, 1), random_float(0, 1), 1.0);
+        last_sec = delta_s;
+        printf("%i seconds\n", (int) delta_s);
+    }
+    if(display_timer % 60 == 0)
+    {
+        printf("counter: %i\n", counter);
         counter++;
+        if(counter >= 5){
+            head++;
+        }
+        printf("head: %i, tail: %i\n", head, counter);
+
     }
     /* draw the 'current' frame */
     glClear(GL_COLOR_BUFFER_BIT );
-    draw_random_walk(counter);
-    clk = seconds;
+    
     /* done drawing */
-    if(counter > 100)
-    {
-        printf("counter: %i\n", counter);
+    if(counter >= 100) {
         draw_one_frame = 0;
     }
+    draw_random_walk(0, counter);
+
+//    if(
+   
     
 //    set_xy(-window_size/2.0, 0);
 //    right(90);
 //    draw_wh_rec(50);
-    
-//    set_xy(-300, 0);
-//    draw_witch_hat_rec(100);
+
 
     /*
      * show results
@@ -260,10 +261,8 @@ int main(int argc, char **argv)
     /*
      * start loop that calls display() and Key() routines
      */
-    clk = time(NULL);
-    start = (float) clock() / (float) CLOCKS_PER_SEC;
+    start = time(NULL);
     glutMainLoop();
-
 
     return 0;
 }

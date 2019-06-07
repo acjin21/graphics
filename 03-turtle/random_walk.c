@@ -8,11 +8,14 @@
 extern int window_size;
 extern float curr_x;
 extern float curr_y;
+extern float heading;
 
 /*************************************************************************/
 /* structs                                                               */
 /*************************************************************************/
 struct step {
+    float pos[2];
+    float heading;
     float theta;
     float dist;
     float color[4];
@@ -36,7 +39,14 @@ void do_random_walk (void)
         float rand_g = random_float(0, 1);
         float rand_b = random_float(0, 1);
         
-        struct step s = {rand_theta, rand_steps, {rand_r, rand_g, rand_b, 1.0}};
+        struct step s =
+        {
+            .pos = {curr_x, curr_y},
+            .heading = heading,
+            .theta = rand_theta,
+            .dist = rand_steps,
+            .color = {rand_r, rand_g, rand_b, 1.0}
+        };
         steps_hist[i] = s;
         
 
@@ -45,10 +55,14 @@ void do_random_walk (void)
 }
 
 /* draw all random_walk iterations up to and including steps_hist[idx] */
-void draw_random_walk (int idx)
+void draw_random_walk (int start_idx, int end_idx)
 {
-    home();
-    for(int i = 0; i <= idx; i++)
+    set_xy(steps_hist[start_idx].pos[0],
+           steps_hist[start_idx].pos[1]);
+    set_heading(steps_hist[start_idx].heading);
+//    home();
+    
+    for(int i = start_idx; i <= end_idx; i++)
     {
         glColor4f(steps_hist[i].color[0],
                   steps_hist[i].color[1],
@@ -56,6 +70,13 @@ void draw_random_walk (int idx)
                   steps_hist[i].color[3]);
         right(steps_hist[i].theta);
         forward(steps_hist[i].dist);
+//        printf("%f, %f, %f\n", curr_x, curr_y, heading);
+//        float curr_pos[] = {curr_x, curr_y};
+        
+        //causes weird rotations..
+//        steps_hist[i].pos[0] = curr_x;
+//        steps_hist[i].pos[1] = curr_y;
+//        steps_hist[i].heading = heading;
         /*
          * if any step in steps_hist makes the turtle go offscreen,
          *  fix the current step data for the next draw iteration by
