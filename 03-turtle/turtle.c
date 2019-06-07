@@ -1,30 +1,13 @@
 /*
  *
- * point.c - simple GLUT app that draws one frame with a single point at origin
+ * turtle.c - simple GLUT app that provides turtle graphics
  *
- * To build:  gcc -framework OpenGL -framework GLUT point.c -o point
+ * To build:  'make build' within the current directory.
  *
  */
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
-#endif
+#include "turtle.h"
 
-/*************************************************************************/
-/* header files                                                          */
-/*************************************************************************/
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <limits.h>
-#include <stdio.h>
 
-/*************************************************************************/
-/* defines                                                               */
-/*************************************************************************/
-#define PI 3.1415926
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -32,9 +15,17 @@ int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 
+//typedef Turtle = struct {
+//    float curr_x;
+//    float curr_y;
+//    float heading;
+//}
+
 float curr_x = 0;
 float curr_y = 0;
 float heading = 90;
+
+int counter = 0;
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -76,6 +67,9 @@ void draw_line( float startx, float starty, float endx, float endy )
     
 }
 
+/*************************************************************************/
+/* turtle functions                                                     */
+/*************************************************************************/
 /*
  * return turtle to origin (0, 0) with heading 90 deg.
  */
@@ -98,7 +92,6 @@ void right(float angle)
     else if(heading < 0) {
         heading += 360;
     }
-//    printf("angle: %f\n", heading);
 }
 
 /*
@@ -136,154 +129,6 @@ void set_xy(float x, float y)
     curr_y = y;
 }
 
-/*
- * draw a square with side length len.
- */
-void draw_square(float len)
-{
-    for(int i = 0; i < 4; i++)
-    {
-        forward(len);
-        right(90);
-    }
-}
-
-/* draw a pinwheel of squares length 100 */
-void draw_pinwheel(void)
-{
-        for(int i = 0; i < 360; i+= 10)
-        {
-            draw_square(100);
-            right(10);
-        }
-}
-
-/* draw a recursive square pattern */
-void draw_square_rec (float len)
-{
-    if (len < 10) return;
-    for(int i = 0; i < 360; i+= 10)
-    {
-        forward(len);
-        draw_square_rec(len / 2.0);
-        right(90);
-    }
-}
-
-/* draw a circle with the specified radius */
-void draw_circle (float radius)
-{
-    float circumference = 2 * PI * radius;
-    float theta = 360.0 / circumference;
-    set_xy(radius, 0);
-    for(float i = 0; i < circumference; i++)
-    {
-        forward(1);
-        left(theta);
-    }
-}
-
-/* draw a spiral with the specified radius */
-void draw_spiral (float radius, int num_spirals)
-{
-    float circumference = 2 * PI * radius;
-    float theta = 360.0 / circumference;
-    set_xy(radius, 0);
-//    printf("C = %f\ntheta = %f\n", circumference, theta);
-//    int counter = 0;
-    float d_step = 1.0/(num_spirals * circumference);
-    for(float step = 1; step >= 0; step -= d_step)
-    {
-        forward(step);
-        left(theta);
-//        counter++;
-//        if(heading < 90.3 && heading > 89.7)
-//        {
-//            printf("counter: %i\n step: %f\n", counter, step);
-//            counter = 0;
-//        }
-    }
-}
-
-/* draw a star with length 'len' */
-void draw_star (float len)
-{
-    for(int i = 0; i < 5; i++)
-    {
-        forward(len);
-        right(144);
-    }
-}
-
-/* draw a V with 60 deg angle between two sides of length 'len' */
-void draw_V (float len)
-{
-    float theta = 30;
-    left(theta);
-    forward(len);
-    backward(len);
-    right(2 * theta);
-    forward(len);
-    backward(len);
-}
-
-/* draw witch hat centered (horizontally) at the origin, with edges length 'len' */
-void draw_witch_hat (float len)
-{
-    float dx = -1.5 * len;
-    set_xy(dx, 0);
-//    printf("(%f, %f)\n", curr_x, curr_y);
-    right(90);
-    forward(len);
-    left(60);
-    forward(len);
-    right(120);
-    forward(len);
-    left(60);
-    forward(len);
-}
-/* draw triangle with side length 'len' */
-void draw_equil_tri (float len)
-{
-    right(30);
-    for(int i = 0; i < 3; i++)
-    {
-        forward(len);
-        right(120);
-    }
-    left(30);//heading back to 90
-    
-}
-/* draw pentagon with side length 'len' */
-void draw_pent (float len)
-{
-    float d_theta = 108 - heading;
-    left(d_theta); //should be 108 - 90
-    for(int i = 0; i < 5; i++)
-    {
-        forward(len);
-        right(72);
-    }
-    right(d_theta);
-}
-/* draw n-sided polygon with side length 'len' */
-void draw_n_gon (int n, float len)
-{
-    float extern_angle = 360.0 / (float) n;
-    float intern_angle = 180 - extern_angle;
-    
-    float d_theta = intern_angle - heading;
-    float d_x = len / -2.0;
-    set_xy(d_x, 0);
-    left(d_theta);
-    for(int i = 0; i < n; i++)
-    {
-        forward(len);
-        right(extern_angle);
-    }
-    right(d_theta);
-
-}
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -293,14 +138,19 @@ void draw_n_gon (int n, float len)
  */
 void display(void)
 {
+    /*
+     * Necessary for Mojave.
+     *  Input to glutReshapeWindow has to be different dimensions
+     *  than in glutInitWindowSize();
+    */
     if( Mojave_WorkAround )
     {
-        glutReshapeWindow(2 * window_size,2 * window_size);//Necessary for Mojave. Has to be different dimensions than in glutInitWindowSize();
+        glutReshapeWindow(2 * window_size,2 * window_size);
         Mojave_WorkAround = 0;
+        
     }
 
-    if( draw_one_frame == 0 )
-        return;
+    if( draw_one_frame == 0 ) return;
 	
     /*
      * clear color buffer
@@ -310,7 +160,7 @@ void display(void)
     /*
      * draw points
      */
-    home();
+//    home();
 //    draw_square(100);
 //    draw_pinwheel();
 //    draw_square_rec(100);
@@ -321,14 +171,19 @@ void display(void)
 //    draw_witch_hat(100);
 //    draw_equil_tri(100);
 //    draw_pent(100);
-    for(int i = 6; i < 10; i++) {
-        draw_n_gon(i, 100);
-    }
+//    for(int i = 6; i < 10; i++) {
+//        draw_n_gon(i, 100);
+//    }
+    
+//    draw_random_shape();
+    
+    draw_random_walk(counter++);
+
     /*
      * show results
      */
     glutSwapBuffers();
-    glutPostRedisplay();//Necessary for Mojave.
+    glutPostRedisplay(); // Necessary for Mojave.
 
     draw_one_frame = 0;
 }
@@ -346,6 +201,10 @@ static void Key(unsigned char key, int x, int y)
     }
 }
 
+void my_glInit(void)
+{
+    
+}
 /*
  * main function
  */
@@ -375,10 +234,15 @@ int main(int argc, char **argv)
     glPointSize(2.0);
     glColor4f(1.0,0.0,0.0,1.0);
 
+    do_random_walk();
+
     /*
      * start loop that calls display() and Key() routines
      */
+    
     glutMainLoop();
+//    glutIdleFunc (idle);
+
 
     return 0;
 }
