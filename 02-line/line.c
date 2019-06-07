@@ -200,9 +200,9 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     }
 }
 
-void draw_line_solid_color(float start_x, float start_y,
-                           float end_x, float end_y,
-                           float )
+//void draw_line_solid_color(float start_x, float start_y,
+//                           float end_x, float end_y,
+//                           float )
 
 /* draw a fan of lines */
 void draw_fan (void)
@@ -281,7 +281,9 @@ void display(void)
     if( Mojave_WorkAround )
     {
         glutReshapeWindow(2 * window_size,2 * window_size);//Necessary for Mojave. Has to be different dimensions than in glutInitWindowSize();
-        Mojave_WorkAround = 0;
+//        glutPollEvents();
+		printf("mojave workaround\n");
+		Mojave_WorkAround = 0;
     }
 
     if( draw_one_frame == 0 )
@@ -295,18 +297,20 @@ void display(void)
     /*
      * draw points
      */
-    if (draw_prog == 'r' )
-    {
-        draw_random_line();
-    }
-    else if (draw_prog == 'g')
-    {
-        draw_coord_grid();
-    }
-    else if (draw_prog == 'f')
-    {
-        draw_fan();
-    }
+    draw_random_line();
+    printf("line drawing\n");
+//    if (draw_prog == 'r' )
+//    {
+//        draw_random_line();
+//    }
+//    else if (draw_prog == 'g')
+//    {
+//        draw_coord_grid();
+//    }
+//    else if (draw_prog == 'f')
+//    {
+//        draw_fan();
+//    }
     
     
 //    draw_line(100, 200, -100, -200, 1, 0, 0, 0, 0, 1);
@@ -333,21 +337,21 @@ static void Key(unsigned char key, int x, int y)
         case 'a':       draw_one_frame = 1;     glutPostRedisplay();    break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
-        case 'r':
-            draw_prog = 'r';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
-        case 'f':
-            draw_prog = 'f';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
-        case 'g':
-            draw_prog = 'g';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
+//        case 'r':
+//            draw_prog = 'r';
+//            draw_one_frame = 1;
+//            glutPostRedisplay();
+//            break;
+//        case 'f':
+//            draw_prog = 'f';
+//            draw_one_frame = 1;
+//            glutPostRedisplay();
+//            break;
+//        case 'g':
+//            draw_prog = 'g';
+//            draw_one_frame = 1;
+//            glutPostRedisplay();
+//            break;
     }
 }
 
