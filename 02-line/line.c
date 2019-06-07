@@ -336,8 +336,6 @@ void display(void)
     if( Mojave_WorkAround )
     {
         glutReshapeWindow(2 * window_size,2 * window_size);//Necessary for Mojave. Has to be different dimensions than in glutInitWindowSize();
-//        glutPollEvents();
-		printf("mojave workaround\n");
 		Mojave_WorkAround = 0;
     }
 
