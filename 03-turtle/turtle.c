@@ -26,7 +26,8 @@ float curr_y = 0;
 float heading = 90;
 
 int counter = 0;
-double clk;
+time_t clk;
+float start;
 
 
 /*************************************************************************/
@@ -157,41 +158,23 @@ void display(void)
     }
 
     if( draw_one_frame == 0 ) return;
-	
-    /*
-     * clear color buffer
-     */
 
     /*
      * draw points
      */
     home();
     
-//    draw_square(100);
-//    draw_pinwheel();
-//    draw_square_rec(100);
-//    draw_circle(100);
-//    draw_spiral(100, 10);
-//    draw_star(100);
-//    draw_V(100, 60);
-//    draw_V_rec(random_float(100, 200));
-//    draw_witch_hat(100);
-//    draw_equil_tri(100);
-//    draw_pent(100);
-//    for(int i = 6; i < 10; i++) {
-//        draw_n_gon(i, 100);
-//    }
-    
-//    draw_random_shape();
-    
-//        draw_random_walk(counter++);
-    
-    double seconds = time(NULL);
-    float delta_s = seconds - clk;
+    time_t seconds = time(NULL);
+    double delta_s = difftime(seconds, clk);
 
-    printf("%.2f seconds\n", seconds);
+    printf("%.3f seconds\n", (double) delta_s);
     if(delta_s == 1)
+
     {
+    
+        float tm = (float)clock()/(float)CLOCKS_PER_SEC;
+//        printf("%.3f seconds\n", tm - start);
+
 //        glColor4f(random_float(0, 1), random_float(0, 1), random_float(0, 1), 1.0);
         counter++;
     }
@@ -244,6 +227,7 @@ void my_glInit(void)
  */
 int main(int argc, char **argv)
 {
+    clock_t stop;
     glutInit(&argc, argv);
     srand(time(NULL));
 
@@ -277,6 +261,7 @@ int main(int argc, char **argv)
      * start loop that calls display() and Key() routines
      */
     clk = time(NULL);
+    start = (float) clock() / (float) CLOCKS_PER_SEC;
     glutMainLoop();
 
 

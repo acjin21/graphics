@@ -15,6 +15,7 @@ extern float curr_y;
 struct step {
     float theta;
     float dist;
+    float color[4];
 };
 
 /*************************************************************************/
@@ -30,8 +31,15 @@ void do_random_walk (void)
     {
         float rand_theta = random_float(-360, 360);
         float rand_steps = random_float(20, 150);
-        struct step s = {rand_theta, rand_steps};
+        
+        float rand_r = random_float(0, 1);
+        float rand_g = random_float(0, 1);
+        float rand_b = random_float(0, 1);
+        
+        struct step s = {rand_theta, rand_steps, {rand_r, rand_g, rand_b, 1.0}};
         steps_hist[i] = s;
+        
+
         
     }
 }
@@ -42,6 +50,10 @@ void draw_random_walk (int idx)
     home();
     for(int i = 0; i <= idx; i++)
     {
+        glColor4f(steps_hist[i].color[0],
+                  steps_hist[i].color[1],
+                  steps_hist[i].color[2],
+                  steps_hist[i].color[3]);
         right(steps_hist[i].theta);
         forward(steps_hist[i].dist);
         /*
