@@ -45,6 +45,8 @@ extern void draw_V(float);
 extern void draw_V_rec(float);
 extern void draw_witch_hat(float);
 extern void draw_witch_hat_rec(float);
+extern void draw_wh_rec(float);
+
 extern void draw_equil_tri(float);
 extern void draw_pent(float);
 extern void draw_n_gon(int n, float len);

@@ -101,16 +101,21 @@ void draw_V_rec (float len)
     forward(len);
     right(theta);
     //now at top left vertex, heading = 90.
-    
+
     draw_V_rec (len / 2.0);
     
     //heading = 90 + theta (pointing to upper left)
     left(theta);
     backward(len);
-    //at vertex, pointing upper left
     right(2 * theta);
-    // @ vertex, pointing upper right
+    //at vertex, pointing upper left
     forward(len);
+    // @ vertex, pointing upper right
+    left(theta);
+     // @ top right vertex, heading = 90
+    draw_V_rec (len / 2.0);
+    // @ top right vertex, pointing upper right
+    right(theta);
     backward(len);
     left(theta);
 }
@@ -148,6 +153,22 @@ void draw_witch_hat_rec (float len)
     set_heading(90);
 }
 
+void draw_wh_rec (float len)
+{
+    if(len < 2) {
+        forward(len);
+        return;
+    }
+    draw_wh_rec(len/2.0);
+    left(60);
+    draw_wh_rec(len/2.0);
+    right(120);
+    draw_wh_rec(len/2.0);
+    left(60);
+    draw_wh_rec(len/2.0);
+}
+
+
 /* draw triangle with side length 'len' */
 void draw_equil_tri (float len)
 {
@@ -172,6 +193,7 @@ void draw_pent (float len)
     }
     right(d_theta);
 }
+
 /* draw n-sided polygon with side length 'len' */
 void draw_n_gon (int n, float len)
 {

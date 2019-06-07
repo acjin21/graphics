@@ -165,8 +165,8 @@ void display(void)
      * draw points
      */
     home();
-    clock_t t0 = clock();
-    printf
+//    clock_t t0 = clock();
+//    printf
 //    draw_square(100);
 //    draw_pinwheel();
 //    draw_square_rec(100);
@@ -184,9 +184,12 @@ void display(void)
 //    draw_random_shape();
     
 //    draw_random_walk(counter++);
-//    draw_V_rec(100);
-    set_xy(-300, 0);
-    draw_witch_hat_rec(100);
+    set_xy(-window_size/2.0, 0);
+    right(90);
+
+    draw_wh_rec(50);
+//    set_xy(-300, 0);
+//    draw_witch_hat_rec(100);
 
     /*
      * show results
