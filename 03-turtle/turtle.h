@@ -41,7 +41,7 @@ extern void draw_square_rec(float);
 extern void draw_circle(float);
 extern void draw_spiral(float r, int n_turns);
 extern void draw_star(float);
-extern void draw_V(float);
+extern void draw_V(float, float);
 extern void draw_V_rec(float);
 extern void draw_witch_hat(float);
 extern void draw_witch_hat_rec(float);

@@ -81,44 +81,57 @@ void draw_star (float len)
 }
 
 /* draw a V with 60 deg angle between two sides of length 'len' */
-void draw_V (float len)
+void draw_V (float len, float angle)
 {
-    float theta = 30;
-    left(theta);
+    if(len < 1.0) return;
+    
+    left(angle);
     forward(len);
+    draw_V(len / 2.0, angle);
+    left(angle);
     backward(len);
-    right(2 * theta);
+    
+    right(2 * angle);
     forward(len);
+    draw_V(len / 2.0, angle);
+    right(2 * angle);
     backward(len);
+    left(2 * angle);
 }
 
 void draw_V_rec (float len)
 {
-    if(len < 1.0) return;
-    float theta = 30;
+    if(len < 4) return;
+    float theta = random_float(3, 70);
+    float rand_l = random_float(0, 1);
+    float rand_r = random_float(0, 1);
+    float angle = 1.5 * theta;
+
     // heading = 90
-    left(theta);
-    forward(len);
-    right(theta);
+    left(angle / 2.0);
+    forward(len * rand_l);
+    right(angle / 2.0);
     //now at top left vertex, heading = 90.
 
-    draw_V_rec (len / 2.0);
+    draw_V_rec (len / (random_float(1, 3)));
     
     //heading = 90 + theta (pointing to upper left)
-    left(theta);
-    backward(len);
-    right(2 * theta);
+    left(angle / 2.0);
+    backward(len * rand_l);
     //at vertex, pointing upper left
-    forward(len);
+    right(angle);
     // @ vertex, pointing upper right
-    left(theta);
+
+    forward(len * rand_r);
+    left(angle / 2.0);
      // @ top right vertex, heading = 90
-    draw_V_rec (len / 2.0);
+    draw_V_rec (len / (random_float(1, 3)));
     // @ top right vertex, pointing upper right
-    right(theta);
-    backward(len);
-    left(theta);
+    right(angle / 2.0);
+    backward(len * rand_r);
+    left(angle / 2.0);
 }
+
 
 /* draw witch hat centered (horizontally) at the origin, with edges length 'len' */
 void draw_witch_hat (float len)

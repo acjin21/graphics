@@ -55,5 +55,6 @@ void draw_random_walk (int idx)
             steps_hist[i].dist = 0;
         }
     }
+  
     
 }

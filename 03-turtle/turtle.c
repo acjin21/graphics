@@ -26,6 +26,8 @@ float curr_y = 0;
 float heading = 90;
 
 int counter = 0;
+double clk;
+
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -159,21 +161,20 @@ void display(void)
     /*
      * clear color buffer
      */
-    glClear(GL_COLOR_BUFFER_BIT );
 
     /*
      * draw points
      */
     home();
-//    clock_t t0 = clock();
-//    printf
+    
 //    draw_square(100);
 //    draw_pinwheel();
 //    draw_square_rec(100);
 //    draw_circle(100);
 //    draw_spiral(100, 10);
 //    draw_star(100);
-//    draw_V(100);
+//    draw_V(100, 60);
+//    draw_V_rec(random_float(100, 200));
 //    draw_witch_hat(100);
 //    draw_equil_tri(100);
 //    draw_pent(100);
@@ -183,11 +184,32 @@ void display(void)
     
 //    draw_random_shape();
     
-//    draw_random_walk(counter++);
-    set_xy(-window_size/2.0, 0);
-    right(90);
+//        draw_random_walk(counter++);
+    
+    double seconds = time(NULL);
+    float delta_s = seconds - clk;
 
-    draw_wh_rec(50);
+    printf("%.2f seconds\n", seconds);
+    if(delta_s == 1)
+    {
+//        glColor4f(random_float(0, 1), random_float(0, 1), random_float(0, 1), 1.0);
+        counter++;
+    }
+    /* draw the 'current' frame */
+    glClear(GL_COLOR_BUFFER_BIT );
+    draw_random_walk(counter);
+    clk = seconds;
+    /* done drawing */
+    if(counter > 100)
+    {
+        printf("counter: %i\n", counter);
+        draw_one_frame = 0;
+    }
+    
+//    set_xy(-window_size/2.0, 0);
+//    right(90);
+//    draw_wh_rec(50);
+    
 //    set_xy(-300, 0);
 //    draw_witch_hat_rec(100);
 
@@ -197,7 +219,7 @@ void display(void)
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
 
-    draw_one_frame = 0;
+//    draw_one_frame = 0;
 }
 
 /*
@@ -249,11 +271,12 @@ int main(int argc, char **argv)
     /*
      * generate random walk data once before main rendering loop
      */
-//    do_random_walk();
+    do_random_walk();
 
     /*
      * start loop that calls display() and Key() routines
      */
+    clk = time(NULL);
     glutMainLoop();
 
 
