@@ -1,4 +1,5 @@
-
+#include "line.h"
+#include "vector.h"
 /*
  * draw arbitrary slope line given the two endpoints and
  *  starting/ending rgb values.
@@ -206,6 +207,120 @@ void draw_line_2 (POINT *p1, POINT *p2)
             draw_point(p.position[X], p.position[Y]);
             p.position[X] += step;
             p.position[Y]++;
+        }
+    }
+}
+
+/*
+ * draw arbitrary slope line given the two endpoints *p1 and *p2
+ *  with coordinate positions and rgba values
+ */
+void draw_line_3 (POINT *start, POINT *end)
+{
+    // overall change in position and in rgb values
+    POINT delta;
+    vector_subtract(end->position, start->position, delta.position);
+    
+    if( end->color[R] > 1.0 || start->color[R] < 0.0 ||
+       end->color[G] > 1.0 || start->color[G] < 0.0 ||
+       end->color[B] > 1.0 || start->color[B] < 0.0 )
+    {
+        printf("Please enter in valid rgb values in range [0.0, 1.0]\n");
+        return;
+    }
+    
+    int x_major = fabsf(delta.position[X]) > fabsf(delta.position[Y]);
+    
+    if((delta.position[X] < 0 && x_major ) ||
+       (delta.position[Y] < 0 && !x_major) )
+    {
+        SWAP_POINTS(start, end);
+        
+        /* recalculate delta */
+        vector_subtract(end->position, start->position, delta.position);
+    }
+    vector_subtract(end->color, start->color, delta.color);
+    
+    float step[4];
+    //scale for color interpolation
+    float scale[4];
+    float color[4];
+    POINT p;
+    
+    glColor4f(start->color[R], start->color[G], start->color[B], 1.0);
+    /* degenerate line = point */
+    if(delta.position[X] == 0 && delta.position[Y] == 0)
+    {
+        draw_point_2(&p);
+    }
+    /* horizontal line */
+    else if(delta.position[Y] == 0)
+    {
+        for(p = *start; p.position[X] < end->position[X];)
+        {
+            vector_subtract(p.position, start->position, scale);
+            scalar_divide(fabsf(delta.position[X]), scale, scale);
+            scalar_multiply(scale[X], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            p.position[X]++;
+        }
+    }
+    /* vertical line */
+    else if(delta.position[X] == 0)
+    {
+        for(p = *start; p.position[Y] < end->position[Y];)
+        {
+            vector_subtract(p.position, start->position, scale);
+            scalar_divide(fabsf(delta.position[Y]), scale, scale);
+            scalar_multiply(scale[Y], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            p.position[Y]++;
+        }
+    }
+    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
+    else if(x_major)
+    {
+        //        printf("xmajor\n");
+        //        step = dy / dx;
+        scalar_divide(fabsf(delta.position[X]), delta.position, step);
+        
+        for(p = *start; p.position[X] < end->position[X]; )
+        {
+            /* calculate scale based on X coordinate for color interp. */
+            vector_subtract(p.position, start->position, scale);
+            scalar_divide(fabsf(delta.position[X]), scale, scale);
+            scalar_multiply(scale[X], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            vector_add(p.position, step, p.position);
+        }
+    }
+    /* y-major diagonal line, i.e. |slope| > 1 */
+    else if (!x_major)
+    {
+        //        printf("ymajor\n");
+        //        step = dx / dy;
+        scalar_divide(fabsf(delta.position[Y]), delta.position, step);
+        
+        for(p = *start; p.position[Y] < end->position[Y];)
+        {
+            /* calculate scale based on Y coordinate for color interp. */
+            vector_subtract(p.position, start->position, scale);
+            scalar_divide(fabsf(delta.position[Y]), scale, scale);
+            scalar_multiply(scale[Y], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            vector_add(p.position, step, p.position);
         }
     }
 }

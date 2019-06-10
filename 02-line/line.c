@@ -2,29 +2,6 @@
 #include "vector.h"
 
 /*************************************************************************/
-/* defines                                                               */
-/*************************************************************************/
-
-#define SWAP(p1, p2)  \
-{                   \
-    float tmp = p1->position[X];  \
-    p1->position[X] = p2->position[X];          \
-    p2->position[X] = tmp;        \
-    tmp = p1->position[Y];  \
-    p1->position[Y] = p2->position[Y];          \
-    p2->position[Y] = tmp;        \
-    tmp = p1->color[R];  \
-    p1->color[R] = p2->color[R];          \
-    p2->color[R] = tmp;        \
-    tmp = p1->color[G];  \
-    p1->color[G] = p2->color[G];          \
-    p2->color[G] = tmp;        \
-    tmp = p1->color[B];  \
-    p1->color[B] = p2->color[B];          \
-    p2->color[B] = tmp;        \
-}
-
-/*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
 int window_size = 400;
@@ -56,7 +33,12 @@ void draw_point( float x, float y )
     glEnd();
 }
 
-
+void draw_point_2 (POINT *p)
+{
+    glBegin(GL_POINTS);
+        glVertex2f( p->position[X], p->position[Y]);
+    glEnd();
+}
 
 /*
  * set position of point *p to (x, y, z, w)
@@ -83,127 +65,7 @@ void set_color (POINT *p, float r, float g, float b, float a)
 /* draw_line                                                             */
 /*************************************************************************/
 
-/*
- * draw arbitrary slope line given the two endpoints *p1 and *p2
- *  with coordinate positions and rgba values
- */
-void draw_line_3 (POINT *start, POINT *end)
-{
-    // overall change in position and in rgb values
-    POINT delta;
-    vector_subtract(end->position, start->position, delta.position);
-    
-    if( end->color[R] > 1.0 || start->color[R] < 0.0 ||
-        end->color[G] > 1.0 || start->color[G] < 0.0 ||
-        end->color[B] > 1.0 || start->color[B] < 0.0 )
-    {
-        printf("Please enter in valid rgb values in range [0.0, 1.0]\n");
-        return;
-    }
-    
-    int x_major = fabsf(delta.position[X]) > fabsf(delta.position[Y]);
-    
-    if((delta.position[X] < 0 && x_major ) ||
-       (delta.position[Y] < 0 && !x_major) )
-    {
-        SWAP(start, end);
-        
-        /* recalculate delta */
-        vector_subtract(end->position, start->position, delta.position);
-    }
-    vector_subtract(end->color, start->color, delta.color);
-    
-    float step[4];
-    float scale[4];
-    float color[4];
-    POINT p;
-    
-    glColor4f(start->color[R], start->color[G], start->color[B], 1.0);
-    /* degenerate line = point */
-    if(delta.position[X] == 0 && delta.position[Y] == 0)
-    {
-        draw_point(p.position[X], p.position[Y]);
-    }
-    /* horizontal line */
-    else if(delta.position[Y] == 0)
-    {
-        for(p = *start; p.position[X] < end->position[X];)
-        {
-            vector_subtract(p.position, start->position, scale);
-            scalar_divide(fabsf(delta.position[X]), scale, scale);
-            
-//            float color[4];
-            scalar_multiply(scale[X], delta.color, color);
-            vector_add(p.color, color, color);
-            glColor4f(color[0], color[1], color[2], 1.0);
 
-            draw_point(p.position[X], p.position[Y]);
-            
-            p.position[X]++;
-        }
-    }
-    /* vertical line */
-    else if(delta.position[X] == 0)
-    {
-        for(p = *start; p.position[Y] < end->position[Y];)
-        {
-            vector_subtract(p.position, start->position, scale);
-            scalar_divide(fabsf(delta.position[Y]), scale, scale);
-            
-            
-            scalar_multiply(scale[Y], delta.color, color);
-            vector_add(p.color, color, color);
-            glColor4f(color[0], color[1], color[2], 1.0);
-            draw_point(p.position[X], p.position[Y]);
-            p.position[Y]++;
-        }
-    }
-    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
-    else if(x_major)
-    {
-        //        printf("xmajor\n");
-//        step = dy / dx;
-        scalar_divide(fabsf(delta.position[X]), delta.position, step);
-        
-        for(p = *start; p.position[X] < end->position[X]; )
-        {
-//            scale = (p.position[X] - p1->position[X])/dx;
-            vector_subtract(p.position, start->position, scale);
-            scalar_divide(fabsf(delta.position[X]), scale, scale);
-            
-//            glColor4f(p.color[R] + dr * scale, p.color[G] + dg * scale,
-//                      p.color[B] + db * scale, 1.0);
-            scalar_multiply(scale[Y], delta.color, color);
-            vector_add(p.color, color, color);
-            glColor4f(color[0], color[1], color[2], 1.0);
-            
-            draw_point(p.position[X], p.position[Y]);
-            
-            p.position[X] += step[X];
-            p.position[Y] += step[Y];        }
-    }
-    /* y-major diagonal line, i.e. |slope| > 1 */
-    else if (!x_major)
-    {
-        //        printf("ymajor\n");
-//        step = dx / dy;
-        scalar_divide(fabsf(delta.position[Y]), delta.position, step);
-
-        for(p = *start; p.position[Y] < end->position[Y];)
-        {
-            vector_subtract(p.position, start->position, scale);
-            scalar_divide(fabsf(delta.position[Y]), scale, scale);
-            
-            scalar_multiply(scale[Y], delta.color, color);
-            vector_add(p.color, color, color);
-            glColor4f(color[0], color[1], color[2], 1.0);
-            
-            draw_point(p.position[X], p.position[Y]);
-            p.position[X] += step[X];
-            p.position[Y] += step[Y];
-        }
-    }
-}
 
 
 /*************************************************************************/
@@ -257,7 +119,20 @@ void display(void)
         {-100, -200, 0, 0},
         {0, 0, 1, 1}
     };
-//    draw_line_3(&start, &end);
+    draw_line_3(&start, &end);
+    
+    POINT start2 = {
+        {-300, -100, 0, 0},
+        {1, 0, 0, 1}
+    };
+    
+    POINT end2 = {
+        {300, 100, 0, 0},
+        {0, 0, 1, 1}
+    };
+    draw_line_3(&start2, &end2);
+    
+    
     
 //    draw_line(-100, -300, 100, 300, 1, 0, 0, 0, 0, 1);
 //    draw_line(50, -1, -1, -200, 1, 0, 0, 0, 0, 1);

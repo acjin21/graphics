@@ -22,7 +22,36 @@
 #include <limits.h>
 #include <stdio.h>
 
+/*************************************************************************/
+/* defines                                                               */
+/*************************************************************************/
 #define PI 3.1415926
+
+#define SWAP(a,b)\
+{                   \
+float tmp = a;  \
+a = b;          \
+b = tmp;\
+}
+
+#define SWAP_POINTS(p1, p2)  \
+{                   \
+float tmp = p1->position[X];  \
+p1->position[X] = p2->position[X];          \
+p2->position[X] = tmp;        \
+tmp = p1->position[Y];  \
+p1->position[Y] = p2->position[Y];          \
+p2->position[Y] = tmp;        \
+tmp = p1->color[R];  \
+p1->color[R] = p2->color[R];          \
+p2->color[R] = tmp;        \
+tmp = p1->color[G];  \
+p1->color[G] = p2->color[G];          \
+p2->color[G] = tmp;        \
+tmp = p1->color[B];  \
+p1->color[B] = p2->color[B];          \
+p2->color[B] = tmp;        \
+}
 
 /*************************************************************************/
 /* structs                                                               */
@@ -45,6 +74,7 @@ extern int window_size;
 
 extern float random_float(int low, int high);
 extern void draw_point (float x, float y);
+extern void draw_point_2 (POINT *p);
 extern void set_position (POINT *p, float x, float y, float z, float w);
 extern void set_color (POINT *p, float r, float g, float b, float a);
 
