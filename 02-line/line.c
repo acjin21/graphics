@@ -1,5 +1,4 @@
 #include "line.h"
-
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -179,23 +178,107 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
  */
 void draw_line_2 (POINT *p1, POINT *p2)
 {
-    POINT tmp1 = *p1;
-    POINT tmp2 = *p2;
     
-    float start_x = tmp1.position[0];
-    float start_y = tmp1.position[1];
-    float end_x = tmp2.position[0];
-    float end_y = tmp2.position[1];
     
-    float start_r = tmp1.color[0];
-    float start_g = tmp1.color[1];
-    float start_b = tmp1.color[2];
-    float end_r = tmp2.color[0];
-    float end_g = tmp2.color[1];
-    float end_b = tmp2.color[2];
-    draw_line(start_x, start_y, end_x, end_y, start_r, start_g, start_b,
-              end_r, end_g, end_b);
-
+    float dy = p2->position[Y] - p1->position[Y];
+    float dx = p2->position[X] - p1->position[X];
+    
+    if( p2->color[R] > 1.0 || p1->color[R] < 0.0 ||
+        p2->color[G] > 1.0 || p1->color[G] < 0.0 ||
+        p2->color[B] > 1.0 || p1->color[B] < 0.0 )
+    {
+        printf("Please enter in valid rgb values in range [0.0, 1.0]\n");
+        return;
+    }
+    
+    int x_major = fabsf(dx) > fabsf(dy);
+    
+    if((dx < 0 && x_major )|| (dy < 0 && !x_major) )
+    {
+        SWAP(p1->position[X], p2->position[X]);
+        SWAP(p1->position[Y], p2->position[Y]);
+        SWAP(p1->color[R], p2->color[R]);
+        SWAP(p1->color[G], p2->color[G]);
+        SWAP(p1->color[B], p2->color[B]);
+        
+        /* recalculate deltas */
+        dy = p2->position[Y] - p1->position[Y];
+        dx = p2->position[X] - p1->position[X];
+    }
+    
+    float dr = p2->color[R] - p1->color[R];
+    float dg = p2->color[G] - p1->color[G];
+    float db = p2->color[B] - p1->color[B];
+    
+    float step;
+//    float x = p1->position[X];
+//    float y = p1->position[Y];
+    glColor4f(p1->color[R], p1->color[G], p1->color[B], 1.0);
+    float scale;
+    
+    POINT p = *p1;
+    /* degenerate line = point */
+    if(dx == 0 && dy == 0)
+    {
+        draw_point(p.position[X], p.position[Y]);
+    }
+    /* horizontal line */
+    else if(dy == 0)
+    {
+        for(; p.position[X] < p2->position[X];)
+        {
+            scale = (p.position[X] - p1->position[X])/dx;
+            glColor4f(p.color[R] + dr * scale, p.color[G] + dg * scale,
+                      p.color[B] + db * scale, 1.0);
+            draw_point(p.position[X], p.position[Y]);
+            
+            p.position[X]++;
+        }
+    }
+    /* vertical line */
+    else if(dx == 0)
+    {
+        for(; p.position[Y] < p2->position[Y];)
+        {
+            scale = (p.position[Y] - p1->position[Y])/dy;
+            glColor4f(p.color[R] + dr * scale, p.color[G] + dg * scale,
+                      p.color[B] + db * scale, 1.0);
+            draw_point(p.position[X], p.position[Y]);
+            
+            p.position[Y]++;
+        }
+    }
+    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
+    else if(x_major)
+    {
+        //        printf("xmajor\n");
+        step = dy / dx;
+        for(; p.position[X] < p2->position[X]; )
+        {
+            scale = (p.position[X] - p1->position[X])/dx;
+            glColor4f(p.color[R] + dr * scale, p.color[G] + dg * scale,
+                      p.color[B] + db * scale, 1.0);
+            draw_point(p.position[X], p.position[Y]);
+            
+            p.position[Y] += step;
+            p.position[X]++;
+        }
+    }
+    /* y-major diagonal line, i.e. |slope| > 1 */
+    else if (!x_major)
+    {
+        //        printf("ymajor\n");
+        step = dx / dy;
+        for(; p.position[Y] < p2->position[Y];)
+        {
+            scale = (p.position[Y] - p1->position[Y])/dy;
+            glColor4f(p.color[R] + dr * scale, p.color[G] + dg * scale,
+                      p.color[B] + db * scale, 1.0);
+            draw_point(p.position[X], p.position[Y]);
+            p.position[X] += step;
+            p.position[Y]++;
+        }
+    }
 }
 
 
