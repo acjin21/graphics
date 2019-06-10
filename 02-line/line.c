@@ -1,30 +1,8 @@
-/*
- *
- * point.c - simple GLUT app that draws one frame with a single point at origin
- *
- * To build:  gcc -framework OpenGL -framework GLUT line.c -o line
- *
- */
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
-#endif
-
-/*************************************************************************/
-/* header files                                                          */
-/*************************************************************************/
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <limits.h>
-#include <stdio.h>
+#include "line.h"
 
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
-#define PI 3.1415926
 
 #define SWAP(a, b)  \
 {                   \
@@ -32,14 +10,6 @@
     a = b;          \
     b = tmp;        \
 }
-
-/*************************************************************************/
-/* structs                                                               */
-/*************************************************************************/
-typedef struct point {
-    float position[4];
-    float color[4];
-} POINT;
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -74,36 +44,30 @@ void draw_point( float x, float y )
 
 }
 
-/* draw a horizontal line from origin to right side of screen. */
-void draw_horizontal(void)
+/*
+ * set position of point *p to (x, y, z, w)
+ */
+void set_position (POINT *p, float x, float y, float z, float w)
 {
-    int y = 0;
-    for(int x = 0; x < window_size; x++)
-    {
-        draw_point(x, y);
-    }
+    p->position[X] = x;
+    p->position[Y] = y;
+    p->position[Z] = z;
+    p->position[W] = w;
 }
 
-/* draw a vertical line from origin to top of screen. */
-void draw_vertical(void)
+/*
+ * set color of point *p to (r, g, b, a)
+ */
+void set_color (POINT *p, float r, float g, float b, float a)
 {
-    int x = 0;
-    for(int y = 0; y < window_size; y++)
-    {
-        draw_point(x, y);
-    }
+    p->color[R] = r;
+    p->color[G] = g;
+    p->color[B] = b;
+    p->color[A] = a;
 }
-
-/* draw a diagonal line from origin to top right corner of screen */
-void draw_diagonal(void)
-{
-    int y;
-    for(int x = 0; x < window_size; x++)
-    {
-        y = x;
-        draw_point(x, y);
-    }
-}
+/*************************************************************************/
+/* draw_line                                                             */
+/*************************************************************************/
 
 /*
  * draw arbitrary slope line given the two endpoints and
@@ -209,6 +173,10 @@ void draw_line (float start_x, float start_y, float end_x, float end_y,
     }
 }
 
+/*
+ * draw arbitrary slope line given the two endpoints *p1 and *p2
+ *  with coordinate positions and rgba values
+ */
 void draw_line_2 (POINT *p1, POINT *p2)
 {
     POINT tmp1 = *p1;
@@ -230,100 +198,8 @@ void draw_line_2 (POINT *p1, POINT *p2)
 
 }
 
-//void draw_line_solid_color(float start_x, float start_y,
-//                           float end_x, float end_y,
-//                           float )
 
-/* draw a fan of lines */
-void draw_fan (void)
-{
-    glPointSize(1.0);
-    float r = window_size;
-    for(float i = 0; i < 800; i++)
-    {
-        float theta = (i/800.0) * PI;
-        float end_x = r * cos(theta);
-        float end_y = r * sin(theta);
-        float rand_r = random_float(0, 1);
-        float rand_g = random_float(0, 1);
-        float rand_b = random_float(0, 1);
 
-        POINT p1 =
-        {
-            {0,0,0,0},
-            {rand_r, rand_g, rand_b}
-        };
-        
-        POINT p2 =
-        {
-            {end_x, end_y, 0, 0},
-            {rand_r, rand_g, rand_b}
-            
-        };
-        draw_line_2(&p1, &p2);
-//        draw_line(0, 0, end_x, end_y, rand_r, rand_g, rand_b, rand_r, rand_g, rand_b);
-    }
-}
-
-/* draw random line with random color and random size */
-void draw_random_line (void)
-{
-    float start_x = random_float(-400, 400);
-    float start_y = random_float(-400, 400);
-    float end_x = random_float(-400, 400);
-    float end_y = random_float(-400, 400);
-
-    float start_r = random_float(0, 1);
-    float start_g = random_float(0, 1);
-    float start_b = random_float(0, 1);
-    float end_r = random_float(0, 1);
-    float end_g = random_float(0, 1);
-    float end_b = random_float(0, 1);
-
-    POINT p1 =
-    {
-        {start_x, start_y, 0, 0},
-        {start_r, start_g, start_b, 1}
-        
-    };
-    
-    POINT p2 =
-    {
-        {end_x, end_y, 0, 0},
-        {end_r, end_g, end_b, 1}
-    };
-
-    glPointSize(random_float(4, 10));
-    draw_line_2(&p1, &p2);
-}
-
-/* draw coordinate grid filling the window */
-void draw_coord_grid(void)
-{
-    /* set white background */
-    glClearColor(1.0,1.0,1.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT );
-
-    glPointSize(1);
-    float x, y;
-    for(int i = 0; i < 2 * window_size; i+=20)
-    {
-        x = i - window_size;
-        y = i - window_size;
-        if(i == window_size) //draw red axes
-        {
-            glPointSize(2);
-            draw_line(-400, y, 399, y, 1, 0, 0, 1, 0, 0);
-            draw_line(x, -400, x, 399, 1, 0, 0, 1, 0, 0);
-            glPointSize(1);
-        }
-        else
-        {
-            draw_line(-400, y, 399, y, 0, 0, 0, 0, 0, 0);
-            draw_line(x, -400, x, 399, 0, 0, 0, 0, 0, 0);
-        }
-    }
-}
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -353,18 +229,18 @@ void display(void)
 //    draw_random_line();
 //    printf("line drawing\n");
     
-//    if (draw_prog == 'r' )
-//    {
-//        draw_random_line();
-//    }
-//    else if (draw_prog == 'g')
-//    {
-//        draw_coord_grid();
-//    }
-//    else if (draw_prog == 'f')
-//    {
+    if (draw_prog == 'r' )
+    {
+        draw_random_line();
+    }
+    else if (draw_prog == 'g')
+    {
+        draw_coord_grid();
+    }
+    else if (draw_prog == 'f')
+    {
         draw_fan();
-//    }
+    }
     
     
 //    draw_line(100, 200, -100, -200, 1, 0, 0, 0, 0, 1);
@@ -391,21 +267,21 @@ static void Key(unsigned char key, int x, int y)
         case 'a':       draw_one_frame = 1;     glutPostRedisplay();    break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
-//        case 'r':
-//            draw_prog = 'r';
-//            draw_one_frame = 1;
-//            glutPostRedisplay();
-//            break;
-//        case 'f':
-//            draw_prog = 'f';
-//            draw_one_frame = 1;
-//            glutPostRedisplay();
-//            break;
-//        case 'g':
-//            draw_prog = 'g';
-//            draw_one_frame = 1;
-//            glutPostRedisplay();
-//            break;
+        case 'r':
+            draw_prog = 'r';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
+        case 'f':
+            draw_prog = 'f';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
+        case 'g':
+            draw_prog = 'g';
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            break;
     }
 }
 
