@@ -57,7 +57,7 @@ void draw_fan (void)
             {rand_r, rand_g, rand_b}
             
         };
-        draw_line_2(&p1, &p2);
+        draw_line_3(&p1, &p2);
         //        draw_line(0, 0, end_x, end_y, rand_r, rand_g, rand_b, rand_r, rand_g, rand_b);
     }
 }
@@ -91,7 +91,7 @@ void draw_random_line (void)
     };
     
     glPointSize(random_float(4, 10));
-    draw_line_2(&p1, &p2);
+    draw_line_3(&p1, &p2);
 }
 
 /* draw coordinate grid filling the window */
@@ -131,10 +131,10 @@ void draw_coord_grid(void)
 
         set_position(&p1, -400, y, 0, 0);
         set_position(&p2, 399, y, 0, 0);
-        draw_line_2(&p1, &p2);
-        
+        draw_line_3(&p1, &p2);
+
         set_position(&p1, x, -400, 0, 0);
         set_position(&p2, x, 399, 0, 0);
-        draw_line_2(&p1, &p2);
+        draw_line_3(&p1, &p2);
     }
 }

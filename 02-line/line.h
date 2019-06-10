@@ -56,5 +56,6 @@ extern void draw_line (float start_x, float start_y, float end_x, float end_y,
                        float start_r, float start_g, float start_b,
                        float end_r, float end_g, float end_b);
 extern void draw_line_2 (POINT *p1, POINT *p2);
+extern void draw_line_3 (POINT *p1, POINT *p2);
 
 
