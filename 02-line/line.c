@@ -2,6 +2,12 @@
 #include "vector.h"
 
 /*************************************************************************/
+/* defines                                                               */
+/*************************************************************************/
+#define DRAW 0
+#define WALK 1
+
+/*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
 int window_size = 400;
@@ -61,10 +67,234 @@ void set_color (POINT *p, float r, float g, float b, float a)
     p->color[B] = b;
     p->color[A] = a;
 }
+
+void print_point (POINT *p)
+{
+    printf("POINT: (%.2f, %.2f)\n", p->position[X], p->position[Y]);
+}
+
 /*************************************************************************/
 /* draw_line                                                             */
 /*************************************************************************/
+int span[800][2];
+int edge_counts[800];
 
+void print_edge_counts (void)
+{
+    for(int i = 0; i < 800; i++)
+    {
+        printf("row %i, y = %i, count = %i\n", i, i - 400, edge_counts[i]);
+    }
+}
+void print_span (int start, int end)
+{
+    for(int i = start; i < end; i++)
+    {
+        printf("y = %i, [0] = %i, [1] = %i, count = %i\n", i, span[i+400][0], span[i+400][1], edge_counts[i + 400]);
+
+    }
+}
+void reset_edge_counts (void)
+{
+    for(int i = 0; i < 800; i++)
+    {
+        edge_counts[i] = 0;
+    }
+}
+
+/* draw_line with DRAW and WALK modes */
+void draw_line_modal (POINT *p1, POINT *p2, int mode)
+{
+    POINT start = *p1;
+    POINT end = *p2;
+    printf("\n/************************************/\n /* draw ---- start: (%.2f, %.2f) || end: (%.2f, %.2f) */\n/************************************/\n",
+           start.position[X], start.position[Y],
+           end.position[X], end.position[Y]);
+    
+    // overall change in position and in rgb values
+    POINT delta;
+    vector_subtract(end.position, start.position, delta.position);
+    
+    
+    
+    int x_major = fabsf(delta.position[X]) > fabsf(delta.position[Y]);
+    
+    if((delta.position[X] < 0 && x_major ) ||
+       (delta.position[Y] < 0 && !x_major) )
+    {
+        printf("SWAP\n");
+        SWAP(start.position[X], end.position[X]);
+        SWAP(start.position[Y], end.position[Y]);
+        SWAP(start.color[R], end.color[R]);
+        SWAP(start.color[G], end.color[G]);
+        SWAP(start.color[B], end.color[B]);
+        
+        
+        /* recalculate delta */
+        vector_subtract(end.position, start.position, delta.position);
+    }
+    vector_subtract(end.color, start.color, delta.color);
+    
+    float step[4];
+    //scale for color interpolation
+    float scale[4];
+    float color[4];
+    POINT p;
+    
+    glColor4f(start.color[R], start.color[G], start.color[B], 1.0);
+    /* degenerate line = point */
+    if(delta.position[X] == 0 && delta.position[Y] == 0)
+    {
+        draw_point_2(&p);
+    }
+    /* horizontal line */
+    else if(delta.position[Y] == 0)
+    {
+        for(p = start; p.position[X] < end.position[X];)
+        {
+            vector_subtract(p.position, start.position, scale);
+            scalar_divide(fabsf(delta.position[X]), scale, scale);
+            scalar_multiply(scale[X], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            p.position[X]++;
+        }
+    }
+    /* vertical line */
+    else if(delta.position[X] == 0)
+    {
+        for(p = start; p.position[Y] < end.position[Y];)
+        {
+            vector_subtract(p.position, start.position, scale);
+            scalar_divide(fabsf(delta.position[Y]), scale, scale);
+            scalar_multiply(scale[Y], delta.color, color);
+            vector_add(p.color, color, color);
+            glColor4f(color[0], color[1], color[2], 1.0);
+            
+            draw_point_2(&p);
+            p.position[Y]++;
+        }
+    }
+    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
+    else if(x_major)
+    {
+        printf("xmajor\n");
+        scalar_divide(fabsf(delta.position[X]), delta.position, step); // dy/dx
+        
+        for(p =  start; p.position[X] < end.position[X]; )
+        {
+            /* calculate scale based on X coordinate for color interp. */
+            vector_subtract(p.position, start.position, scale);
+            scalar_divide(fabsf(delta.position[X]), scale, scale);
+            scalar_multiply(scale[X], delta.color, color);
+            vector_add(p.color, color, color);
+            if (mode == DRAW)
+            {
+                glColor4f(color[0], color[1], color[2], 1.0);
+                draw_point_2(&p);
+            }
+
+            vector_add(p.position, step, p.position);
+        }
+    }
+    /* y-major diagonal line, i.e. |slope| > 1 */
+    else
+    {
+        
+        scalar_divide(fabsf(delta.position[Y]), delta.position, step); // dx/dy
+        
+        for(p = start; (int) p.position[Y] < (int)end.position[Y];)
+        {
+            /* calculate scale based on Y coordinate for color interp. */
+            vector_subtract(p.position, start.position, scale);
+            scalar_divide(fabsf(delta.position[Y]), scale, scale);
+            scalar_multiply(scale[Y], delta.color, color);
+            vector_add(p.color, color, color);
+            
+            if (mode == DRAW)
+            {
+                glColor4f(color[0], color[1], color[2], 1.0);
+                draw_point_2(&p);
+            }
+            else if (mode == WALK)
+            {
+                int row = (int) p.position[Y] + 400;
+                int count = edge_counts[row];
+                
+                /* sanity check */
+                if(count < 0 || count > 2)
+                {
+//                    printf("draw_line_modal (row %f): count = %i, out of bounds\n",
+//                           p.position[Y], count);
+//                    print_edge_counts();
+                }
+//                print_edge_counts();
+
+                //fill in the walk data
+//                printf("adding (%.2f, %.2f) to span[%i][%i]\n", p.position[X], p.position[Y], row, count);
+                span[row][count] = (int) p.position[X];
+                edge_counts[row]++;
+            }
+            vector_add(p.position, step, p.position);
+        }
+    }
+}
+
+void draw_spans(void)
+{
+    for(int r = 0; r < 800; r++)
+    {
+        int start_x = span[r][0];
+        
+        int count = edge_counts[r];
+        
+        if(count == 0) continue;
+        if(count == 1) {
+            draw_point(span[r][0], r-400);
+        }
+        else {
+            int end_x = span[r][count-1];
+            for(int c = start_x; c < end_x; c++)
+            {
+                draw_point(c, r - 400);
+            }
+            for(int c = start_x; c > end_x; c--)
+            {
+                draw_point(c, r - 400);
+            }
+        }
+        
+    }
+}
+
+void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
+{
+//    print_edge_counts();
+    reset_edge_counts();
+//    print_edge_counts();
+    print_point(v0);
+    print_point(v1);
+    print_point(v2);
+    
+//    draw_line_modal(v0, v1, 0);
+//    draw_line_modal(v2, v1, 0);
+//    draw_line_modal(v0, v2, 0);
+
+    draw_line_modal(v0, v1, 1);
+//    print_span(-100, 400);
+
+    draw_line_modal(v2, v1, 1);
+//    draw_line_modal(v1, v2, 1);
+
+//    print_span(-100, 400);
+
+    draw_line_modal(v2, v0, 1);
+//    print_span(-100, 400);
+
+    draw_spans();
+}
 
 
 
@@ -90,49 +320,115 @@ void display(void)
      * clear color buffer
      */
     glClear(GL_COLOR_BUFFER_BIT );
-
+    
+    POINT p1 =
+    {
+        {0, 0, 0, 0},
+        {1, 0, 0, 1}
+    };
+    
+    POINT p2 =
+    {
+        {0, 0, 0, 0},
+        {1, 0, 0, 1}
+    };
+    
+    set_position(&p1, -400, 0, 0, 0);
+    set_position(&p2, 399, 0, 0, 0);
+    draw_line_3(&p1, &p2);
+    
+    set_position(&p1, 0, -400, 0, 0);
+    set_position(&p2, 0, 399, 0, 0);
+    draw_line_3(&p1, &p2);
+    
+    set_position(&p1, -400, 300, 0, 0);
+    set_position(&p2, 399, 300, 0, 0);
+    draw_line_3(&p1, &p2);
+    
     /*
      * draw points
      */
 //    draw_random_line();
 //    printf("line drawing\n");
     
-    if (draw_prog == 'r' )
-    {
-        draw_random_line();
-    }
-    else if (draw_prog == 'g')
-    {
-        draw_coord_grid();
-    }
-    else if (draw_prog == 'f')
-    {
-        draw_fan();
-    }
+//    if (draw_prog == 'r' )
+//    {
+//        draw_random_line();
+//    }
+//    else if (draw_prog == 'g')
+//    {
+//        draw_coord_grid();
+//    }
+//    else if (draw_prog == 'f')
+//    {
+//        draw_fan();
+//    }
+//
+//    POINT start = {
+//        {100, 200, 0, 0},
+//        {1, 0, 0, 1}
+//    };
+//
+//    POINT end = {
+//        {-100, -200, 0, 0},
+//        {0, 0, 1, 1}
+//    };
+//    draw_line_3(&start, &end);
+//
+//    POINT start2 = {
+//        {-300, -100, 0, 0},
+//        {1, 0, 0, 1}
+//    };
+//
+//    POINT end2 = {
+//        {300, 100, 0, 0},
+//        {0, 0, 1, 1}
+//    };
+//    draw_line_3(&start2, &end2);
     
-    POINT start = {
-        {100, 200, 0, 0},
-        {1, 0, 0, 1}
+    
+    /*********************/
+    /* two y-major edges */
+    /*********************/
+
+    POINT v0 = {
+        {200, -200, 0, 0},
+        {1, 1, 1, 1}
     };
-    
-    POINT end = {
-        {-100, -200, 0, 0},
-        {0, 0, 1, 1}
+
+    POINT v1 = {
+        {-200, -100, 0, 0},
+        {1, 1, 1, 1}
     };
-    draw_line_3(&start, &end);
-    
-    POINT start2 = {
-        {-300, -100, 0, 0},
-        {1, 0, 0, 1}
+
+    POINT v2 = {
+        {-100, 400, 0, 0},
+        {1, 1, 1, 1}
     };
+//    draw_triangle(&v0, &v1, &v2);
     
-    POINT end2 = {
-        {300, 100, 0, 0},
-        {0, 0, 1, 1}
-    };
-    draw_line_3(&start2, &end2);
-    
-    
+//    POINT v0 = {
+//        {0, 400, 0, 0},
+//        {1, 0, 1, 1}
+//    };
+//
+//    POINT v1 = {
+//        {-100, 100, 0, 0},
+//        {1, 0, 1, 1}
+//    };
+//
+//    POINT v2 = {
+//        {150, -300, 0, 0},
+//        {1, 0, 1, 1}
+//    };
+    draw_triangle(&v0, &v1, &v2);
+//    draw_triangle(&v0, &v2, &v1);
+//    draw_triangle(&v1, &v0, &v2);
+//    draw_triangle(&v1, &v2, &v0);
+//    draw_triangle(&v2, &v0, &v1);
+//    draw_triangle(&v2, &v1, &v0);
+
+
     
 //    draw_line(-100, -300, 100, 300, 1, 0, 0, 0, 0, 1);
 //    draw_line(50, -1, -1, -200, 1, 0, 0, 0, 0, 1);
