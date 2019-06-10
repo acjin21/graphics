@@ -10,6 +10,7 @@
 #include <time.h>
 
 #define FPS 60.0
+#define NUM_WALKS 100
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -54,13 +55,14 @@ void draw_point( float x, float y )
 }
 
 /*
- * draw_point()
+ * draw_line()
  */
 void draw_line( float startx, float starty, float endx, float endy )
 {
     /*
      * draw points
      */
+    
     glBegin(GL_LINES);
         glVertex2f( startx, starty );
         glVertex2f( endx, endy );
@@ -135,6 +137,36 @@ void set_heading(float theta)
     heading = theta;
 }
 
+void run_turtle (void)
+{
+    /* turtle clock */
+    if(display_timer % 60 == 0)
+    {
+        counter++;
+        
+        /* if number of line segments >= 5,
+         delete oldest segment so there are
+         only ever 5 line segments on the screen. */
+        if (counter >= 5) head++;
+//        if(counter >= 5 && counter % 9 == 0 && counter != 0){
+//            head++;
+//        }
+    }
+    
+    /* draw the 'current' frame */
+    glClear(GL_COLOR_BUFFER_BIT );
+//    printf("head: %i, tail: %i\n", head % 10, counter % 10);
+    draw_random_walk(head, counter);
+    
+    /* done drawing */
+    if(counter >= NUM_WALKS - 1) {
+//        do_random_walk();
+//        head = 0;
+//        counter = 0;
+        draw_one_frame = 0;
+    }
+}
+
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -143,7 +175,6 @@ void set_heading(float theta)
  */
 void display(void)
 {
-    display_timer++; //increases once every GLdisplay iteration
     /*
      * Necessary for Mojave.
      *  Input to glutReshapeWindow has to be different dimensions
@@ -153,43 +184,20 @@ void display(void)
     {
         glutReshapeWindow(2 * window_size,2 * window_size);
         Mojave_WorkAround = 0;
-        
     }
 
     if( draw_one_frame == 0 ) return;
 
-    /*
-     * draw points
-     */
-//    home();
+    display_timer++; //increases once every GLdisplay iteration
     
     time_t seconds = time(NULL);
     int delta_s = (int) difftime(seconds, start);
-    if (delta_s != last_sec)
-    {
-        last_sec = delta_s;
-        printf("%i seconds\n", (int) delta_s);
-    }
-    if(display_timer % 60 == 0)
-    {
-        printf("counter: %i\n", counter);
-        counter++;
-        if(counter >= 5){
-            head++;
-        }
-        printf("head: %i, tail: %i\n", head, counter);
-
-    }
-    /* draw the 'current' frame */
-    glClear(GL_COLOR_BUFFER_BIT );
     
-    /* done drawing */
-    if(counter >= 100) {
-        draw_one_frame = 0;
-    }
-    draw_random_walk(0, counter);
+    /* if 1 second has passed, update the last second seen */
+    if (delta_s != last_sec) last_sec = delta_s;
+    
+    run_turtle();
 
-//    if(
    
     
 //    set_xy(-window_size/2.0, 0);
@@ -248,9 +256,10 @@ int main(int argc, char **argv)
     /*
      * setup OpenGL state
      */
-    glClearColor(0.0,0.0,0.0,1.0);
+    glClearColor(1.0,1.0,1.0,1.0);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-    glPointSize(2.0);
+//    glPointSize(5.0);
+    glLineWidth(3.0);
     glColor4f(1.0,0.0,0.0,1.0);
 
     /*
