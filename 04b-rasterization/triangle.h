@@ -34,7 +34,7 @@
 
 #define SWAP(a,b)\
 {                   \
-float tmp = a;  \
+POINT *tmp = a;  \
 a = b;          \
 b = tmp;\
 }

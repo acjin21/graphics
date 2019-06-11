@@ -153,15 +153,15 @@ void draw_random_triangle (void)
 void draw_tri_test (void)
 {
     
-    draw_one_tri_test(0, 1, 2);
-    draw_one_tri_test(3, 4, 5);
-    draw_one_tri_test(6, 7, 8);
-    draw_one_tri_test(9, 10, 11);
-    draw_one_tri_test(12, 13, 14);
-    draw_one_tri_test(15, 16, 17);
+//    draw_one_tri_test(0, 1, 2);
+//    draw_one_tri_test(3, 4, 5);
+//    draw_one_tri_test(6, 7, 8);
+//    draw_one_tri_test(9, 10, 11);
+//    draw_one_tri_test(12, 13, 14);
+//    draw_one_tri_test(15, 16, 17);
 //    random_tests();
     
-//    draw_random_triangle();
+    draw_random_triangle();
     
     /*********************/
     /* draw calls        */

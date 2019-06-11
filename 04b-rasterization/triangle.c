@@ -120,7 +120,6 @@ void reset_edge_counts (void)
 /* draw_line with DRAW and WALK modes */
 void draw_line_modal (POINT *p1, POINT *p2, int mode)
 {
-    
     POINT start = *p1;
     POINT end = *p2;
     POINT delta;
@@ -128,57 +127,48 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     
     // overall change in position and in rgb values
     vector_subtract(end.position, start.position, delta.position);
-    int x_major = ABS(delta.position[X]) > ABS(delta.position[Y]);
-//    printf("start_p y = %.2f\n", start.position[Y]);
-//    printf("end_p y = %.2f\n", end.position[Y]);
-
-
     
-//    if(mode == DRAW && (delta.position[X] < 0 || delta.position[Y] < 0 ))
-//    {
-////        printf("SWAP\n");
-//        SWAP(start.position[X], end.position[X]);
-//        SWAP(start.position[Y], end.position[Y]);
-//        SWAP(start.color[R], end.color[R]);
-//        SWAP(start.color[G], end.color[G]);
-//        SWAP(start.color[B], end.color[B]);
-//
-//        /* recalculate delta */
-//        vector_subtract(end.position, start.position, delta.position);
-//    }
+    int x_major = ABS(delta.position[X]) > ABS(delta.position[Y]);
+    
+    if(mode == DRAW && ((delta.position[X] < 0 && x_major) ||
+        (delta.position[Y] < 0 && !x_major )))
+    {
+        SWAP(p1, p2);
+        start = *p1;
+        end = *p2;
+
+        /* recalculate delta */
+        vector_subtract(end.position, start.position, delta.position);
+    }
+    // calculate dr, dg, db
     vector_subtract(end.color, start.color, delta.color);
 
-    //scale for color interpolation
     POINT p;
     
     /* horizontal line */
-    if(mode == DRAW && delta.position[Y] == 0)
+    if(mode == DRAW && (int) delta.position[Y] == 0)
     {
-        float scale[4];
+//        printf("dy = %.2f\n", delta.position[Y]);
         scalar_divide(ABS(delta.position[X]), delta.position, step.position);
-
         for(p = start; p.position[X] < end.position[X];)
         {
-            vector_subtract(p.position, start.position, scale);
-            scalar_divide(fabsf(delta.position[X]), scale, scale);
-            scalar_multiply(scale[X], delta.color, step.color);
-            vector_add(p.color, step.color, p.color);
+            scalar_divide(delta.position[X], delta.color, step.color);
             glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
-
             draw_point(&p);
+            
             vector_add(p.position, step.position, p.position);
+            vector_add(p.color, step.color, p.color);
         }
         return;
-        
     }
     
-    if (delta.position[Y] == 0) {
+    if ((int) delta.position[Y] == 0) {
         scalar_divide(ABS(delta.position[X]), delta.position, step.position);
     }
-    else if (mode == WALK) {
+    else {
         scalar_divide(ABS(delta.position[Y]), delta.position, step.position);
     }
-    printf("step %.2f, %.2f\n", step.position[X], step.position[Y]);
+
     for(p = start; (int) p.position[Y] < (int) end.position[Y];)
     {
         /* calculate scale based on Y coordinate for color interp. */
@@ -211,7 +201,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     {
         /* calculate scale based on Y coordinate for color interp. */
         scalar_divide(delta.position[Y], delta.color, step.color);
-        
         if (mode == DRAW)
         {
             glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
@@ -225,7 +214,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
             
             /* sanity check */
             if(count < 0 || count > 2) {
-                printf("ERR: row %i count %i out of bounds\n", row, count);
+                printf("ERR221: row %i count %i out of bounds\n", row, count);
             }
             span[row][count] = p;
             edge_counts[row]++;
@@ -241,6 +230,7 @@ void draw_spans(void)
 {
     for(int r = 0; r < 800; r++)
     {
+        
         POINT start_p = span[r][0];
         int count = edge_counts[r];
         
@@ -250,17 +240,7 @@ void draw_spans(void)
         }
         else if(count == 2){
             POINT end_p = span[r][1];
-
-            if(start_p.position[X] < end_p.position[X])
-            {
-                draw_line_modal(&start_p, &end_p, DRAW);
-
-            }
-            else
-            {
-                draw_line_modal(&end_p, &start_p, DRAW);
-                
-            }
+            draw_line_modal(&start_p, &end_p, DRAW);
         }
     }
 }
@@ -274,20 +254,14 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     print_point(v1);
     print_point(v2);
 
-//    draw_line_modal(v0, v1, DRAW);
-//    draw_line_modal(v1, v2, DRAW);
-//    draw_line_modal(v2, v0, DRAW);
-
     draw_line_modal(v0, v1, 1);
-    print_span(400, 800);
-//    print_span(0, 800);
+//    print_span(400, 800);
     
     draw_line_modal(v1, v2, 1);
-    print_span(400, 800);
-//    print_span(0, 800);
+//    print_span(400, 800);
     
     draw_line_modal(v2, v0, 1);
-    print_span(400, 800);
+//    print_span(400, 800);
 
     draw_spans();
 }
@@ -375,3 +349,64 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+
+/* degenerate line = point */
+//    if(delta.position[X] == 0 && delta.position[Y] == 0)
+//    {
+//        draw_point_2(&p);
+//    }
+//    /* horizontal line */
+//    else if(delta.position[Y] == 0)
+//    {
+//        for(p = start; p.position[X] < end.position[X];)
+//        {
+//            vector_subtract(p.position, start.position, scale);
+//            scalar_divide(fabsf(delta.position[X]), scale, scale);
+//            scalar_multiply(scale[X], delta.color, step.color);
+//            vector_add(p.color, step.color, p.color);
+//            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+//
+//            draw_point_2(&p);
+//            p.position[X]++;
+//        }
+////        return;
+//    }
+//    /* vertical line */
+//    else if(delta.position[X] == 0)
+//    {
+//        for(p = start; p.position[Y] < end.position[Y];)
+//        {
+//            vector_subtract(p.position, start.position, scale);
+//            scalar_divide(fabsf(delta.position[Y]), scale, scale);
+//            scalar_multiply(scale[Y], delta.color, step.color);
+//            vector_add(p.color, step.color, p.color);
+//            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+//
+//            draw_point_2(&p);
+//            p.position[Y]++;
+//        }
+////        return;
+//    }
+//    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
+//    else if(x_major)
+//    {
+//        printf("xmajor\n");
+//        scalar_divide(fabsf(delta.position[X]), delta.position, step.position); // dy/dx
+//
+//        for(p =  start; p.position[X] < end.position[X]; )
+//        {
+//            /* calculate scale based on X coordinate for color interp. */
+//            vector_subtract(p.position, start.position, scale);
+//            scalar_divide(fabsf(delta.position[X]), scale, scale);
+//            scalar_multiply(scale[X], delta.color, step.color);
+//            vector_add(p.color, step.color, p.color);
+//            if (mode == DRAW)
+//            {
+//                glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+//                draw_point_2(&p);
+//            }
+//
+//            vector_add(p.position, step.position, p.position);
+//        }
+//    }
