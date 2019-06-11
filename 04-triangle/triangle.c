@@ -1,4 +1,4 @@
-#include "line.h"
+#include "triangle.h"
 #include "vector.h"
 
 /*************************************************************************/
@@ -9,6 +9,8 @@ int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 int draw_prog = 1;
 
+int span[800][2];
+int edge_counts[800];
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
@@ -23,17 +25,8 @@ float random_float( int low, int high )
 /*
  * draw_point()
  */
-void draw_point( float x, float y )
-{
-    /*
-     * draw points
-     */
-    glBegin(GL_POINTS);
-        glVertex2f( x, y );
-    glEnd();
-}
 
-void draw_point_2 (POINT *p)
+void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
         glVertex2f( p->position[X], p->position[Y]);
@@ -62,17 +55,17 @@ void set_color (POINT *p, float r, float g, float b, float a)
     p->color[A] = a;
 }
 
+/*
+ * print point *p
+ */
 void print_point (POINT *p)
 {
     printf("POINT: (%.2f, %.2f)\n", p->position[X], p->position[Y]);
 }
 
-/*************************************************************************/
-/* draw_line                                                             */
-/*************************************************************************/
-int span[800][2];
-int edge_counts[800];
-
+/*
+ * print table of edge counts
+ */
 void print_edge_counts (void)
 {
     for(int i = 0; i < 800; i++)
@@ -80,14 +73,26 @@ void print_edge_counts (void)
         printf("row %i, y = %i, count = %i\n", i, i - 400, edge_counts[i]);
     }
 }
-void print_span (int start, int end)
-{
-    for(int i = start; i < end; i++)
-    {
-        printf("y = %i, [0] = %i, [1] = %i, count = %i\n", i, span[i+400][0], span[i+400][1], edge_counts[i + 400]);
 
+/*
+ * print entire span
+ */
+void print_span (void)
+{
+    printf("\n=====================================================\n");
+    for(int i = 0; i < 800; i++)
+    {
+        printf("- row = %i, [0] = %i, [1] = %i, count = %i\n",
+               i, span[i][0], span[i][1], edge_counts[i]);
+        
     }
 }
+
+/*************************************************************************/
+/* draw_line                                                             */
+/*************************************************************************/
+
+/* reset all edge counts to 0 */
 void reset_edge_counts (void)
 {
     for(int i = 0; i < 800; i++)
@@ -141,36 +146,37 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         scalar_divide(fabsf(delta.position[X]), delta.position, step.position);
     }
     else {
-        scalar_divide(fabsf(delta.position[Y]), delta.position, step.position); // dx/dy
+        scalar_divide(fabsf(delta.position[Y]), delta.position, step.position);
     }
     
-        for(p = start; (int) p.position[Y] < (int)end.position[Y];)
+    for(p = start; (int) p.position[Y] < (int) end.position[Y];)
+    {
+        /* calculate scale based on Y coordinate for color interp. */
+        vector_subtract(p.position, start.position, scale);
+        scalar_divide(fabsf(delta.position[Y]), scale, scale);
+        scalar_multiply(scale[Y], delta.color, step.color);
+        vector_add(p.color, step.color, p.color);
+        
+        if (mode == DRAW)
         {
-            /* calculate scale based on Y coordinate for color interp. */
-            vector_subtract(p.position, start.position, scale);
-            scalar_divide(fabsf(delta.position[Y]), scale, scale);
-            scalar_multiply(scale[Y], delta.color, step.color);
-            vector_add(p.color, step.color, p.color);
-            
-            if (mode == DRAW)
-            {
-                glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
-                draw_point_2(&p);
-            }
-            else if (mode == WALK)
-            {
-                int row = (int) p.position[Y] + 400;
-                int count = edge_counts[row];
-                
-                /* sanity check */
-                if(count < 0 || count > 2) printf("ERR: count out of bounds\n");
-
-                //fill in the walk data
-                span[row][count] = (int) p.position[X];
-                edge_counts[row]++;
-            }
-            vector_add(p.position, step.position, p.position);
+            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+            draw_point(&p);
         }
+        
+        else if (mode == WALK)
+        {
+            int row = (int) p.position[Y] + 400;
+            int count = edge_counts[row];
+            
+            /* sanity check */
+            if(count < 0 || count > 2) printf("ERR: count out of bounds\n");
+
+            //fill in the walk data
+            span[row][count] = (int) p.position[X];
+            edge_counts[row]++;
+        }
+        vector_add(p.position, step.position, p.position);
+    }
 }
 
 /* draw horizontal scan lines of triangle */
@@ -181,19 +187,25 @@ void draw_spans(void)
         int start_x = span[r][0];
         int count = edge_counts[r];
         
+        POINT point;
+        
         if(count == 0) continue;
 //        if(count == 1) {
 //            draw_point(span[r][0], r-400);
 //        }
         else if(count == 2){
             int end_x = span[r][count-1];
+            //start_x <= end_x
             for(int c = start_x; c <= end_x; c++)
             {
-                draw_point(c, r - 400);
+                set_position(&point, c, r-400, 0, 0);
+                draw_point(&point);
             }
+            //start_x > end_x
             for(int c = start_x; c >= end_x; c--)
             {
-                draw_point(c, r - 400);
+                set_position(&point, c, r-400, 0, 0);
+                draw_point(&point);
             }
         }
     }
@@ -208,8 +220,33 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     print_point(v2);
 
     draw_line_modal(v0, v1, 1);
+    print_span();
     draw_line_modal(v1, v2, 1);
+    print_span();
     draw_line_modal(v2, v0, 1);
+    print_span();
+
+    int row;
+    
+    row = (int) v0->position[Y] + 400;
+    if(edge_counts[row] == 0)
+    {
+        edge_counts[row] = 2;
+        span[row][0] = (span[row][1] = v0->position[X]);
+    }
+    row = (int) v1->position[Y] + 400;
+    if(edge_counts[row] == 0)
+    {
+        edge_counts[row] = 2;
+        span[row][0] = (span[row][1] = v1->position[X]);
+    }
+    row = (int) v2->position[Y] + 400;
+    if(edge_counts[row] < 1)
+    {
+        edge_counts[row] = 2;
+        span[row][0] = (span[row][1] = v2->position[X]);
+    }
+    print_span();
 
     draw_spans();
 }
@@ -237,51 +274,8 @@ void display(void)
      */
     glClear(GL_COLOR_BUFFER_BIT );
     
-/*************************************************************************/
-/* draw triangle */
-/*************************************************************************/
     draw_tri_test();
 
-
-/*************************************************************************/
-/* other exercises */
-/*************************************************************************/
-//    if (draw_prog == 'r' )
-//    {
-//        draw_random_line();
-//    }
-//    else if (draw_prog == 'g')
-//    {
-//        draw_coord_grid();
-//    }
-//    else if (draw_prog == 'f')
-//    {
-//        draw_fan();
-//    }
-//
-//    POINT start = {
-//        {100, 200, 0, 0},
-//        {1, 0, 0, 1}
-//    };
-//
-//    POINT end = {
-//        {-100, -200, 0, 0},
-//        {0, 0, 1, 1}
-//    };
-//    draw_line_3(&start, &end);
-//
-//    POINT start2 = {
-//        {-300, -100, 0, 0},
-//        {1, 0, 0, 1}
-//    };
-//
-//    POINT end2 = {
-//        {300, 100, 0, 0},
-//        {0, 0, 1, 1}
-//    };
-//    draw_line_3(&start2, &end2);
-    
-    
     /*
      * show results
      */
@@ -301,21 +295,6 @@ static void Key(unsigned char key, int x, int y)
         case 'a':       draw_one_frame = 1;     glutPostRedisplay();    break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
-        case 'r':
-            draw_prog = 'r';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
-        case 'f':
-            draw_prog = 'f';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
-        case 'g':
-            draw_prog = 'g';
-            draw_one_frame = 1;
-            glutPostRedisplay();
-            break;
     }
 }
 

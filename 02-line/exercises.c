@@ -101,9 +101,9 @@ void draw_coord_grid(void)
     glClearColor(1.0,1.0,1.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT );
     
-    glPointSize(2);
+    glPointSize(1);
     float x, y;
-    for(int i = 0; i < 2 * window_size; i+=20)
+    for(int i = 0; i < 2 * window_size; i+=50)
     {
         x = i - window_size;
         y = i - window_size;
