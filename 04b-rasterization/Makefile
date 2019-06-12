@@ -8,3 +8,6 @@ run:
 
 test: 	
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o run_test && ./run_test
+
+debug:
+	gcc -g $(OBJECTS) -o tri-debug && lldb tri-debug
