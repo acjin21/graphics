@@ -28,6 +28,7 @@ float random_float( int low, int high )
 
 void draw_point (POINT *p)
 {
+    glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
     glBegin(GL_POINTS);
         glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
@@ -103,8 +104,7 @@ void print_span (int row_start, int row_end)
         sprint_point(end, &span[i][1]);
         
         printf("- row = %i, [0] = %s, [1] = %s, count = %i\n",
-               i, start, end,
-               edge_counts[i]);
+               i, start, end, edge_counts[i]);
         
     }
 }
@@ -160,20 +160,19 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     /*******************/
     if(mode == DRAW && (int) delta.position[Y] == 0)
     {
-//        printf("horiz draw mode\n");
-//        printf("y = (start) %f, (end) %f\n", start.position[Y], end.position[Y]);
+
         scalar_divide(ABS(delta.position[X]), delta.position, step.position);
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
         for(p = start; p.position[X] < end.position[X];)
         {
-            printf("x = %i; y =  %i; rgb = (%.3f, %.3f, %.3f)\n", (int) p.position[X], (int)p.position[Y], p.color[0], p.color[1], p.color[2]);
+//            printf("x = %i; y =  %i; rgb = (%.3f, %.3f, %.3f)\n",
+//            (int) p.position[X], (int)p.position[Y],
+//            p.color[0], p.color[1], p.color[2]);
+            
             /*
              * CHANGE TWO
              */
             p.position[Y] = (int) p.position[Y];
-//            printf("%.2f, (int) %i, (floor) %f\n", p.position[Y], (int) p.position[Y], floor(p.position[Y]));
-//            p.position[Y] = (int)floor(p.position[Y]);
-            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
             draw_point(&p);
             
             vector_add(p.position, step.position, p.position);
@@ -184,14 +183,12 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     /* x-major diagonal line, i.e. 0 < |slope| < 1 */
     else if(x_major && mode == DRAW)
     {
-        
         printf("xmajor draw mode\n");
         scalar_divide(ABS(delta.position[X]), delta.position, step.position); // dy/dx
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
 
-        for(p =  start; (int)p.position[X] < (int)end.position[X]; )
+        for(p =  start; p.position[X] < end.position[X]; )
         {
-            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
             draw_point(&p);
 
             vector_add(p.position, step.position, p.position);
@@ -203,7 +200,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     /*******************/
     /* WALK */
     /*******************/
-
     int prev_row;
     if ((int) delta.position[Y] == 0) {
         scalar_divide(ABS(delta.position[X]), delta.position, step.position);
@@ -220,7 +216,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         if (mode == DRAW)
         {
             /* should be y major and draw */
-            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
             draw_point(&p);
         }
         
@@ -238,8 +233,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
                 edge_counts[row]++;
             }
             prev_row = row;
-
-
         }
         vector_add(p.color, step.color, p.color);
         vector_add(p.position, step.position, p.position);
@@ -250,8 +243,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         if (mode == DRAW)
         {
             /* should be y major and draw */
-
-            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
             draw_point(&p);
         }
 
@@ -273,43 +264,33 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         vector_add(p.color, step.color, p.color);
         vector_add(p.position, step.position, p.position);
     }
-//    }
 }
 
 /* draw horizontal scan lines of triangle */
 void draw_spans(void)
 {
-    int prev_end_x = -window_size;
     for(int r = 0; r < 800; r++)
     {
         POINT start_p = span[r][0];
         int count = edge_counts[r];
         if(count == 0) continue;
         if(count == 1) {
-            glColor4f(start_p.color[0], start_p.color[1], start_p.color[2], 1.0);
             draw_point(&start_p);
         }
         else if(count == 2){
-            
             POINT end_p = span[r][1];
     
-            POINT *p1 = &start_p;
-            POINT *p2 = &end_p;
-
-            if (start_p.position[X] > end_p.position[X]) {
-                SWAP(p1, p2);
-            }
-            /*
-             * CHANGE THREE
-             */
-            //start_p should be to left of end_p now (avoid gaps)
-//            if(p1->position[X] <= prev_end_x){
-                //draw horizontal span line
-                p2->position[Y] = p1->position[Y];
-                draw_line_modal(p1, p2, DRAW);
+//            POINT *p1 = &start_p;
+//            POINT *p2 = &end_p;
+//
+//            if (start_p.position[X] > end_p.position[X]) {
+//                SWAP(p1, p2);
 //            }
-//            prev_end_x = p2->position[X];
-        
+            //draw horizontal span line
+//            p2->position[Y] = p1->position[Y];
+//            draw_line_modal(p1, p2, DRAW);
+            end_p.position[Y] = start_p.position[Y];
+            draw_line_modal(&start_p, &end_p, DRAW);
         }
     }
 }
@@ -321,20 +302,12 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     reset_edge_counts();
     print_tri_vertices(v0, v1, v2);
 
-//    draw_line_modal(v0, v1, DRAW);
-//    draw_line_modal(v1, v2, DRAW);
-//    draw_line_modal(v2, v0, DRAW);
-    
-//    glPointSize(1.0);
-
     draw_line_modal(v0, v1, WALK);
-    print_span(0, 300);
-
+//    print_span(0, 300);
     draw_line_modal(v1, v2, WALK);
-    print_span(0, 300);
-//
+//    print_span(0, 300);
     draw_line_modal(v2, v0, WALK);
-    print_span(0, 300);
+//    print_span(0, 300);
 
     draw_spans();
 }
@@ -360,22 +333,8 @@ void display(void)
      * clear color buffer
      */
     glClear(GL_COLOR_BUFFER_BIT );
-    int y = 0;
-    for(int j = -window_size; j < window_size; j+=50)
-    {
-        for(int x = -window_size; x < window_size; x++)
-        {
-            POINT p = {
-                {x, j, 0, 0},
-                {1, 0, 0, 1}
-            };
-            glColor4f(1, 1, 1, 1);
-            draw_point(&p);
-        }
-    }
     
     draw_tri_test();
-//    printf("%i\n", (int) -1.89);
 
     /*
      * show results
@@ -424,10 +383,8 @@ int main(int argc, char **argv)
      * setup OpenGL state
      */
     glClearColor(0, 0, 0, 1);
-//    glClearColor(1.0,1.0,224.0/256.0,1.0);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-//    glPointSize(4.0);
-//    glColor4f(1.0,0.0,0.0,1.0);
+    glPointSize(2.0);
 
     /*
      * start loop that calls display() and Key() routines
