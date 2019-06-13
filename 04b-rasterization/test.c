@@ -97,7 +97,7 @@ void draw_tri_test (void)
     
     //bugs
     /* missing scan line at y = 0 */
-//    draw_one_tri_test(18, 19, 20);
+    draw_one_tri_test(18, 19, 20);
 //    draw_one_tri_test(21, 22, 23);
 //    draw_one_tri_test(24, 25, 26);
 //    draw_one_tri_test(27, 28, 29);
@@ -123,7 +123,7 @@ void draw_tri_test (void)
 
 //    random_tests();
 
-    draw_random_triangle();
+//    draw_random_triangle();
     
     /*********************/
     /* draw calls        */

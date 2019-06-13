@@ -318,9 +318,13 @@ void draw_point (POINT *p)
     color_buffer[row][col][G] = p->color[G];
     color_buffer[row][col][B] = p->color[B];
     color_buffer[row][col][A] = p->color[A];
-
+    
     /* draw point on screen */
-    glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
+    glColor4f(color_buffer[row][col][R],
+              color_buffer[row][col][G],
+              color_buffer[row][col][B],
+              color_buffer[row][col][A]);
+    
     glBegin(GL_POINTS);
     glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
@@ -405,6 +409,7 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
+    clear_color_buffer(0, 0, 0, 1);
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
     
