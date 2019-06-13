@@ -330,10 +330,10 @@ void draw_point (POINT *p)
         {
             if(alpha_blend)
             {
-                float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
-                float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
-                float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
-                float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
+                float new_r = (1 - blend_weight) * color_buffer[row][col][R] + blend_weight * p->color[R];
+                float new_g = (1 - blend_weight) * color_buffer[row][col][G] + blend_weight * p->color[G];
+                float new_b = (1 - blend_weight) * color_buffer[row][col][B] + blend_weight * p->color[B];
+                float new_a = (1 - blend_weight) * color_buffer[row][col][A] + blend_weight * p->color[A];
 //                /* write blended color to color_buffer */
                 color_buffer[row][col][R] = new_r;
                 color_buffer[row][col][G] = new_g;
@@ -545,7 +545,7 @@ int main(int argc, char **argv)
      */
     glClearColor(0, 0, 0, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-//    glPointSize(1.0);
+    glPointSize(1.0);
 
     /*
      * start loop that calls display() and Key() routines
