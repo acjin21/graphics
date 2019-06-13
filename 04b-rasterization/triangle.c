@@ -311,7 +311,15 @@ void clear_color_buffer (float r, float g, float b, float a)
  */
 void draw_point (POINT *p)
 {
-    
+    /* write p.color to color_buffer */
+    int row = (int) (p->position[Y] + 400);
+    int col = (int) (p->position[X] + 400);
+    color_buffer[row][col][R] = p->color[R];
+    color_buffer[row][col][G] = p->color[G];
+    color_buffer[row][col][B] = p->color[B];
+    color_buffer[row][col][A] = p->color[A];
+
+    /* draw point on screen */
     glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
     glBegin(GL_POINTS);
     glVertex2f( p->position[X],  p->position[Y]);
