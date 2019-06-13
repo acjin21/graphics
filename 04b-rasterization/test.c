@@ -106,7 +106,7 @@ void draw_tri_test (void)
 //    draw_one_tri_test(36, 37, 38);
     
 // missing some scan lines at end of very x major line
-    draw_one_tri_test(39, 40, 41);
+//    draw_one_tri_test(39, 40, 41);
 //    draw_one_tri_test(42, 43, 44);
 //
 //    draw_one_tri_test(45, 46, 47);
@@ -123,7 +123,7 @@ void draw_tri_test (void)
 
 //    random_tests();
 
-//    draw_random_triangle();
+    draw_random_triangle();
     
     /*********************/
     /* draw calls        */

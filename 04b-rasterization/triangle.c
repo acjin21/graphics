@@ -295,6 +295,86 @@ void draw_spans(void)
     }
 }
 
+/*************************************************************************/
+ /* draw_line from Chris*/
+/*************************************************************************/
+void store_point (POINT *p)
+{
+    int row = (int) (p->position[Y] + 400);
+    int count = edge_counts[row];
+    
+    /* sanity check */
+    if(count < 0 || count > 2) {
+        printf("ERR221: row %i count %i out of bounds\n", row, count);
+    }
+    
+    span[row][count] = *p;
+    edge_counts[row]++;
+}
+
+void draw_line( POINT *start, POINT *end, int mode )
+{
+    POINT   delta;
+    POINT   step;
+    POINT   p;
+    int     i;
+    
+    /*
+     * calculate deltas in position, color
+     */
+    
+    vector_subtract( end->position,    start->position,    delta.position   );
+    vector_subtract( end->color,       start->color,       delta.color );
+    
+    /*
+     * determine whether line is x-major or y-major
+     */
+    i = (ABS(delta.position[X]) >= ABS(delta.position[Y]) && mode == DRAW ) ? X : Y;
+    
+    /*
+     * calculate slope (i.e. increment per iteration) for position, color
+     *
+     * for x-major divide by deltax, for y-major divide by deltay
+     */
+    scalar_divide( ABS(delta.position[i]), delta.position,    step.position   );
+    scalar_divide( ABS(delta.position[i]), delta.color,      step.color );
+    
+    if( step.position[i] > 0 )
+    {
+        for( p = *start; (int)p.position[i] < (int)end->position[i]; )
+        {
+            if( mode == DRAW )
+            {
+                draw_point( &p );
+            }
+            else
+            {
+                store_point( &p );
+            }
+            vector_add( p.position,    step.position,   p.position   );
+            vector_add( p.color,  step.color, p.color );
+        }
+    }
+    else
+    {
+        for( p = *start; (int)p.position[i] > (int)end->position[i]; )
+        {
+            if( mode == DRAW )
+            {
+                draw_point( &p );
+            }
+            else
+            {
+                store_point( &p );
+            }
+            vector_add( p.position,    step.position,   p.position   );
+            vector_add( p.color,  step.color, p.color );
+        }
+    }
+}
+
+
+
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
@@ -302,74 +382,76 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     reset_edge_counts();
     
     print_tri_vertices(v0, v1, v2);
-    draw_line_modal(v0, v1, WALK);
+    draw_line(v0, v1, WALK);
     //    print_span(200, 600);
-    draw_line_modal(v1, v2, WALK);
+    draw_line(v1, v2, WALK);
     //    print_span(200, 600);
-    draw_line_modal(v2, v0, WALK);
-    //    print_span(200, 600);
-    draw_spans();
-    printf("====================================\nrotate by 45 degrees\n");
-    reset_edge_counts();
-    
-    vec2f_rotate(45.0, v0->position, v0->position);
-    vec2f_rotate(45.0, v1->position, v1->position);
-    vec2f_rotate(45.0, v2->position, v2->position);
-
-    print_tri_vertices(v0, v1, v2);
-    draw_line_modal(v0, v1, WALK);
-//    print_span(200, 600);
-    draw_line_modal(v1, v2, WALK);
-//    print_span(200, 600);
-    draw_line_modal(v2, v0, WALK);
-//    print_span(200, 600);
-    draw_spans();
-    printf("====================================\nrotate by 45 degrees\n");
-    reset_edge_counts();
-    
-    vec2f_rotate(45.0, v0->position, v0->position);
-    vec2f_rotate(45.0, v1->position, v1->position);
-    vec2f_rotate(45.0, v2->position, v2->position);
-    
-    
-    print_tri_vertices(v0, v1, v2);
-    draw_line_modal(v0, v1, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v1, v2, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v2, v0, WALK);
+    draw_line(v2, v0, WALK);
     //    print_span(200, 600);
     draw_spans();
-    printf("====================================\nrotate by 45 degrees\n");
-    reset_edge_counts();
     
-    vec2f_rotate(45.0, v0->position, v0->position);
-    vec2f_rotate(45.0, v1->position, v1->position);
-    vec2f_rotate(45.0, v2->position, v2->position);
     
-    print_tri_vertices(v0, v1, v2);
-    draw_line_modal(v0, v1, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v1, v2, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v2, v0, WALK);
-    //    print_span(200, 600);
-    draw_spans();
-    printf("====================================\nreflect over x axis\n");
-    reset_edge_counts();
-    
-    vec2f_reflect_x(v0->position, v0->position);
-    vec2f_reflect_x(v1->position, v1->position);
-    vec2f_reflect_x(v2->position, v2->position);
-    
-    print_tri_vertices(v0, v1, v2);
-    draw_line_modal(v0, v1, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v1, v2, WALK);
-    //    print_span(200, 600);
-    draw_line_modal(v2, v0, WALK);
-    //    print_span(200, 600);
-    draw_spans();
+//    printf("====================================\nrotate by 45 degrees\n");
+//    reset_edge_counts();
+//
+//    vec2f_rotate(45.0, v0->position, v0->position);
+//    vec2f_rotate(45.0, v1->position, v1->position);
+//    vec2f_rotate(45.0, v2->position, v2->position);
+//
+//    print_tri_vertices(v0, v1, v2);
+//    draw_line_modal(v0, v1, WALK);
+////    print_span(200, 600);
+//    draw_line_modal(v1, v2, WALK);
+////    print_span(200, 600);
+//    draw_line_modal(v2, v0, WALK);
+////    print_span(200, 600);
+//    draw_spans();
+//    printf("====================================\nrotate by 45 degrees\n");
+//    reset_edge_counts();
+//
+//    vec2f_rotate(45.0, v0->position, v0->position);
+//    vec2f_rotate(45.0, v1->position, v1->position);
+//    vec2f_rotate(45.0, v2->position, v2->position);
+//
+//
+//    print_tri_vertices(v0, v1, v2);
+//    draw_line_modal(v0, v1, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v1, v2, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v2, v0, WALK);
+//    //    print_span(200, 600);
+//    draw_spans();
+//    printf("====================================\nrotate by 45 degrees\n");
+//    reset_edge_counts();
+//
+//    vec2f_rotate(45.0, v0->position, v0->position);
+//    vec2f_rotate(45.0, v1->position, v1->position);
+//    vec2f_rotate(45.0, v2->position, v2->position);
+//
+//    print_tri_vertices(v0, v1, v2);
+//    draw_line_modal(v0, v1, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v1, v2, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v2, v0, WALK);
+//    //    print_span(200, 600);
+//    draw_spans();
+//    printf("====================================\nreflect over x axis\n");
+//    reset_edge_counts();
+//
+//    vec2f_reflect_x(v0->position, v0->position);
+//    vec2f_reflect_x(v1->position, v1->position);
+//    vec2f_reflect_x(v2->position, v2->position);
+//
+//    print_tri_vertices(v0, v1, v2);
+//    draw_line_modal(v0, v1, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v1, v2, WALK);
+//    //    print_span(200, 600);
+//    draw_line_modal(v2, v0, WALK);
+//    //    print_span(200, 600);
+//    draw_spans();
     
 }
 
