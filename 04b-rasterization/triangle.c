@@ -269,10 +269,12 @@ void draw_spans(void)
         if(count == 1) {
             draw_point(&start_p);
         }
-        else if(count == 2){
+        else if(count != 1 && count >= 2){
             POINT end_p = span[r][1];
-            end_p.position[Y] = start_p.position[Y];
-            draw_line(&start_p, &end_p, DRAW);
+//            end_p.position[Y] = start_p.position[Y];
+//            draw_line_modal(&start_p, &end_p, DRAW);
+            draw_line (&start_p, &end_p, DRAW);
+
         }
     }
 }
@@ -280,8 +282,13 @@ void draw_spans(void)
 /*************************************************************************/
  /* draw_line from Chris*/
 /*************************************************************************/
-#define ALPHA_BLEND_ON 1
+#define ON 1
+#define OFF 0
+
 float color_buffer[800][800][4];
+float depth_buffer[800][800];
+float alpha_blend = OFF;
+float depth_test = ON;
 
 void clear_color_buffer (float r, float g, float b, float a)
 {
@@ -297,41 +304,69 @@ void clear_color_buffer (float r, float g, float b, float a)
     }
 }
 
+void clear_depth_buffer (float value)
+{
+    printf("\ndepth buffer cleared\n");
+    for(int row = 0; row < 800; row++)
+    {
+        for(int col = 0; col < 800; col++)
+        {
+            depth_buffer[row][col] = value;
+        }
+    }
+}
+
 /*
  * draw_point()
  */
-void draw_point (POINT *p)
+//void draw_point (POINT *p)
+//{
+//    glBegin(GL_POINTS);
+//        int row = (int) (p->position[Y] + 400);
+//        int col = (int) (p->position[X] + 400);
+//        float blend_weight = 0.50;
+//        if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
+//        {
+//            if(alpha_blend)
+//            {
+////                float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
+////                float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
+////                float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
+////                float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
+////                /* write blended color to color_buffer */
+//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R] + blend_weight * p->color[R];
+//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[G];
+//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[B];
+//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[B];
+//            }
+//            else
+//            {
+//                /* write p.color to color_buffer */
+//                color_buffer[row][col][R] = p->color[R];
+//                color_buffer[row][col][G] = p->color[G];
+//                color_buffer[row][col][B] = p->color[B];
+//                color_buffer[row][col][A] = p->color[A];
+//            }
+//
+//            if(depth_test)
+//            {
+//                depth_buffer[row][col] = p->position[Z];
+//            }
+//    }
+//    /* draw point on screen */
+//    glColor4f(color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R],
+//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G],
+//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B],
+//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A]);
+//    glVertex2f( p->position[X],  p->position[Y]);
+//    glEnd();
+//
+//}
+void draw_point(POINT *p)
 {
-    int row = (int) (p->position[Y] + 400);
-    int col = (int) (p->position[X] + 400);
-    float blend_weight = 0.50;
-    
-    if(ALPHA_BLEND_ON)
-    {
-        float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
-        float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
-        float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
-        float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
-
-        /* write blended color to color_buffer */
-        color_buffer[row][col][R] = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
-        color_buffer[row][col][G] = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
-        color_buffer[row][col][B] = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
-        color_buffer[row][col][A] = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
-    
-        glColor4f(color_buffer[row][col][R], color_buffer[row][col][G], color_buffer[row][col][B], color_buffer[row][col][A]);
-    }
-    else
-    {
-        /* write p.color to color_buffer */
-        color_buffer[row][col][R] = p->color[R];
-        color_buffer[row][col][G] = p->color[G];
-        color_buffer[row][col][B] = p->color[B];
-        color_buffer[row][col][A] = p->color[A];
-    }
-    /* draw point on screen */
     glBegin(GL_POINTS);
-        glVertex2f( p->position[X],  p->position[Y]);
+        glColor4f(1, 0, 0, 1);
+    glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
 }
 
@@ -346,8 +381,8 @@ void store_point (POINT *p)
     }
     if(count <= 1)
     {
-    span[row][count] = *p;
-    edge_counts[row]++;
+        span[row][count] = *p;
+        edge_counts[row]++;
     }
 }
 
@@ -421,79 +456,18 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     reset_edge_counts();
     
     print_tri_vertices(v0, v1, v2);
-    draw_line(v0, v1, WALK);
-//        print_span(300, 500);
-    draw_line(v1, v2, WALK);
-//    print_span(300, 500);
-    draw_line(v2, v0, WALK);
-//    print_span(300, 500);
+    
+        draw_line (v0, v1, WALK);
+        draw_line (v1, v2, WALK);
+        draw_line (v2, v0, WALK);
+    
+//    draw_line_modal(v0, v1, WALK);
+//    draw_line_modal(v1, v2, WALK);
+//    draw_line_modal(v2, v0, WALK);
     draw_spans();
     
-    
-//    printf("====================================\nrotate by 45 degrees\n");
-//    reset_edge_counts();
-//
-//    vec2f_rotate(45.0, v0->position, v0->position);
-//    vec2f_rotate(45.0, v1->position, v1->position);
-//    vec2f_rotate(45.0, v2->position, v2->position);
-//
-//    print_tri_vertices(v0, v1, v2);
-//    draw_line_modal(v0, v1, WALK);
-////    print_span(200, 600);
-//    draw_line_modal(v1, v2, WALK);
-////    print_span(200, 600);
-//    draw_line_modal(v2, v0, WALK);
-////    print_span(200, 600);
-//    draw_spans();
-//    printf("====================================\nrotate by 45 degrees\n");
-//    reset_edge_counts();
-//
-//    vec2f_rotate(45.0, v0->position, v0->position);
-//    vec2f_rotate(45.0, v1->position, v1->position);
-//    vec2f_rotate(45.0, v2->position, v2->position);
-//
-//
-//    print_tri_vertices(v0, v1, v2);
-//    draw_line_modal(v0, v1, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v1, v2, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v2, v0, WALK);
-//    //    print_span(200, 600);
-//    draw_spans();
-//    printf("====================================\nrotate by 45 degrees\n");
-//    reset_edge_counts();
-//
-//    vec2f_rotate(45.0, v0->position, v0->position);
-//    vec2f_rotate(45.0, v1->position, v1->position);
-//    vec2f_rotate(45.0, v2->position, v2->position);
-//
-//    print_tri_vertices(v0, v1, v2);
-//    draw_line_modal(v0, v1, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v1, v2, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v2, v0, WALK);
-//    //    print_span(200, 600);
-//    draw_spans();
-//    printf("====================================\nreflect over x axis\n");
-//    reset_edge_counts();
-//
-//    vec2f_reflect_x(v0->position, v0->position);
-//    vec2f_reflect_x(v1->position, v1->position);
-//    vec2f_reflect_x(v2->position, v2->position);
-//
-//    print_tri_vertices(v0, v1, v2);
-//    draw_line_modal(v0, v1, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v1, v2, WALK);
-//    //    print_span(200, 600);
-//    draw_line_modal(v2, v0, WALK);
-//    //    print_span(200, 600);
-//    draw_spans();
-    
 }
-
+int counter = 0;
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -516,7 +490,10 @@ void display(void)
      */
     glClear(GL_COLOR_BUFFER_BIT );
     clear_color_buffer(0, 0, 0, 1);
-
+    clear_depth_buffer(1.0);
+    glPointSize(2.0);
+    printf("\nNEW DISPLAY: %i\n", counter);
+    counter++;
     draw_tri_test();
 
     /*
@@ -567,7 +544,7 @@ int main(int argc, char **argv)
      */
     glClearColor(0, 0, 0, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-    glPointSize(1.0);
+//    glPointSize(1.0);
 
     /*
      * start loop that calls display() and Key() routines

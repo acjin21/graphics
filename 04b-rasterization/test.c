@@ -75,9 +75,9 @@ void draw_one_tri_test (int i0, int i1, int i2)
 
 void draw_random_triangle (void)
 {
-    set_position(&v0, random_float(-400, 400), random_float(-400, 400), 0, 0);
-    set_position(&v1, random_float(-400, 400), random_float(-400, 400), 0, 0);
-    set_position(&v2, random_float(-400, 400), random_float(-400, 400), 0, 0);
+    set_position(&v0, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
+    set_position(&v1, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
+    set_position(&v2, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
     set_color(&v0, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
     set_color(&v1, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
     set_color(&v2, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
@@ -86,12 +86,25 @@ void draw_random_triangle (void)
 
 void draw_monocolor_triangle (float r, float g, float b, float a)
 {
-    set_position(&v0, random_float(-400, 400), random_float(-400, 400), 0, 0);
-    set_position(&v1, random_float(-400, 400), random_float(-400, 400), 0, 0);
-    set_position(&v2, random_float(-400, 400), random_float(-400, 400), 0, 0);
+    set_position(&v0, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
+    set_position(&v1, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
+    set_position(&v2, random_float(-400, 400), random_float(-400, 400), random_float(0, 1), 0);
     set_color(&v0, r, g, b, a);
     set_color(&v1, r, g, b, a);
     set_color(&v2, r, g, b, a);
+    draw_triangle(&v0, &v1, &v2);
+}
+
+void draw_spec_triangle (float x1, float y1, float z1, float w1,
+                         float x2, float y2, float z2, float w2,
+                         float x3, float y3, float z3, float w3)
+{
+    set_position(&v0, x1, y1, z1, w1);
+    set_position(&v1, x2, y2, z2, w2);
+    set_position(&v2, x3, y3, z3, w3);
+    set_color(&v0, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
+    set_color(&v1, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
+    set_color(&v2, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
     draw_triangle(&v0, &v1, &v2);
 }
 
@@ -130,10 +143,34 @@ void draw_tri_test (void)
 
 //    random_tests();
 
-//    draw_random_triangle();
-//    draw_random_triangle();
-    draw_monocolor_triangle(1, 0, 0, 1);
-    draw_monocolor_triangle(0, 0, 1, 1);
+    draw_random_triangle();
+    draw_random_triangle();
+    
+//    draw_monocolor_triangle(1, 0, 0, 1);
+//    draw_monocolor_triangle(0, 0, 1, 1);
+    
+//    draw_spec_triangle(-31.02832, 107.21198, 0.88968, 0.00000,
+//                       265.71729, 310.67303, 0.35213, 0.00000,
+//                       -205.33377, 155.32806, 0.74745, 0.00000);
+//
+//    draw_spec_triangle(-40.68011, 289.05457, 0.17508, 0.00000,
+//                       35.09961, 319.07886, 0.94707, 0.00000,
+//                       -87.13196, 373.33948, 0.89594, 0.00000);
+    
+//    draw_spec_triangle(290.04358, 362.96429, 0.92604, 0.00000,
+//                       -396.30756, 58.77557, 0.30082, 0.00000,
+//                       301.90027, -362.56009, 0.56592, 0.00000);
+//
+//    draw_spec_triangle(-30.45807, 91.12082, 0.83429, 0.00000,
+//                        354.93848, -148.41795, 0.42457, 0.00000,
+//                       257.21490, -188.35483, 0.40048, 0.00000);
+    
+//    draw_spec_triangle(-146.75006, -28.35825, 0.72892, 0.00000,
+//                       391.45844, 42.38004, 0.85149, 0.00000,
+//                       -371.22293, 56.35294, 0.40549, 0.00000);
+   draw_spec_triangle(-320.83435, -262.71054, 0.27994, 0.00000,
+                      -382.41208, 0.34534, 0.75442, 0.00000,
+                      57.88364, 50.44135, 0.20961, 0.00000);
 
 
     
