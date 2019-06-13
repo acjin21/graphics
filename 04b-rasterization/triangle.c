@@ -269,7 +269,7 @@ void draw_spans(void)
         if(count == 1) {
             draw_point(&start_p);
         }
-        else if(count != 1 && count >= 2){
+        else if(count == 2){
             POINT end_p = span[r][1];
 //            end_p.position[Y] = start_p.position[Y];
 //            draw_line_modal(&start_p, &end_p, DRAW);
@@ -287,8 +287,8 @@ void draw_spans(void)
 
 float color_buffer[800][800][4];
 float depth_buffer[800][800];
-float alpha_blend = OFF;
-float depth_test = ON;
+float alpha_blend = ON;
+float depth_test = OFF;
 
 void clear_color_buffer (float r, float g, float b, float a)
 {
@@ -319,56 +319,51 @@ void clear_depth_buffer (float value)
 /*
  * draw_point()
  */
-//void draw_point (POINT *p)
-//{
-//    glBegin(GL_POINTS);
-//        int row = (int) (p->position[Y] + 400);
-//        int col = (int) (p->position[X] + 400);
-//        float blend_weight = 0.50;
-//        if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
-//        {
-//            if(alpha_blend)
-//            {
-////                float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
-////                float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
-////                float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
-////                float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
-////                /* write blended color to color_buffer */
-//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R] + blend_weight * p->color[R];
-//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[G];
-//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[B];
-//                color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A] = blend_weight * color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G] + blend_weight * p->color[B];
-//            }
-//            else
-//            {
-//                /* write p.color to color_buffer */
-//                color_buffer[row][col][R] = p->color[R];
-//                color_buffer[row][col][G] = p->color[G];
-//                color_buffer[row][col][B] = p->color[B];
-//                color_buffer[row][col][A] = p->color[A];
-//            }
-//
-//            if(depth_test)
-//            {
-//                depth_buffer[row][col] = p->position[Z];
-//            }
-//    }
-//    /* draw point on screen */
-//    glColor4f(color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R],
-//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G],
-//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B],
-//              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A]);
-//    glVertex2f( p->position[X],  p->position[Y]);
-//    glEnd();
-//
-//}
-void draw_point(POINT *p)
+void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
-        glColor4f(1, 0, 0, 1);
+    glPointSize(1.0);
+        int row = (int) (p->position[Y] + 400);
+        int col = (int) (p->position[X] + 400);
+        float blend_weight = 0.50;
+        if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
+        {
+            if(alpha_blend)
+            {
+                float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
+                float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
+                float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
+                float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
+//                /* write blended color to color_buffer */
+                color_buffer[row][col][R] = new_r;
+                color_buffer[row][col][G] = new_g;
+                color_buffer[row][col][B] = new_b;
+                color_buffer[row][col][A] = new_a;
+            }
+            else
+            {
+                /* write p.color to color_buffer */
+                color_buffer[row][col][R] = p->color[R];
+                color_buffer[row][col][G] = p->color[G];
+                color_buffer[row][col][B] = p->color[B];
+                color_buffer[row][col][A] = p->color[A];
+            }
+
+            if(depth_test)
+            {
+                depth_buffer[row][col] = p->position[Z];
+            }
+    }
+    /* draw point on screen */
+    glColor4f(color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R],
+              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G],
+              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B],
+              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A]);
     glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
+
 }
+
 
 void store_point (POINT *p)
 {
@@ -379,11 +374,11 @@ void store_point (POINT *p)
     if(count < 0 || count > 2) {
         printf("ERR221: row %i count %i out of bounds\n", row, count);
     }
-    if(count <= 1)
-    {
+//    if(count <= 1)
+//    {
         span[row][count] = *p;
         edge_counts[row]++;
-    }
+//    }
 }
 
 void draw_line( POINT *start, POINT *end, int mode )
@@ -451,6 +446,7 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
+//    glPointSize(1.0);
 
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
@@ -458,8 +454,13 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     print_tri_vertices(v0, v1, v2);
     
         draw_line (v0, v1, WALK);
+    print_span(300, 500);
+
         draw_line (v1, v2, WALK);
+    print_span(300, 500);
+
         draw_line (v2, v0, WALK);
+    print_span(300, 500);
     
 //    draw_line_modal(v0, v1, WALK);
 //    draw_line_modal(v1, v2, WALK);
@@ -491,7 +492,7 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT );
     clear_color_buffer(0, 0, 0, 1);
     clear_depth_buffer(1.0);
-    glPointSize(2.0);
+    glPointSize(1.0);
     printf("\nNEW DISPLAY: %i\n", counter);
     counter++;
     draw_tri_test();

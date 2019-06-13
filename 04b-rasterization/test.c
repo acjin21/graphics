@@ -102,9 +102,9 @@ void draw_spec_triangle (float x1, float y1, float z1, float w1,
     set_position(&v0, x1, y1, z1, w1);
     set_position(&v1, x2, y2, z2, w2);
     set_position(&v2, x3, y3, z3, w3);
-    set_color(&v0, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
-    set_color(&v1, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
-    set_color(&v2, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
+    set_color(&v0, 1, 0, 0, 1);
+    set_color(&v1, 0, 1, 0, 1);
+    set_color(&v2, 0, 0, 1, 1);
     draw_triangle(&v0, &v1, &v2);
 }
 
@@ -124,7 +124,7 @@ void draw_tri_test (void)
     
 //    draw_one_tri_test(18, 19, 20);
 
-    //    draw_one_tri_test(21, 22, 23);
+//    draw_one_tri_test(21, 22, 23);
 //    draw_one_tri_test(24, 25, 26);
 //    draw_one_tri_test(27, 28, 29);
 //    draw_one_tri_test(30, 31, 32);
@@ -143,9 +143,9 @@ void draw_tri_test (void)
 
 //    random_tests();
 
-    draw_random_triangle();
-    draw_random_triangle();
-    
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    
 //    draw_monocolor_triangle(1, 0, 0, 1);
 //    draw_monocolor_triangle(0, 0, 1, 1);
     
