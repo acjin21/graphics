@@ -157,9 +157,9 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
         for(p = start; p.position[X] < end.position[X];)
         {
-            printf("x = %i; y =  %i; rgb = (%.3f, %.3f, %.3f)\n",
-            (int) p.position[X], (int)p.position[Y],
-            p.color[0], p.color[1], p.color[2]);
+//            printf("x = %i; y =  %i; rgb = (%.3f, %.3f, %.3f)\n",
+//            (int) p.position[X], (int)p.position[Y],
+//            p.color[0], p.color[1], p.color[2]);
             
             /*
              * CHANGE TWO
@@ -257,7 +257,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         vector_add(p.position, step.position, p.position);
     }
 }
-
+void draw_line(POINT *v1, POINT *v2, int mode);
 /* draw horizontal scan lines of triangle */
 void draw_spans(void)
 {
@@ -271,18 +271,8 @@ void draw_spans(void)
         }
         else if(count == 2){
             POINT end_p = span[r][1];
-    
-//            POINT *p1 = &start_p;
-//            POINT *p2 = &end_p;
-//
-//            if (start_p.position[X] > end_p.position[X]) {
-//                SWAP(p1, p2);
-//            }
-            //draw horizontal span line
-//            p2->position[Y] = p1->position[Y];
-//            draw_line_modal(p1, p2, DRAW);
             end_p.position[Y] = start_p.position[Y];
-            draw_line_modal(&start_p, &end_p, DRAW);
+            draw_line(&start_p, &end_p, DRAW);
         }
     }
 }
@@ -290,6 +280,7 @@ void draw_spans(void)
 /*************************************************************************/
  /* draw_line from Chris*/
 /*************************************************************************/
+#define ALPHA_BLEND_ON 1
 float color_buffer[800][800][4];
 
 void clear_color_buffer (float r, float g, float b, float a)
@@ -311,22 +302,36 @@ void clear_color_buffer (float r, float g, float b, float a)
  */
 void draw_point (POINT *p)
 {
-    /* write p.color to color_buffer */
     int row = (int) (p->position[Y] + 400);
     int col = (int) (p->position[X] + 400);
-    color_buffer[row][col][R] = p->color[R];
-    color_buffer[row][col][G] = p->color[G];
-    color_buffer[row][col][B] = p->color[B];
-    color_buffer[row][col][A] = p->color[A];
+    float blend_weight = 0.50;
     
+    if(ALPHA_BLEND_ON)
+    {
+        float new_r = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
+        float new_g = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
+        float new_b = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
+        float new_a = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
+
+        /* write blended color to color_buffer */
+        color_buffer[row][col][R] = blend_weight * color_buffer[row][col][R] + blend_weight * p->color[R];
+        color_buffer[row][col][G] = blend_weight * color_buffer[row][col][G] + blend_weight * p->color[G];
+        color_buffer[row][col][B] = blend_weight * color_buffer[row][col][B] + blend_weight * p->color[B];
+        color_buffer[row][col][A] = blend_weight * color_buffer[row][col][A] + blend_weight * p->color[A];
+    
+        glColor4f(color_buffer[row][col][R], color_buffer[row][col][G], color_buffer[row][col][B], color_buffer[row][col][A]);
+    }
+    else
+    {
+        /* write p.color to color_buffer */
+        color_buffer[row][col][R] = p->color[R];
+        color_buffer[row][col][G] = p->color[G];
+        color_buffer[row][col][B] = p->color[B];
+        color_buffer[row][col][A] = p->color[A];
+    }
     /* draw point on screen */
-    glColor4f(color_buffer[row][col][R],
-              color_buffer[row][col][G],
-              color_buffer[row][col][B],
-              color_buffer[row][col][A]);
-    
     glBegin(GL_POINTS);
-    glVertex2f( p->position[X],  p->position[Y]);
+        glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
 }
 
@@ -339,9 +344,11 @@ void store_point (POINT *p)
     if(count < 0 || count > 2) {
         printf("ERR221: row %i count %i out of bounds\n", row, count);
     }
-    
+    if(count <= 1)
+    {
     span[row][count] = *p;
     edge_counts[row]++;
+    }
 }
 
 void draw_line( POINT *start, POINT *end, int mode )
@@ -409,17 +416,17 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
-    clear_color_buffer(0, 0, 0, 1);
+
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
     
     print_tri_vertices(v0, v1, v2);
     draw_line(v0, v1, WALK);
-    //    print_span(200, 600);
+//        print_span(300, 500);
     draw_line(v1, v2, WALK);
-    //    print_span(200, 600);
+//    print_span(300, 500);
     draw_line(v2, v0, WALK);
-    //    print_span(200, 600);
+//    print_span(300, 500);
     draw_spans();
     
     
@@ -508,7 +515,8 @@ void display(void)
      * clear color buffer
      */
     glClear(GL_COLOR_BUFFER_BIT );
-    
+    clear_color_buffer(0, 0, 0, 1);
+
     draw_tri_test();
 
     /*
@@ -559,7 +567,7 @@ int main(int argc, char **argv)
      */
     glClearColor(0, 0, 0, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-    glPointSize(2.0);
+    glPointSize(1.0);
 
     /*
      * start loop that calls display() and Key() routines

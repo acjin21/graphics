@@ -59,7 +59,7 @@ float colors[9][4] =
 {
     {1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}, // r, g, b
     {1, 1, 1, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, // w, blk, blk
-    {0, 1, 0, 1}, {0, 1, 0, 1}, {0, 1, 0, 1}  // all green
+    {0, 1, 0, 1}, {0, 1, 0, 1}, {0, 1, 0, 1},  // all green
 };
 
 void draw_one_tri_test (int i0, int i1, int i2)
@@ -84,6 +84,17 @@ void draw_random_triangle (void)
     draw_triangle(&v0, &v1, &v2);
 }
 
+void draw_monocolor_triangle (float r, float g, float b, float a)
+{
+    set_position(&v0, random_float(-400, 400), random_float(-400, 400), 0, 0);
+    set_position(&v1, random_float(-400, 400), random_float(-400, 400), 0, 0);
+    set_position(&v2, random_float(-400, 400), random_float(-400, 400), 0, 0);
+    set_color(&v0, r, g, b, a);
+    set_color(&v1, r, g, b, a);
+    set_color(&v2, r, g, b, a);
+    draw_triangle(&v0, &v1, &v2);
+}
+
 /* multiple triangles, one screen */
 void draw_tri_test (void)
 {
@@ -97,8 +108,10 @@ void draw_tri_test (void)
     
     //bugs
     /* missing scan line at y = 0 */
-    draw_one_tri_test(18, 19, 20);
-//    draw_one_tri_test(21, 22, 23);
+    
+//    draw_one_tri_test(18, 19, 20);
+
+    //    draw_one_tri_test(21, 22, 23);
 //    draw_one_tri_test(24, 25, 26);
 //    draw_one_tri_test(27, 28, 29);
 //    draw_one_tri_test(30, 31, 32);
@@ -115,15 +128,14 @@ void draw_tri_test (void)
 //    draw_one_tri_test(54, 55, 56);
 //    draw_one_tri_test(57, 58, 59); //slope ~= 1, almost line
 
-
-
-
-
-
-
 //    random_tests();
 
 //    draw_random_triangle();
+//    draw_random_triangle();
+    draw_monocolor_triangle(1, 0, 0, 1);
+    draw_monocolor_triangle(0, 0, 1, 1);
+
+
     
     /*********************/
     /* draw calls        */
