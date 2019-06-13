@@ -22,17 +22,9 @@ float random_float( int low, int high )
     return( (float)(low + (rand()/(float)RAND_MAX)*(high - low)) );
 }
 
-/*
- * draw_point()
- */
 
-void draw_point (POINT *p)
-{
-    glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
-    glBegin(GL_POINTS);
-        glVertex2f( p->position[X],  p->position[Y]);
-    glEnd();
-}
+
+void draw_point(POINT *p);
 
 /*
  * set position of point *p to (x, y, z, w)
@@ -298,6 +290,34 @@ void draw_spans(void)
 /*************************************************************************/
  /* draw_line from Chris*/
 /*************************************************************************/
+float color_buffer[800][800][4];
+
+void clear_color_buffer (float r, float g, float b, float a)
+{
+    for(int row = 0; row < 800; row++)
+    {
+        for(int col = 0; col < 800; col++)
+        {
+            color_buffer[row][col][R] = r;
+            color_buffer[row][col][G] = g;
+            color_buffer[row][col][B] = b;
+            color_buffer[row][col][A] = a;
+        }
+    }
+}
+
+/*
+ * draw_point()
+ */
+void draw_point (POINT *p)
+{
+    
+    glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
+    glBegin(GL_POINTS);
+    glVertex2f( p->position[X],  p->position[Y]);
+    glEnd();
+}
+
 void store_point (POINT *p)
 {
     int row = (int) (p->position[Y] + 400);
@@ -322,7 +342,6 @@ void draw_line( POINT *start, POINT *end, int mode )
     /*
      * calculate deltas in position, color
      */
-    
     vector_subtract( end->position,    start->position,    delta.position   );
     vector_subtract( end->color,       start->color,       delta.color );
     
