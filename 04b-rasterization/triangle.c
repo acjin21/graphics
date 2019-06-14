@@ -354,6 +354,16 @@ void read_ppm (char *file_name, IMAGE *img)
 }
 
 /*************************************************************************/
+/* image processing */
+/*************************************************************************/
+//void fill (IMAGE *img, float r, float g, float b)
+//{
+//    for (int j = 0; j < img->height; j++)
+//    {
+//        for (int)
+//    }
+//}
+/*************************************************************************/
 /* buffer util funcs */
 /*************************************************************************/
 void clear_color_buffer (float r, float g, float b, float a)
@@ -406,15 +416,26 @@ void draw_point (POINT *p)
         int row = (int) (p->position[Y] + 400);
         int col = (int) (p->position[X] + 400);
         float blend_weight = 0.50;
+    
         if(texturing)
         {
             int s, t;
-            // p->tex[S] in [0, 1]
-            // s in [0, texture.width)
-            // t in [0, texture.height)
-            // - 0.01 because - 1 was chopping off part of the texture
-            s = (int) (p->tex[S] * (texture.width - 0.01));
-            t = (int) (p->tex[T] * (texture.height - 0.01));
+            s = (int) (p->tex[S] * texture.width);
+            t = (int) (p->tex[T] * texture.height);
+            
+            if(p->tex[S] == 1 || p->tex[T] == 1)
+            {
+                s = p->tex[S] == 1 ? texture.width - 1 : s;
+                t = p->tex[T] == 1 ? texture.width - 1 : t;
+            }
+           
+
+            
+            
+            if(col == 700 && row == 400)
+            {
+                printf("(s, t) = (%i, %i)\n", s, t);
+            }
             color_buffer[row][col][R] = texture.data[t][s][R] / 255.0;
             color_buffer[row][col][G] = texture.data[t][s][G] / 255.0;
             color_buffer[row][col][B] = texture.data[t][s][B] / 255.0;
@@ -514,15 +535,15 @@ void draw_line( POINT *start, POINT *end, int mode )
 
     if( step.position[i] > 0 )
     {
-        for( p = *start; (int)p.position[i] < (int)end->position[i]; )
+        for( p = *start; (int) p.position[i] < (int) end->position[i]; )
         {
             if( mode == DRAW )
             {
-                draw_point( &p );
+                draw_point(&p);
             }
             else
             {
-                store_point( &p );
+                store_point(&p);
             }
             vector_add(p.position, step.position, p.position);
             vector_add(p.color, step.color, p.color);
@@ -531,7 +552,7 @@ void draw_line( POINT *start, POINT *end, int mode )
     }
     else
     {
-        for( p = *start; (int)p.position[i] > (int)end->position[i]; )
+        for( p = *start; (int) p.position[i] > (int) end->position[i]; )
         {
             if( mode == DRAW )
             {
