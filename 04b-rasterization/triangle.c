@@ -278,6 +278,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
 /*************************************************************************/
 /* textures */
 /*************************************************************************/
+/* generate a random tv screen texture */
 void random_texture (IMAGE *img)
 {
     img->width = 256;
@@ -338,21 +339,15 @@ void read_ppm (char *file_name, IMAGE *img)
     img->height = height;
     int r, g, b, a;
     
-    for (int j = 0; j < height; j++)
+    for (int t = 0; t < height; t++)
     {
-        printf("j = %i\n", j);
-        for (int i = 0; i < width; i++)
+        for (int s = 0; s < width; s++)
         {
             fscanf(fp, "%i %i %i", &r, &g, &b);
-//            if(j == 0)
-//            {
-//                printf("%i, %i, %i\n", r, g, b);
-//            }
-
-            img->data[j][i][R] = (float) r / max * 255.0;
-            img->data[j][i][G] = (float) g / max * 255.0;
-            img->data[j][i][B] = (float) b / max * 255.0;
-            img->data[j][i][A] = 1;
+            img->data[t][s][R] = (float) r / max * 255.0;
+            img->data[t][s][G] = (float) g / max * 255.0;
+            img->data[t][s][B] = (float) b / max * 255.0;
+            img->data[t][s][A] = 1;
         }
     }
     fclose(fp);
@@ -414,9 +409,12 @@ void draw_point (POINT *p)
         if(texturing)
         {
             int s, t;
-            s = (int) (p->tex[S] * (texture.width- 0.01));
-            t = (int) (p->tex[T] * (texture.height- 0.01));
-            printf("s = %i, t = %i\n", s, t);
+            // p->tex[S] in [0, 1]
+            // s in [0, texture.width)
+            // t in [0, texture.height)
+            // - 0.01 because - 1 was chopping off part of the texture
+            s = (int) (p->tex[S] * (texture.width - 0.01));
+            t = (int) (p->tex[T] * (texture.height - 0.01));
             color_buffer[row][col][R] = texture.data[t][s][R] / 255.0;
             color_buffer[row][col][G] = texture.data[t][s][G] / 255.0;
             color_buffer[row][col][B] = texture.data[t][s][B] / 255.0;
@@ -488,34 +486,31 @@ void store_point (POINT *p)
 /*************************************************************************/
 void draw_line( POINT *start, POINT *end, int mode )
 {
-    POINT   delta;
-    POINT   step;
-    POINT   p;
-    int     i;
+    POINT delta, step, p;
+    int i;
     
     /*
      * calculate deltas in position, color
      */
-    vector_subtract( end->position,    start->position,    delta.position   );
-    vector_subtract( end->color,       start->color,       delta.color );
-    vector_subtract( end->tex,       start->tex,       delta.tex );
+    vector_subtract(end->position, start->position, delta.position);
+    vector_subtract(end->color, start->color, delta.color);
+    vector_subtract(end->tex, start->tex, delta.tex);
 
     
     /*
      * determine whether line is x-major or y-major
      */
-//    printf("dx = %f, dy = %f\n", ABS(delta.position[X]), ABS(delta.position[Y]));
-    i = (ABS(delta.position[X]) >= ABS(delta.position[Y]) && mode == DRAW ) ? X : Y;
+    i = (ABS(delta.position[X]) >= ABS(delta.position[Y]) && mode == DRAW )
+        ? X : Y;
     
     /*
      * calculate slope (i.e. increment per iteration) for position, color
      *
      * for x-major divide by deltax, for y-major divide by deltay
      */
-//    printf("start (%f, %f); i = %i\n", start->position[X], start->position[Y], i);
-    scalar_divide( ABS(delta.position[i]), delta.position,      step.position   );
-    scalar_divide( ABS(delta.position[i]), delta.color,         step.color );
-    scalar_divide( ABS(delta.position[i]), delta.tex,           step.tex );
+    scalar_divide(ABS(delta.position[i]), delta.position, step.position);
+    scalar_divide(ABS(delta.position[i]), delta.color, step.color);
+    scalar_divide(ABS(delta.position[i]), delta.tex, step.tex);
 
     if( step.position[i] > 0 )
     {
@@ -529,10 +524,9 @@ void draw_line( POINT *start, POINT *end, int mode )
             {
                 store_point( &p );
             }
-            vector_add( p.position, step.position, p.position   );
-            vector_add( p.color, step.color, p.color );
-            vector_add( p.tex, step.tex, p.tex );
-
+            vector_add(p.position, step.position, p.position);
+            vector_add(p.color, step.color, p.color);
+            vector_add(p.tex, step.tex, p.tex);
         }
     }
     else
@@ -541,15 +535,15 @@ void draw_line( POINT *start, POINT *end, int mode )
         {
             if( mode == DRAW )
             {
-                draw_point( &p );
+                draw_point(&p);
             }
             else
             {
-                store_point( &p );
+                store_point(&p);
             }
-            vector_add( p.position,     step.position,  p.position   );
-            vector_add( p.color,        step.color,     p.color );
-            vector_add( p.tex,          step.tex,       p.tex );
+            vector_add(p.position, step.position, p.position);
+            vector_add(p.color, step.color, p.color);
+            vector_add(p.tex, step.tex, p.tex);
         }
     }
 }
