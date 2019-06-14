@@ -48,6 +48,15 @@ void set_color (POINT *p, float r, float g, float b, float a)
     p->color[A] = a;
 }
 
+void set_tex (POINT *p, float s, float t)
+{
+    p->tex[S] = s;
+    p->tex[T] = t;
+    p->tex[2] = 0;
+    p->tex[3] = 0;
+
+}
+
 /*
  * print point *p
  */
@@ -285,10 +294,32 @@ void draw_spans(void)
 #define ON 1
 #define OFF 0
 
+IMAGE texture;
 float color_buffer[800][800][4];
 float depth_buffer[800][800];
-float alpha_blend = ON;
+float alpha_blend = OFF;
 float depth_test = OFF;
+float texturing = ON;
+
+/*************************************************************************/
+/* random texture stuff */
+/*************************************************************************/
+void random_texture (IMAGE *img)
+{
+    img->width = 256;
+    img->height = 256;
+    for(int j = 0; j < 256; j++)
+    {
+        for(int i = 0; i < 256; i++)
+        {
+            img->data[j][i][R] = random_float(0, 255);
+            img->data[j][i][G] = random_float(0, 255);
+            img->data[j][i][B] = random_float(0, 255);
+            img->data[j][i][A] = 1;
+        }
+    }
+}
+
 
 void clear_color_buffer (float r, float g, float b, float a)
 {
@@ -326,32 +357,55 @@ void draw_point (POINT *p)
         int row = (int) (p->position[Y] + 400);
         int col = (int) (p->position[X] + 400);
         float blend_weight = 0.50;
-        if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
+        if(texturing)
         {
-            if(alpha_blend)
+            int s, t;
+            s = (int) (p->tex[S] * texture.width);
+            t = (int) (p->tex[T] * texture.height);
+            color_buffer[row][col][R] = texture.data[s][t][R] / 255.0;
+            color_buffer[row][col][G] = texture.data[s][t][G] / 255.0;
+            color_buffer[row][col][B] = texture.data[s][t][B] / 255.0;
+            color_buffer[row][col][A] = texture.data[s][t][A] / 255.0;
+        }
+        else
+        {
+            if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
             {
-                float new_r = (1 - blend_weight) * color_buffer[row][col][R] + blend_weight * p->color[R];
-                float new_g = (1 - blend_weight) * color_buffer[row][col][G] + blend_weight * p->color[G];
-                float new_b = (1 - blend_weight) * color_buffer[row][col][B] + blend_weight * p->color[B];
-                float new_a = (1 - blend_weight) * color_buffer[row][col][A] + blend_weight * p->color[A];
-//                /* write blended color to color_buffer */
-                color_buffer[row][col][R] = new_r;
-                color_buffer[row][col][G] = new_g;
-                color_buffer[row][col][B] = new_b;
-                color_buffer[row][col][A] = new_a;
-            }
-            else
-            {
-                /* write p.color to color_buffer */
-                color_buffer[row][col][R] = p->color[R];
-                color_buffer[row][col][G] = p->color[G];
-                color_buffer[row][col][B] = p->color[B];
-                color_buffer[row][col][A] = p->color[A];
-            }
+                if(alpha_blend)
+                {
+                    float new_r, new_g, new_b, new_a;
+//                    if (texturing)
+//                    {
+//                          int s, t;
+//
+//                    }
+//                    else
+//                    {
+                        new_r = (1 - blend_weight) * color_buffer[row][col][R] + blend_weight * p->color[R];
+                        new_g = (1 - blend_weight) * color_buffer[row][col][G] + blend_weight * p->color[G];
+                        new_b = (1 - blend_weight) * color_buffer[row][col][B] + blend_weight * p->color[B];
+                        new_a = (1 - blend_weight) * color_buffer[row][col][A] + blend_weight * p->color[A];
+//                    }
+                    
+    //                /* write blended color to color_buffer */
+                    color_buffer[row][col][R] = new_r;
+                    color_buffer[row][col][G] = new_g;
+                    color_buffer[row][col][B] = new_b;
+                    color_buffer[row][col][A] = new_a;
+                }
+                else
+                {
+                    /* write p.color to color_buffer */
+                    color_buffer[row][col][R] = p->color[R];
+                    color_buffer[row][col][G] = p->color[G];
+                    color_buffer[row][col][B] = p->color[B];
+                    color_buffer[row][col][A] = p->color[A];
+                }
 
-            if(depth_test)
-            {
-                depth_buffer[row][col] = p->position[Z];
+                if(depth_test)
+                {
+                    depth_buffer[row][col] = p->position[Z];
+                }
             }
     }
     /* draw point on screen */
@@ -374,11 +428,8 @@ void store_point (POINT *p)
     if(count < 0 || count > 2) {
         printf("ERR221: row %i count %i out of bounds\n", row, count);
     }
-//    if(count <= 1)
-//    {
-        span[row][count] = *p;
-        edge_counts[row]++;
-//    }
+    span[row][count] = *p;
+    edge_counts[row]++;
 }
 
 void draw_line( POINT *start, POINT *end, int mode )
@@ -393,6 +444,8 @@ void draw_line( POINT *start, POINT *end, int mode )
      */
     vector_subtract( end->position,    start->position,    delta.position   );
     vector_subtract( end->color,       start->color,       delta.color );
+    vector_subtract( end->tex,       start->tex,       delta.tex );
+
     
     /*
      * determine whether line is x-major or y-major
@@ -404,8 +457,10 @@ void draw_line( POINT *start, POINT *end, int mode )
      *
      * for x-major divide by deltax, for y-major divide by deltay
      */
-    scalar_divide( ABS(delta.position[i]), delta.position,    step.position   );
-    scalar_divide( ABS(delta.position[i]), delta.color,      step.color );
+    scalar_divide( ABS(delta.position[i]), delta.position,      step.position   );
+    scalar_divide( ABS(delta.position[i]), delta.color,         step.color );
+    scalar_divide( ABS(delta.position[i]), delta.tex,           step.tex );
+
     
     if( step.position[i] > 0 )
     {
@@ -419,8 +474,10 @@ void draw_line( POINT *start, POINT *end, int mode )
             {
                 store_point( &p );
             }
-            vector_add( p.position,    step.position,   p.position   );
-            vector_add( p.color,  step.color, p.color );
+            vector_add( p.position,     step.position,  p.position   );
+            vector_add( p.color,        step.color,     p.color );
+            vector_add( p.tex,          step.tex,       p.tex );
+
         }
     }
     else
@@ -435,8 +492,9 @@ void draw_line( POINT *start, POINT *end, int mode )
             {
                 store_point( &p );
             }
-            vector_add( p.position,    step.position,   p.position   );
-            vector_add( p.color,  step.color, p.color );
+            vector_add( p.position,     step.position,  p.position   );
+            vector_add( p.color,        step.color,     p.color );
+            vector_add( p.tex,          step.tex,       p.tex );
         }
     }
 }
@@ -454,13 +512,13 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     print_tri_vertices(v0, v1, v2);
     
         draw_line (v0, v1, WALK);
-    print_span(300, 500);
+//    print_span(300, 500);
 
         draw_line (v1, v2, WALK);
-    print_span(300, 500);
+//    print_span(300, 500);
 
         draw_line (v2, v0, WALK);
-    print_span(300, 500);
+//    print_span(300, 500);
     
 //    draw_line_modal(v0, v1, WALK);
 //    draw_line_modal(v1, v2, WALK);
@@ -546,7 +604,7 @@ int main(int argc, char **argv)
     glClearColor(0, 0, 0, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     glPointSize(1.0);
-
+    random_texture(&texture);
     /*
      * start loop that calls display() and Key() routines
      */

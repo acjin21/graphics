@@ -105,6 +105,10 @@ void draw_spec_triangle (float x1, float y1, float z1, float w1,
     set_color(&v0, 1, 0, 0, 1);
     set_color(&v1, 0, 1, 0, 1);
     set_color(&v2, 0, 0, 1, 1);
+    set_tex(&v0, random_float(0, 1), random_float(0, 1));
+    set_tex(&v1, random_float(0, 1), random_float(0, 1));
+    set_tex(&v2, random_float(0, 1), random_float(0, 1));
+
     draw_triangle(&v0, &v1, &v2);
 }
 

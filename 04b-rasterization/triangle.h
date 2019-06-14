@@ -45,13 +45,22 @@ b = tmp;\
 typedef struct point {
     float position[4];
     float color[4];
+    float tex[4];
 } POINT;
+
+typedef struct image
+{
+    int width;
+    int height;
+    unsigned char data[2000][2000][4];
+} IMAGE;
 
 /*************************************************************************/
 /* enums                                                                 */
 /*************************************************************************/
 enum ColorChannels {R = 0, G = 1, B = 2, A};
 enum Axes {X = 0, Y = 1, Z = 2, W = 3};
+enum Textures {S = 0, T = 1};
 
 /*************************************************************************/
 /* externs                                                               */
@@ -62,7 +71,7 @@ extern float random_float(int low, int high);
 extern void draw_point (POINT *p);
 extern void set_position (POINT *p, float x, float y, float z, float w);
 extern void set_color (POINT *p, float r, float g, float b, float a);
-
+extern void set_tex (POINT *p, float s, float t);
 extern void draw_triangle (POINT *v0, POINT *v1, POINT *v2);
 
 
