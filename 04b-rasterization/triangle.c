@@ -33,7 +33,6 @@ float random_float( int low, int high )
 }
 
 
-
 void draw_point(POINT *p);
 
 /*
@@ -118,23 +117,6 @@ void print_span (int row_start, int row_end)
                i, start, end, edge_counts[i]);
         
     }
-}
-
-void draw_color_buffer (void)
-{
-    glBegin(GL_POINTS);
-    for(int y = -window_size; y < window_size; y++)
-    {
-        for(int x = -window_size; x < window_size; x++)
-        {
-            glColor4f(color_buffer[(int) (y + 400)][(int) (x + 400)][R],
-                      0, 0,
-                      color_buffer[(int) (y + 400)][(int) (x + 400)][A]);
-            glVertex2f( x, y);
-        }
-    }
-    glEnd();
-
 }
 
 /*************************************************************************/
@@ -315,9 +297,6 @@ void draw_spans(void)
     }
 }
 
-/*************************************************************************/
- /* draw_line from Chris*/
-/*************************************************************************/
 
 
 /*************************************************************************/
@@ -339,6 +318,7 @@ void random_texture (IMAGE *img)
     }
 }
 
+/* generate checkerboard texture */
 void checkerboard_texture (IMAGE *img)
 {
     img->width = 256;
@@ -346,16 +326,7 @@ void checkerboard_texture (IMAGE *img)
     int color;
     for(int j = 0; j < 256; j++)
     {
-        if((j / 32) % 2 == 0)
-        {
-            /* even row */
-            color = 0;
-        }
-        else
-        {
-            /* odd row */
-            color = 255;
-        }
+        color = ((j / 32) % 2 == 0) ? 0 : 255;
 
         for(int i = 0; i < 256; i++)
         {
@@ -365,19 +336,22 @@ void checkerboard_texture (IMAGE *img)
                 /* if start new block and not 0, switch color */
                 color = (color == 255 ? 0 : 255);
             }
-            if (j == 0)
-            {
-                printf("col %i, color = %i\n", i, color);
-            }
             img->data[j][i][R] = color;
             img->data[j][i][G] = color;
             img->data[j][i][B] = color;
             img->data[j][i][A] = 1;
         }
-        
     }
 }
 
+void read_ppm (FILE *fp)
+{
+    
+}
+
+/*************************************************************************/
+/* buffer util funcs */
+/*************************************************************************/
 void clear_color_buffer (float r, float g, float b, float a)
 {
     for(int row = 0; row < 800; row++)
@@ -404,9 +378,24 @@ void clear_depth_buffer (float value)
     }
 }
 
-/*
- * draw_point()
- */
+void draw_color_buffer (void)
+{
+    glBegin(GL_POINTS);
+    for(int y = -window_size; y < window_size; y++)
+    {
+        for(int x = -window_size; x < window_size; x++)
+        {
+            int row = (int) (y + 400);
+            int col = (int) (x + 400);
+            glColor4f(color_buffer[row][col][R], 0, 0, color_buffer[row][col][A]);
+            glVertex2f( x, y);
+        }
+    }
+    glEnd();
+}
+/*************************************************************************/
+/* draw a point */
+/*************************************************************************/
 void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
@@ -433,17 +422,17 @@ void draw_point (POINT *p)
 //                    if (texturing)
 //                    {
 //                          int s, t;
-//
 //                    }
-//                    else
-//                    {
-                        new_r = (1 - blend_weight) * color_buffer[row][col][R] + blend_weight * p->color[R];
-                        new_g = (1 - blend_weight) * color_buffer[row][col][G] + blend_weight * p->color[G];
-                        new_b = (1 - blend_weight) * color_buffer[row][col][B] + blend_weight * p->color[B];
-                        new_a = (1 - blend_weight) * color_buffer[row][col][A] + blend_weight * p->color[A];
-//                    }
-                    
-    //                /* write blended color to color_buffer */
+                    new_r = (1 - blend_weight) * color_buffer[row][col][R] +
+                        blend_weight * p->color[R];
+                    new_g = (1 - blend_weight) * color_buffer[row][col][G] +
+                        blend_weight * p->color[G];
+                    new_b = (1 - blend_weight) * color_buffer[row][col][B] +
+                        blend_weight * p->color[B];
+                    new_a = (1 - blend_weight) * color_buffer[row][col][A] +
+                        blend_weight * p->color[A];
+
+                    /* write blended color to color_buffer */
                     color_buffer[row][col][R] = new_r;
                     color_buffer[row][col][G] = new_g;
                     color_buffer[row][col][B] = new_b;
@@ -457,7 +446,6 @@ void draw_point (POINT *p)
                     color_buffer[row][col][B] = p->color[B];
                     color_buffer[row][col][A] = p->color[A];
                 }
-
                 if(depth_test)
                 {
                     depth_buffer[row][col] = p->position[Z];
@@ -465,16 +453,13 @@ void draw_point (POINT *p)
             }
     }
     /* draw point on screen */
-    glColor4f(color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][R],
-              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][G],
-              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][B],
-              color_buffer[(int) (p->position[Y] + 400)][(int) (p->position[X] + 400)][A]);
+    glColor4f(color_buffer[row][col][R], color_buffer[row][col][G],
+              color_buffer[row][col][B], color_buffer[row][col][A]);
     glVertex2f( p->position[X],  p->position[Y]);
     glEnd();
-
 }
 
-
+/* store point in span */
 void store_point (POINT *p)
 {
     int row = (int) (p->position[Y] + 400);
@@ -488,6 +473,9 @@ void store_point (POINT *p)
     edge_counts[row]++;
 }
 
+/*************************************************************************/
+/* draw_line from Chris */
+/*************************************************************************/
 void draw_line( POINT *start, POINT *end, int mode )
 {
     POINT   delta;
@@ -519,7 +507,6 @@ void draw_line( POINT *start, POINT *end, int mode )
     scalar_divide( ABS(delta.position[i]), delta.color,         step.color );
     scalar_divide( ABS(delta.position[i]), delta.tex,           step.tex );
 
-    
     if( step.position[i] > 0 )
     {
         for( p = *start; (int)p.position[i] < (int)end->position[i]; )
@@ -532,9 +519,9 @@ void draw_line( POINT *start, POINT *end, int mode )
             {
                 store_point( &p );
             }
-            vector_add( p.position,     step.position,  p.position   );
-            vector_add( p.color,        step.color,     p.color );
-            vector_add( p.tex,          step.tex,       p.tex );
+            vector_add( p.position, step.position, p.position   );
+            vector_add( p.color, step.color, p.color );
+            vector_add( p.tex, step.tex, p.tex );
 
         }
     }
@@ -568,14 +555,9 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     
     print_tri_vertices(v0, v1, v2);
     
-        draw_line (v0, v1, WALK);
-////    print_span(300, 500);
-//
-        draw_line (v1, v2, WALK);
-////    print_span(300, 500);
-//
-        draw_line (v2, v0, WALK);
-//    print_span(300, 500);
+    draw_line (v0, v1, WALK);
+    draw_line (v1, v2, WALK);
+    draw_line (v2, v0, WALK);
     
 //    draw_line_modal(v0, v1, WALK);
 //    draw_line_modal(v1, v2, WALK);
@@ -595,7 +577,9 @@ void display(void)
 {
     if( Mojave_WorkAround )
     {
-        glutReshapeWindow(2 * window_size,2 * window_size);//Necessary for Mojave. Has to be different dimensions than in glutInitWindowSize();
+        glutReshapeWindow(2 * window_size,2 * window_size);
+        //  Necessary for Mojave.
+        //  Has to be different dimensions than in glutInitWindowSize();
         Mojave_WorkAround = 0;
     }
     if( draw_one_frame == 0 )
@@ -663,8 +647,11 @@ int main(int argc, char **argv)
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     glPointSize(1.0);
     
+    /*
+     * textures
+     */
 //    random_texture(&texture);
-    checkerboard_texture(&texture);
+//    checkerboard_texture(&texture);
     /*
      * start loop that calls display() and Key() routines
      */
