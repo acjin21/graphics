@@ -74,4 +74,6 @@ extern void set_color (POINT *p, float r, float g, float b, float a);
 extern void set_tex (POINT *p, float s, float t);
 extern void draw_triangle (POINT *v0, POINT *v1, POINT *v2);
 
+extern void draw_color_buffer(void);
+
 

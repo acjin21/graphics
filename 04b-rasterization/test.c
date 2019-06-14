@@ -14,9 +14,9 @@ void cpy_vec4 (float dest[4], float val[4])
 POINT v0, v1, v2;
 
 
-#define N_VERT(n_err) (3 * (6 + n_err))
+#define N_VERT(n_err) (3 * (n_err))
 
-float points[N_VERT(14)][4] =
+float points[N_VERT(20)][4] =
 {
     {-250, 100, 0, 0},      {-350, 200, 0, 0},      {0, 300, 0, 0},
     {-400, -100, 0, 0},     {-200, -200, 0, 0},     {-200, 0, 0, 0},
@@ -50,16 +50,24 @@ float points[N_VERT(14)][4] =
     {-164.01883, 135.57135, 0.00000, 0.00000}, {147.58612, -320.29736, 0.00000, 0.00000}, {-37.67960, 318.80963, 0.00000, 0.00000},
     {300, 287, 0.00000, 0.00000}, {0, 0, 0.00000, 0.00000}, {-300, -299, 0.00000, 0.00000},
     {115.15228, 164.46851, 0.00000, 0.00000}, {221.35168, 257.58685, 0.00000, 0.00000}, {-337.54013, -237.13881, 0.00000, 0.00000}
-
-
     
 };
+
+
 
 float colors[9][4] =
 {
     {1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}, // r, g, b
     {1, 1, 1, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, // w, blk, blk
     {0, 1, 0, 1}, {0, 1, 0, 1}, {0, 1, 0, 1},  // all green
+};
+
+float tex_coords[4][4] =
+{
+    {0, 0, 0, 0}, /* top left */
+    {1, 0, 0, 0}, /* top right */
+    {1, 1, 0, 0}, /* bottom right */
+    {0, 1, 0, 0} /* bottom left */
 };
 
 void draw_one_tri_test (int i0, int i1, int i2)
@@ -105,13 +113,29 @@ void draw_spec_triangle (float x1, float y1, float z1, float w1,
     set_color(&v0, 1, 0, 0, 1);
     set_color(&v1, 0, 1, 0, 1);
     set_color(&v2, 0, 0, 1, 1);
-    set_tex(&v0, random_float(0, 1), random_float(0, 1));
-    set_tex(&v1, random_float(0, 1), random_float(0, 1));
-    set_tex(&v2, random_float(0, 1), random_float(0, 1));
+//    set_tex(&v0, random_float(0, 1), random_float(0, 1));
+//    set_tex(&v1, random_float(0, 1), random_float(0, 1));
+//    set_tex(&v2, random_float(0, 1), random_float(0, 1));
 
     draw_triangle(&v0, &v1, &v2);
 }
 
+void draw_tex_triangle(float x1, float y1, float z1, float w1,
+                       float x2, float y2, float z2, float w2,
+                       float x3, float y3, float z3, float w3,
+                       int t0, int t1, int t2)
+{
+
+    set_position(&v0, x1, y1, z1, w1);
+    set_position(&v1, x2, y2, z2, w2);
+    set_position(&v2, x3, y3, z3, w3);
+    
+    cpy_vec4(v0.tex, tex_coords[t0]);
+    cpy_vec4(v1.tex, tex_coords[t1]);
+    cpy_vec4(v2.tex, tex_coords[t2]);
+    draw_triangle(&v0, &v1, &v2);
+
+}
 /* multiple triangles, one screen */
 void draw_tri_test (void)
 {
@@ -172,11 +196,32 @@ void draw_tri_test (void)
 //    draw_spec_triangle(-146.75006, -28.35825, 0.72892, 0.00000,
 //                       391.45844, 42.38004, 0.85149, 0.00000,
 //                       -371.22293, 56.35294, 0.40549, 0.00000);
-   draw_spec_triangle(-320.83435, -262.71054, 0.27994, 0.00000,
-                      -382.41208, 0.34534, 0.75442, 0.00000,
-                      57.88364, 50.44135, 0.20961, 0.00000);
+//   draw_spec_triangle(-320.83435, -262.71054, 0.27994, 0.00000,
+//                      -382.41208, 0.34534, 0.75442, 0.00000,
+//                      57.88364, 50.44135, 0.20961, 0.00000);
 
 
+    draw_tex_triangle(-300, 300, 0, 0,
+                      -300, -300, 0, 0,
+                      300, -300, 0, 0,
+                      0, 3, 2);
+
+    draw_tex_triangle(300, -300, 0, 0,
+                      300, 300, 0, 0,
+                      -300, 300, 0, 0,
+                      2, 1, 0);
+    
+//    draw_spec_triangle(-300, 300, 0, 0,
+//                      -300, -300, 0, 0,
+//                      300, -300, 0, 0);
+//
+//    draw_spec_triangle(300, -300, 0, 0,
+//                      300, 300, 0, 0,
+//                      -300, 300, 0, 0);
+    
+    
+//    draw_color_buffer();
+    
     
     /*********************/
     /* draw calls        */

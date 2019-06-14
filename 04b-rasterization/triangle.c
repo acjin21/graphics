@@ -11,6 +11,16 @@ int draw_prog = 1;
 
 POINT span[800][2];
 int edge_counts[800];
+
+#define ON 1
+#define OFF 0
+
+IMAGE texture;
+float color_buffer[800][800][4];
+float depth_buffer[800][800];
+float alpha_blend = OFF;
+float depth_test = OFF;
+float texturing = ON;
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
@@ -108,6 +118,23 @@ void print_span (int row_start, int row_end)
                i, start, end, edge_counts[i]);
         
     }
+}
+
+void draw_color_buffer (void)
+{
+    glBegin(GL_POINTS);
+    for(int y = -window_size; y < window_size; y++)
+    {
+        for(int x = -window_size; x < window_size; x++)
+        {
+            glColor4f(color_buffer[(int) (y + 400)][(int) (x + 400)][R],
+                      0, 0,
+                      color_buffer[(int) (y + 400)][(int) (x + 400)][A]);
+            glVertex2f( x, y);
+        }
+    }
+    glEnd();
+
 }
 
 /*************************************************************************/
@@ -291,18 +318,10 @@ void draw_spans(void)
 /*************************************************************************/
  /* draw_line from Chris*/
 /*************************************************************************/
-#define ON 1
-#define OFF 0
 
-IMAGE texture;
-float color_buffer[800][800][4];
-float depth_buffer[800][800];
-float alpha_blend = OFF;
-float depth_test = OFF;
-float texturing = ON;
 
 /*************************************************************************/
-/* random texture stuff */
+/* textures */
 /*************************************************************************/
 void random_texture (IMAGE *img)
 {
@@ -320,6 +339,44 @@ void random_texture (IMAGE *img)
     }
 }
 
+void checkerboard_texture (IMAGE *img)
+{
+    img->width = 256;
+    img->height = 256;
+    int color;
+    for(int j = 0; j < 256; j++)
+    {
+        if((j / 32) % 2 == 0)
+        {
+            /* even row */
+            color = 0;
+        }
+        else
+        {
+            /* odd row */
+            color = 255;
+        }
+
+        for(int i = 0; i < 256; i++)
+        {
+            if(i % 32 == 0 && i / 32 != 0)
+            {
+//                printf("switch color at column %i\n", i);
+                /* if start new block and not 0, switch color */
+                color = (color == 255 ? 0 : 255);
+            }
+            if (j == 0)
+            {
+                printf("col %i, color = %i\n", i, color);
+            }
+            img->data[j][i][R] = color;
+            img->data[j][i][G] = color;
+            img->data[j][i][B] = color;
+            img->data[j][i][A] = 1;
+        }
+        
+    }
+}
 
 void clear_color_buffer (float r, float g, float b, float a)
 {
@@ -353,15 +410,14 @@ void clear_depth_buffer (float value)
 void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
-    glPointSize(1.0);
         int row = (int) (p->position[Y] + 400);
         int col = (int) (p->position[X] + 400);
         float blend_weight = 0.50;
         if(texturing)
         {
             int s, t;
-            s = (int) (p->tex[S] * texture.width);
-            t = (int) (p->tex[T] * texture.height);
+            s = (int) (p->tex[S] * (texture.width - 1));
+            t = (int) (p->tex[T] * (texture.height - 1));
             color_buffer[row][col][R] = texture.data[s][t][R] / 255.0;
             color_buffer[row][col][G] = texture.data[s][t][G] / 255.0;
             color_buffer[row][col][B] = texture.data[s][t][B] / 255.0;
@@ -450,6 +506,7 @@ void draw_line( POINT *start, POINT *end, int mode )
     /*
      * determine whether line is x-major or y-major
      */
+    printf("dx = %f, dy = %f\n", ABS(delta.position[X]), ABS(delta.position[Y]));
     i = (ABS(delta.position[X]) >= ABS(delta.position[Y]) && mode == DRAW ) ? X : Y;
     
     /*
@@ -457,6 +514,7 @@ void draw_line( POINT *start, POINT *end, int mode )
      *
      * for x-major divide by deltax, for y-major divide by deltay
      */
+    printf("start (%f, %f); i = %i\n", start->position[X], start->position[Y], i);
     scalar_divide( ABS(delta.position[i]), delta.position,      step.position   );
     scalar_divide( ABS(delta.position[i]), delta.color,         step.color );
     scalar_divide( ABS(delta.position[i]), delta.tex,           step.tex );
@@ -504,7 +562,6 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
-//    glPointSize(1.0);
 
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
@@ -512,11 +569,11 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     print_tri_vertices(v0, v1, v2);
     
         draw_line (v0, v1, WALK);
-//    print_span(300, 500);
-
+////    print_span(300, 500);
+//
         draw_line (v1, v2, WALK);
-//    print_span(300, 500);
-
+////    print_span(300, 500);
+//
         draw_line (v2, v0, WALK);
 //    print_span(300, 500);
     
@@ -550,7 +607,7 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT );
     clear_color_buffer(0, 0, 0, 1);
     clear_depth_buffer(1.0);
-    glPointSize(1.0);
+    glPointSize(2.0);
     printf("\nNEW DISPLAY: %i\n", counter);
     counter++;
     draw_tri_test();
@@ -601,10 +658,13 @@ int main(int argc, char **argv)
     /*
      * setup OpenGL state
      */
-    glClearColor(0, 0, 0, 1);
+//    glClearColor(0, 0, 0, 1);
+    glClearColor(255/255.0, 255/255.0,  153/255.0,  1); //light yellow
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     glPointSize(1.0);
-    random_texture(&texture);
+    
+//    random_texture(&texture);
+    checkerboard_texture(&texture);
     /*
      * start loop that calls display() and Key() routines
      */
