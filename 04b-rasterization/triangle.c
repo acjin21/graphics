@@ -630,16 +630,17 @@ void display(void)
     if( draw_one_frame == 0 )
         return;
 	
-    char file_names[6][100] =
+    char file_names[7][100] =
     {
         "blackbuck.ascii.ppm",
         "out.ppm",
         "feep.ascii.ppm",
         "pbmlib.ascii.ppm",
         "sines.ascii.ppm",
-        "snail.ascii.ppm"
+        "snail.ascii.ppm",
+        "star_field.ascii.ppm"
     };
-    file_index = (file_index + 1) % 6;
+    file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
     read_ppm(ppm_file, &texture);
     
