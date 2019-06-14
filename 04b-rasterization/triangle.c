@@ -623,10 +623,11 @@ void max (IMAGE *input, IMAGE *output)
  * convert pixel cartesian coordinates (x, y) to
  *  polar coordinates (*radius, *angle) with *angle in degrees
  */
-void cartesian_to_polar (float x, float y, float *radius, float *angle)
+void cartesian_to_polar (float x, float y, float *radius, float *angle,
+                         int width, int height)
 {
-    x -= 400;
-    y -= 400;
+    x -= (width / 2);
+    y -= (height / 2);
     float r = sqrt(x * x + y * y);
     float a = atan2(y, x);
     
@@ -639,11 +640,12 @@ void cartesian_to_polar (float x, float y, float *radius, float *angle)
  * convert polar coordinates (radius, angle) with angle in degrees to
  *   pixel cartesian coordinates (*x, *y)
  */
-void polar_to_cartesian (float radius, float angle, float *x, float *y)
+void polar_to_cartesian (float radius, float angle, float *x, float *y,
+                         int width, int height)
 {
     float rad = angle * PI / 180.0;
-    *x = radius * cos(rad) + 400;
-    *y = radius * sin(rad) + 400;
+    *x = radius * cos(rad) + (width / 2);
+    *y = radius * sin(rad) + (height / 2);
 }
 
 /* rotates an image by angle degrees, counter-clockwise */
@@ -656,10 +658,19 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
         for (int i = 0; i < output->width; i++)
         {
             float radius, curr_angle, new_i, new_j;
-            cartesian_to_polar(i, j, &radius, &angle);
+            
+            cartesian_to_polar(i, j, &radius, &curr_angle, input->width, input->height);
             curr_angle += angle;
-            polar_to_cartesian(radius, curr_angle, &new_i, &new_j);
-            output->data[(int) new_j][(int) new_i][R] = input->data[j][i][R];
+            polar_to_cartesian(radius, curr_angle, &new_i, &new_j, input->width, input->height);
+            
+            if( new_j >= 0 && new_j < output->height &&
+               new_i >= 0 && new_i < output->width )
+            {
+                output->data[(int) new_j][(int) new_i][R] = input->data[j][i][R];
+                output->data[(int) new_j][(int) new_i][G] = input->data[j][i][G];
+                output->data[(int) new_j][(int) new_i][B] = input->data[j][i][B];
+                output->data[(int) new_j][(int) new_i][A] = input->data[j][i][A];
+            }
         }
     }
 }
@@ -956,6 +967,7 @@ void display(void)
 //    avg(&texture_in, &texture);
 //    min(&texture_in, &texture);
 //    max(&texture_in, &texture);
+    rotate_ccw(&texture_in, &texture, 45);
 
 
 
