@@ -115,7 +115,6 @@ void print_span (int row_start, int row_end)
         
         printf("- row = %i, [0] = %s, [1] = %s, count = %i\n",
                i, start, end, edge_counts[i]);
-        
     }
 }
 
@@ -275,29 +274,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         vector_add(p.position, step.position, p.position);
     }
 }
-void draw_line(POINT *v1, POINT *v2, int mode);
-/* draw horizontal scan lines of triangle */
-void draw_spans(void)
-{
-    for(int r = 0; r < 800; r++)
-    {
-        POINT start_p = span[r][0];
-        int count = edge_counts[r];
-        if(count == 0) continue;
-        if(count == 1) {
-            draw_point(&start_p);
-        }
-        else if(count == 2){
-            POINT end_p = span[r][1];
-//            end_p.position[Y] = start_p.position[Y];
-//            draw_line_modal(&start_p, &end_p, DRAW);
-            draw_line (&start_p, &end_p, DRAW);
-
-        }
-    }
-}
-
-
 
 /*************************************************************************/
 /* textures */
@@ -344,9 +320,42 @@ void checkerboard_texture (IMAGE *img)
     }
 }
 
-void read_ppm (FILE *fp)
+/* read a .ppm file into texture */
+void read_ppm (char *file_name, IMAGE *img)
 {
+    FILE *fp;
+    fp = fopen(file_name, "r");
+    int width, height;
+    float max;
     
+    fscanf(fp, "P3\n%i %i\n", &width, &height);
+    printf("width = %i, height = %i\n", width, height);
+    
+    fscanf(fp, "%f\n", &max);
+    printf("max = %f\n", max);
+
+    img->width = width;
+    img->height = height;
+    int r, g, b, a;
+    
+    for (int j = 0; j < height; j++)
+    {
+        printf("j = %i\n", j);
+        for (int i = 0; i < width; i++)
+        {
+            fscanf(fp, "%i %i %i", &r, &g, &b);
+//            if(j == 0)
+//            {
+//                printf("%i, %i, %i\n", r, g, b);
+//            }
+
+            img->data[j][i][R] = (float) r / max * 255.0;
+            img->data[j][i][G] = (float) g / max * 255.0;
+            img->data[j][i][B] = (float) b / max * 255.0;
+            img->data[j][i][A] = 1;
+        }
+    }
+    fclose(fp);
 }
 
 /*************************************************************************/
@@ -405,12 +414,13 @@ void draw_point (POINT *p)
         if(texturing)
         {
             int s, t;
-            s = (int) (p->tex[S] * (texture.width - 1));
-            t = (int) (p->tex[T] * (texture.height - 1));
-            color_buffer[row][col][R] = texture.data[s][t][R] / 255.0;
-            color_buffer[row][col][G] = texture.data[s][t][G] / 255.0;
-            color_buffer[row][col][B] = texture.data[s][t][B] / 255.0;
-            color_buffer[row][col][A] = texture.data[s][t][A] / 255.0;
+            s = (int) (p->tex[S] * (texture.width- 0.01));
+            t = (int) (p->tex[T] * (texture.height- 0.01));
+            printf("s = %i, t = %i\n", s, t);
+            color_buffer[row][col][R] = texture.data[t][s][R] / 255.0;
+            color_buffer[row][col][G] = texture.data[t][s][G] / 255.0;
+            color_buffer[row][col][B] = texture.data[t][s][B] / 255.0;
+            color_buffer[row][col][A] = texture.data[t][s][A] / 255.0;
         }
         else
         {
@@ -494,7 +504,7 @@ void draw_line( POINT *start, POINT *end, int mode )
     /*
      * determine whether line is x-major or y-major
      */
-    printf("dx = %f, dy = %f\n", ABS(delta.position[X]), ABS(delta.position[Y]));
+//    printf("dx = %f, dy = %f\n", ABS(delta.position[X]), ABS(delta.position[Y]));
     i = (ABS(delta.position[X]) >= ABS(delta.position[Y]) && mode == DRAW ) ? X : Y;
     
     /*
@@ -502,7 +512,7 @@ void draw_line( POINT *start, POINT *end, int mode )
      *
      * for x-major divide by deltax, for y-major divide by deltay
      */
-    printf("start (%f, %f); i = %i\n", start->position[X], start->position[Y], i);
+//    printf("start (%f, %f); i = %i\n", start->position[X], start->position[Y], i);
     scalar_divide( ABS(delta.position[i]), delta.position,      step.position   );
     scalar_divide( ABS(delta.position[i]), delta.color,         step.color );
     scalar_divide( ABS(delta.position[i]), delta.tex,           step.tex );
@@ -544,7 +554,25 @@ void draw_line( POINT *start, POINT *end, int mode )
     }
 }
 
-
+/* draw horizontal scan lines of triangle */
+void draw_spans(void)
+{
+    for(int r = 0; r < 800; r++)
+    {
+        POINT start_p = span[r][0];
+        int count = edge_counts[r];
+        if(count == 0) continue;
+        if(count == 1) {
+            draw_point(&start_p);
+        }
+        else if(count == 2){
+            POINT end_p = span[r][1];
+            //            end_p.position[Y] = start_p.position[Y];
+            //            draw_line_modal(&start_p, &end_p, DRAW);
+            draw_line (&start_p, &end_p, DRAW);
+        }
+    }
+}
 
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
@@ -566,6 +594,8 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     
 }
 int counter = 0;
+int file_index = 0;
+
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -585,6 +615,19 @@ void display(void)
     if( draw_one_frame == 0 )
         return;
 	
+    char file_names[6][100] =
+    {
+        "blackbuck.ascii.ppm",
+        "out.ppm",
+        "feep.ascii.ppm",
+        "pbmlib.ascii.ppm",
+        "sines.ascii.ppm",
+        "snail.ascii.ppm"
+    };
+    file_index = (file_index + 1) % 6;
+    char *ppm_file = file_names[file_index];
+    read_ppm(ppm_file, &texture);
+    
     /*
      * clear color buffer
      */
@@ -652,6 +695,7 @@ int main(int argc, char **argv)
      */
 //    random_texture(&texture);
 //    checkerboard_texture(&texture);
+    
     /*
      * start loop that calls display() and Key() routines
      */
