@@ -16,6 +16,7 @@ int edge_counts[800];
 #define OFF 0
 
 IMAGE texture;
+IMAGE texture_in;
 float color_buffer[800][800][4];
 float depth_buffer[800][800];
 float alpha_blend = OFF;
@@ -361,8 +362,8 @@ void read_ppm (char *file_name, IMAGE *img)
  */
 void fill (IMAGE *img, float r, float g, float b)
 {
-    img->width = 256;
-    img->height = 256;
+//    img->width = 256;
+//    img->height = 256;
     for (int j = 0; j < img->height; j++)
     {
         for (int i = 0; i < img->width; i++)
@@ -552,9 +553,9 @@ void min (IMAGE *input, IMAGE *output)
     {
         for (int i = 0; i < output->width; i++)
         {
-            int min_r = 0;
-            int min_g = 0;
-            int min_b = 0;
+            int min_r = 255;
+            int min_g = 255;
+            int min_b = 255;
             /* visit 3x3 neighborhood and find the min rgb values */
             for(int n = j - 1; n <= j + 1; n++)
             {
@@ -931,6 +932,7 @@ void display(void)
     if( draw_one_frame == 0 )
         return;
 	
+    /* test reading in texture files */
     char file_names[7][100] =
     {
         "blackbuck.ascii.ppm",
@@ -943,7 +945,22 @@ void display(void)
     };
     file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
-    read_ppm(ppm_file, &texture);
+    read_ppm(ppm_file, &texture_in);
+//    fill (&texture, 255, 0, 0);
+//    luminosity(&texture_in, &texture);
+//    negative(&texture_in, &texture);
+//    flip_vertical(&texture_in, &texture);
+//    flip_horizontal(&texture_in, &texture);
+//    luminosity(&texture_in, &texture);
+//    sepia(&texture_in, &texture);
+//    avg(&texture_in, &texture);
+//    min(&texture_in, &texture);
+//    max(&texture_in, &texture);
+
+
+
+
+
     
     /*
      * clear color buffer
