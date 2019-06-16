@@ -1,4 +1,4 @@
-OBJECTS = util.c texture.c image.c color.c triangle.c vector.c test.c
+OBJECTS = vector.c util.c texture.c image.c color.c depth.c triangle.c test.c
 
 build: 
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o triangle 
