@@ -26,14 +26,10 @@ extern float depth_buffer[800][800];
 float alpha_blend = OFF;
 float depth_test = OFF;
 float texturing = ON;
+
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
-
-void draw_point(POINT *p);
-
-
-
 /*
  * print point *p
  */
@@ -49,6 +45,7 @@ void print_tri_vertices (POINT *v0, POINT *v1, POINT *v2)
     print_point(v1);
     print_point(v2);
     printf("\n");
+    
 }
 void sprint_point (char *s, POINT *p)
 {
@@ -87,22 +84,8 @@ void print_span (int row_start, int row_end)
 }
 
 /*************************************************************************/
-/* draw_line                                                             */
-/*************************************************************************/
-
-/* reset all edge counts to 0 */
-void reset_edge_counts (void)
-{
-    for(int i = 0; i < 800; i++)
-    {
-        edge_counts[i] = 0;
-    }
-}
-
-/*************************************************************************/
 /* buffer util funcs */
 /*************************************************************************/
-
 void draw_color_buffer (void)
 {
     glBegin(GL_POINTS);
@@ -291,10 +274,18 @@ void draw_spans(void)
     }
 }
 
+/* reset all edge counts to 0 */
+void reset_edge_counts (void)
+{
+    for(int i = 0; i < 800; i++)
+    {
+        edge_counts[i] = 0;
+    }
+}
+
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
-
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
     
@@ -306,13 +297,14 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     draw_spans();
     
 }
-int counter = 0;
-int file_index = 0;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
 extern void draw_tri_test(void);
+int counter = 0;
+int file_index = 0;
+
 /*
  * display routine
  */
