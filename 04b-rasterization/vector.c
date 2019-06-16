@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "vector.h"
+
 void vector_add (float v1[4], float v2[4], float res[4])
 {
     for(int i = 0; i < 4; i++)
