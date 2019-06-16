@@ -612,14 +612,6 @@ void draw_point (POINT *p)
                 s = p->tex[S] == 1 ? texture.width - 1 : s;
                 t = p->tex[T] == 1 ? texture.width - 1 : t;
             }
-           
-
-            
-            
-            if(col == 700 && row == 400)
-            {
-                printf("(s, t) = (%i, %i)\n", s, t);
-            }
             color_buffer[row][col][R] = texture.data[t][s][R] / 255.0;
             color_buffer[row][col][G] = texture.data[t][s][G] / 255.0;
             color_buffer[row][col][B] = texture.data[t][s][B] / 255.0;
@@ -766,8 +758,6 @@ void draw_spans(void)
         }
         else if(count == 2){
             POINT end_p = span[r][1];
-            //            end_p.position[Y] = start_p.position[Y];
-            //            draw_line_modal(&start_p, &end_p, DRAW);
             draw_line (&start_p, &end_p, DRAW);
         }
     }
@@ -785,10 +775,6 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
     draw_line (v0, v1, WALK);
     draw_line (v1, v2, WALK);
     draw_line (v2, v0, WALK);
-    
-//    draw_line_modal(v0, v1, WALK);
-//    draw_line_modal(v1, v2, WALK);
-//    draw_line_modal(v2, v0, WALK);
     draw_spans();
     
 }
@@ -817,17 +803,19 @@ void display(void)
     /* test reading in texture files */
     char file_names[7][100] =
     {
-        "blackbuck.ascii.ppm",
-        "out.ppm",
-        "feep.ascii.ppm",
-        "pbmlib.ascii.ppm",
-        "sines.ascii.ppm",
-        "snail.ascii.ppm",
-        "star_field.ascii.ppm"
+        "ppm/blackbuck.ascii.ppm",
+        "ppm/out.ppm",
+        "ppm/feep.ascii.ppm",
+        "ppm/pbmlib.ascii.ppm",
+        "ppm/sines.ascii.ppm",
+        "ppm/snail.ascii.ppm",
+        "ppm/star_field.ascii.ppm"
     };
     file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
     read_ppm(ppm_file, &texture_in);
+    
+    /* test image processing */
 //    fill (&texture, 255, 0, 0);
 //    luminosity(&texture_in, &texture);
 //    negative(&texture_in, &texture);
@@ -840,11 +828,6 @@ void display(void)
 //    max(&texture_in, &texture);
     clear_texture(&texture, 0, 0, 0, 1);
     rotate_ccw(&texture_in, &texture, 45);
-
-
-
-
-
     
     /*
      * clear color buffer
