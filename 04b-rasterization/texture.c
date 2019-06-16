@@ -81,3 +81,17 @@ void read_ppm (char *file_name, IMAGE *img)
     }
     fclose(fp);
 }
+
+void clear_texture (IMAGE *texture, float r, float g, float b, float a)
+{
+    for(int i = 0; i < texture->width; i++)
+    {
+        for(int j = 0; j < texture->height; j++)
+        {
+            texture->data[j][i][R] = r;
+            texture->data[j][i][G] = g;
+            texture->data[j][i][B] = b;
+            texture->data[j][i][A] = a;
+        }
+    }
+}

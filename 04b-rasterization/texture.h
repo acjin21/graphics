@@ -14,4 +14,5 @@ typedef struct image
 void random_texture (IMAGE *img);
 void checkerboard_texture (IMAGE *img);
 void read_ppm (char *file_name, IMAGE *img);
+void clear_texture (IMAGE *texture, float r, float g, float b, float a);
 #endif
