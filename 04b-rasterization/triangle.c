@@ -2,7 +2,8 @@
 #include "vector.h"
 #include "texture.h" //IMAGE typedef, texture and ppm functions
 #include "image.h" //uses IMAGE typedef, image processing funcs
-
+#include "util.h" //random_float
+#include "color.h"
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -19,7 +20,7 @@ int edge_counts[800];
 
 IMAGE texture;
 IMAGE texture_in;
-float color_buffer[800][800][4];
+extern float color_buffer[800][800][4];
 float depth_buffer[800][800];
 float alpha_blend = OFF;
 float depth_test = OFF;
@@ -27,8 +28,6 @@ float texturing = ON;
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
-#include "util.h"
-
 
 void draw_point(POINT *p);
 
@@ -60,7 +59,6 @@ void set_tex (POINT *p, float s, float t)
     p->tex[T] = t;
     p->tex[2] = 0;
     p->tex[3] = 0;
-
 }
 
 /*
@@ -128,27 +126,10 @@ void reset_edge_counts (void)
     }
 }
 
-
-
-
-
-
 /*************************************************************************/
 /* buffer util funcs */
 /*************************************************************************/
-void clear_color_buffer (float r, float g, float b, float a)
-{
-    for(int row = 0; row < 800; row++)
-    {
-        for(int col = 0; col < 800; col++)
-        {
-            color_buffer[row][col][R] = r;
-            color_buffer[row][col][G] = g;
-            color_buffer[row][col][B] = b;
-            color_buffer[row][col][A] = a;
-        }
-    }
-}
+
 
 void clear_depth_buffer (float value)
 {
@@ -158,20 +139,6 @@ void clear_depth_buffer (float value)
         for(int col = 0; col < 800; col++)
         {
             depth_buffer[row][col] = value;
-        }
-    }
-}
-
-void clear_texture (IMAGE *texture, float r, float g, float b, float a)
-{
-    for(int i = 0; i < texture->width; i++)
-    {
-        for(int j = 0; j < texture->height; j++)
-        {
-            texture->data[j][i][R] = r;
-            texture->data[j][i][G] = g;
-            texture->data[j][i][B] = b;
-            texture->data[j][i][A] = a;
         }
     }
 }
