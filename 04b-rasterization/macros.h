@@ -6,4 +6,6 @@
 #define B 2
 #define A 3
 
+#define PI 3.1415926
+
 #endif
