@@ -35,7 +35,6 @@ void scalar_divide (float s, float v[4], float res[4])
     scalar_multiply(1.0 / s, v, res);
 }
 
-
 float vector_length (float v[4])
 {
     return sqrt(v[0] * v[0] + v[1] * v[1]);
