@@ -1,8 +1,5 @@
 
 /*
- *
- * line.c - simple GLUT app that draws one frame with a single point at origin
- *
  * To build:  gcc -framework OpenGL -framework GLUT line.c -o line
  *
  */
@@ -48,12 +45,7 @@ typedef struct point {
     float tex[4];
 } POINT;
 
-typedef struct image
-{
-    int width;
-    int height;
-    unsigned char data[2000][2000][4];
-} IMAGE;
+//extern struct IMAGE;
 
 /*************************************************************************/
 /* enums                                                                 */

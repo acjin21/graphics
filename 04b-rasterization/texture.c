@@ -1,4 +1,5 @@
 #include "texture.h"
+
 #include <stdio.h>
 #include "macros.h"
 #include "util.h"
