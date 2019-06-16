@@ -1,8 +1,10 @@
 #include "triangle.h"
 
 /****************************************/
-/* copy contents of val[4] into dest[4] */
+/* helper funcs */
 /****************************************/
+
+/* copy contents of val[4] into dest[4] */
 void cpy_vec4 (float dest[4], float val[4])
 {
     for(int i = 0; i < 4; i++)
@@ -11,8 +13,40 @@ void cpy_vec4 (float dest[4], float val[4])
     }
 }
 
-POINT v0, v1, v2;
+/*
+ * set position of point *p to (x, y, z, w)
+ */
+void set_position (POINT *p, float x, float y, float z, float w)
+{
+    p->position[X] = x;
+    p->position[Y] = y;
+    p->position[Z] = z;
+    p->position[W] = w;
+}
 
+/*
+ * set color of point *p to (r, g, b, a)
+ */
+void set_color (POINT *p, float r, float g, float b, float a)
+{
+    p->color[R] = r;
+    p->color[G] = g;
+    p->color[B] = b;
+    p->color[A] = a;
+}
+
+void set_tex (POINT *p, float s, float t)
+{
+    p->tex[S] = s;
+    p->tex[T] = t;
+    p->tex[2] = 0;
+    p->tex[3] = 0;
+}
+
+/****************************************/
+/* test vars and functions */
+/****************************************/
+POINT v0, v1, v2;
 
 #define N_VERT(n_err) (3 * (n_err))
 
