@@ -1,8 +1,7 @@
 #include "triangle.h"
 #include "vector.h"
 #include "texture.h" //IMAGE typedef, texture and ppm functions
-#include "image.h"
-
+#include "image.h" //uses IMAGE typedef, image processing funcs
 
 /*************************************************************************/
 /* global variables                                                      */
