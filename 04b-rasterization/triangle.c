@@ -4,6 +4,7 @@
 #include "image.h" //uses IMAGE typedef, image processing funcs
 #include "util.h" //random_float
 #include "color.h"
+#include "depth.h"
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -21,7 +22,7 @@ int edge_counts[800];
 IMAGE texture;
 IMAGE texture_in;
 extern float color_buffer[800][800][4];
-float depth_buffer[800][800];
+extern float depth_buffer[800][800];
 float alpha_blend = OFF;
 float depth_test = OFF;
 float texturing = ON;
@@ -31,35 +32,7 @@ float texturing = ON;
 
 void draw_point(POINT *p);
 
-/*
- * set position of point *p to (x, y, z, w)
- */
-void set_position (POINT *p, float x, float y, float z, float w)
-{
-    p->position[X] = x;
-    p->position[Y] = y;
-    p->position[Z] = z;
-    p->position[W] = w;
-}
 
-/*
- * set color of point *p to (r, g, b, a)
- */
-void set_color (POINT *p, float r, float g, float b, float a)
-{
-    p->color[R] = r;
-    p->color[G] = g;
-    p->color[B] = b;
-    p->color[A] = a;
-}
-
-void set_tex (POINT *p, float s, float t)
-{
-    p->tex[S] = s;
-    p->tex[T] = t;
-    p->tex[2] = 0;
-    p->tex[3] = 0;
-}
 
 /*
  * print point *p
@@ -130,19 +103,6 @@ void reset_edge_counts (void)
 /* buffer util funcs */
 /*************************************************************************/
 
-
-void clear_depth_buffer (float value)
-{
-    printf("\ndepth buffer cleared\n");
-    for(int row = 0; row < 800; row++)
-    {
-        for(int col = 0; col < 800; col++)
-        {
-            depth_buffer[row][col] = value;
-        }
-    }
-}
-
 void draw_color_buffer (void)
 {
     glBegin(GL_POINTS);
@@ -158,6 +118,7 @@ void draw_color_buffer (void)
     }
     glEnd();
 }
+
 /*************************************************************************/
 /* draw a point */
 /*************************************************************************/
