@@ -705,6 +705,20 @@ void clear_depth_buffer (float value)
     }
 }
 
+void clear_texture (IMAGE *texture, float r, float g, float b, float a)
+{
+    for(int i = 0; i < texture->width; i++)
+    {
+        for(int j = 0; j < texture->height; j++)
+        {
+            texture->data[j][i][R] = r;
+            texture->data[j][i][G] = g;
+            texture->data[j][i][B] = b;
+            texture->data[j][i][A] = a;
+        }
+    }
+}
+
 void draw_color_buffer (void)
 {
     glBegin(GL_POINTS);
@@ -967,6 +981,7 @@ void display(void)
 //    avg(&texture_in, &texture);
 //    min(&texture_in, &texture);
 //    max(&texture_in, &texture);
+    clear_texture(&texture, 0, 0, 0, 1);
     rotate_ccw(&texture_in, &texture, 45);
 
 
