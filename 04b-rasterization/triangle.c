@@ -342,12 +342,12 @@ void display(void)
 //    flip_vertical(&texture_in, &texture);
 //    flip_horizontal(&texture_in, &texture);
 //    luminosity(&texture_in, &texture);
-//    sepia(&texture_in, &texture);
+    sepia(&texture_in, &texture);
 //    avg(&texture_in, &texture);
 //    min(&texture_in, &texture);
 //    max(&texture_in, &texture);
-    clear_texture(&texture, 0, 0, 0, 1);
-    rotate_ccw(&texture_in, &texture, 45);
+//    clear_texture(&texture, 0, 0, 0, 1);
+//    rotate_ccw(&texture_in, &texture, 0);
     
     /*
      * clear color buffer

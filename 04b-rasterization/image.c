@@ -146,9 +146,12 @@ void sepia (IMAGE *input, IMAGE *output)
             int r = input->data[j][i][R];
             int g = input->data[j][i][G];
             int b = input->data[j][i][B];
-            output->data[j][i][R] = 0.393 * r + 0.769 * g + 0.189 * b;
-            output->data[j][i][G] = 0.349 * r + 0.686 * g + 0.168 * b;
-            output->data[j][i][B] = 0.272 * r + 0.534 * g + 0.131 * b;
+            float sr = 0.393 * r + 0.769 * g + 0.189 * b;
+            float sg = 0.349 * r + 0.686 * g + 0.168 * b;
+            float sb = 0.272 * r + 0.534 * g + 0.131 * b;
+            output->data[j][i][R] = sr > 255 ? 255 : sr;
+            output->data[j][i][G] = sg > 255 ? 255 : sg;
+            output->data[j][i][B] = sb > 255 ? 255 : sb;
             output->data[j][i][A] = input->data[j][i][A];
         }
     }
@@ -293,8 +296,8 @@ void polar_to_cartesian (float radius, float angle, float *x, float *y,
                          int width, int height)
 {
     float rad = angle * PI / 180.0;
-    *x = radius * cos(rad) + (width / 2);
-    *y = radius * sin(rad) + (height / 2);
+    *x = radius * cos(rad) + (width / 2.0);
+    *y = radius * sin(rad) + (height / 2.0);
 }
 
 /* rotates an image by angle degrees, counter-clockwise */
@@ -308,7 +311,9 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
         {
             float radius, curr_angle, new_i, new_j;
             
-            cartesian_to_polar(i, j, &radius, &curr_angle, input->width, input->height);
+            cartesian_to_polar(i, j, &radius, &curr_angle,
+                               input->width, input->height);
+            printf("i: %i, j: %i; r = %f, angle = %f\n", i, j, radius, curr_angle);
             curr_angle += angle;
             polar_to_cartesian(radius, curr_angle, &new_i, &new_j, input->width, input->height);
             
