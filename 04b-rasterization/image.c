@@ -172,6 +172,10 @@ void avg (IMAGE *input, IMAGE *output)
             int total_r = 0;
             int total_g = 0;
             int total_b = 0;
+            int total_a = 0;
+//            printf("===========(%i, %i)===========\n", i, j);
+            float count = 0;
+
             /* visit 3x3 neighborhood and average the rgb values */
             for(int n = j - 1; n <= j + 1; n++)
             {
@@ -179,16 +183,21 @@ void avg (IMAGE *input, IMAGE *output)
                 {
                     if(m >= 0 && m < input->width && n >= 0 && n < input->height)
                     {
+                        
+//                        printf("(%i, %i)\n", m, n);
                         total_r += input->data[n][m][R];
                         total_g += input->data[n][m][G];
                         total_b += input->data[n][m][B];
+                        total_a += input->data[n][m][A];
+                        count++;
+
                     }
                 }
             }
-            output->data[j][i][R] = (int) (total_r / 3.0);
-            output->data[j][i][G] = (int) (total_g / 3.0);
-            output->data[j][i][B] = (int) (total_b / 3.0);
-            output->data[j][i][A] = input->data[j][i][A];
+            output->data[j][i][R] = (int) (total_r / count);
+            output->data[j][i][G] = (int) (total_g / count);
+            output->data[j][i][B] = (int) (total_b / count);
+            output->data[j][i][A] = (int) (total_a / count);
         }
     }
 }

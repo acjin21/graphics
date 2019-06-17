@@ -29,7 +29,7 @@ extern float depth_buffer[800][800];
 int alpha_blend = OFF;
 int depth_test = OFF;
 int texturing = ON;
-int modulate = ON;
+int modulate = OFF;
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -345,8 +345,8 @@ void display(void)
     };
     file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
-//    clear_texture(&texture0, 0, 0, 0, 1);
-//    read_ppm(ppm_file, &texture0);
+    clear_texture(&texture0, 0, 0, 0, 1);
+    read_ppm(ppm_file, &texture0);
     
 /*************************************************************************/
 /* test image processing */
@@ -359,7 +359,7 @@ void display(void)
 //    flip_horizontal(&texture0, &texture);
 //    luminosity(&texture0, &texture);
 //    sepia(&texture0, &texture);
-//    avg(&texture0, &texture);
+    avg(&texture0, &texture);
 //    min(&texture0, &texture);
 //    max(&texture0, &texture);
 //    clear_texture(&texture, 0, 0, 0, 1);
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
      * textures
      */
 //    random_texture(&texture);
-    checkerboard_texture(&texture);
+//    checkerboard_texture(&texture);
     
     /*
      * start loop that calls display() and Key() routines
