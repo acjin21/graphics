@@ -29,7 +29,7 @@ extern float depth_buffer[800][800];
 int alpha_blend = OFF;
 int depth_test = OFF;
 int texturing = ON;
-int modulate = OFF;
+int modulate = ON;
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -99,7 +99,7 @@ void draw_color_buffer (void)
         {
             int r = (int) (y + 400);
             int c = (int) (x + 400);
-            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[row][col][A]);
+            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[r][c][A]);
             glVertex2f( x, y);
         }
     }
@@ -345,8 +345,8 @@ void display(void)
     };
     file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
-    clear_texture(&texture0, 0, 0, 0, 1);
-    read_ppm(ppm_file, &texture0);
+//    clear_texture(&texture0, 0, 0, 0, 1);
+//    read_ppm(ppm_file, &texture0);
     
 /*************************************************************************/
 /* test image processing */
@@ -362,8 +362,8 @@ void display(void)
 //    avg(&texture0, &texture);
 //    min(&texture0, &texture);
 //    max(&texture0, &texture);
-    clear_texture(&texture, 0, 0, 0, 1);
-    rotate_ccw(&texture0, &texture, 90);
+//    clear_texture(&texture, 0, 0, 0, 1);
+//    rotate_ccw(&texture0, &texture, 90);
     
     /*
      * clear color buffer
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
      * textures
      */
 //    random_texture(&texture);
-//    checkerboard_texture(&texture);
+    checkerboard_texture(&texture);
     
     /*
      * start loop that calls display() and Key() routines

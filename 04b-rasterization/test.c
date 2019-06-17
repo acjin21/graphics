@@ -163,6 +163,9 @@ void draw_tex_triangle(float x1, float y1, float z1, float w1,
     set_position(&v0, x1, y1, z1, w1);
     set_position(&v1, x2, y2, z2, w2);
     set_position(&v2, x3, y3, z3, w3);
+    set_color(&v0, 1, 0, 0, 1);
+    set_color(&v1, 0, 1, 0, 1);
+    set_color(&v2, 0, 0, 1, 1);
     
     cpy_vec4(v0.tex, tex_coords[t0]);
     cpy_vec4(v1.tex, tex_coords[t1]);
