@@ -89,7 +89,8 @@ void display(void)
 //    read_ppm(ppm_file, &texture0);
     
     /* for one specific ppm file */
-    read_ppm("ppm/me_square.ppm", &texture0);
+//    read_ppm("ppm/me_square.ppm", &texture0);
+    read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
 
 /*************************************************************************/
 /* test image processing */
