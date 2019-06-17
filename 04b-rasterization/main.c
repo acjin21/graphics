@@ -66,8 +66,8 @@ void display(void)
 /*************************************************************************/
 /* test reading in texture files */
 /*************************************************************************/
-
-    char file_names[11][100] =
+#define NUM_FILES 12
+    char file_names[NUM_FILES][100] =
     {
         "ppm/blackbuck.ascii.ppm",
         "ppm/out.ppm",
@@ -79,14 +79,14 @@ void display(void)
         "ppm/star_field.ascii.ppm",
         "ppm/apollonian_gasket.ascii.pgm",
         "ppm/mona_lisa.ascii.pgm",
-        "ppm/stop01.ppm"
-
+        "ppm/stop01.ppm",
+        "ppm/me.ppm"
     };
-    file_index %= 11;
+    file_index %= NUM_FILES;
     char *ppm_file = file_names[file_index];
     file_index++;
-//    read_ppm(ppm_file, &texture0);
-    read_ppm("ppm/stop01.ppm", &texture0);
+    read_ppm(ppm_file, &texture0);
+//    read_ppm("ppm/stop01.ppm", &texture0);
     
 /*************************************************************************/
 /* test image processing */

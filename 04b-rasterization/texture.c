@@ -60,7 +60,7 @@ void read_ppm (char *file_name, IMAGE *img)
     
     fscanf(fp, "%s\n", ppm_type);
     
-    /* get a comment */
+    /* handle any possible comments */
     int next_ch;
     char comment[500];
     next_ch = getc(fp);
