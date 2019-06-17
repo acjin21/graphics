@@ -347,7 +347,6 @@ void display(void)
     file_index %= 8;
     char *ppm_file = file_names[file_index];
     file_index++;
-    clear_texture(&texture0, 100, 100, 100, 1);
     read_ppm(ppm_file, &texture0);
 
     
