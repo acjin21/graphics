@@ -283,8 +283,8 @@ void max (IMAGE *input, IMAGE *output)
 void cartesian_to_polar (float x, float y, float *radius, float *angle,
                          int width, int height)
 {
-    x -= (width / 2);
-    y -= (height / 2);
+    x -= ((float) width / 2.0);
+    y -= ((float) height / 2.0);
     float r = sqrt(x * x + y * y);
     float a = atan2(y, x);
     
@@ -301,8 +301,8 @@ void polar_to_cartesian (float radius, float angle, float *x, float *y,
                          int width, int height)
 {
     float rad = angle * PI / 180.0;
-    *x = radius * cos(rad) + (width / 2.0) ;
-    *y = radius * sin(rad) + (height / 2.0) ;
+    *x = radius * cos(rad) + ((float) width / 2.0) ;
+    *y = radius * sin(rad) + ((float) height / 2.0) ;
 }
 
 /* rotates an image by angle degrees, counter-clockwise */
@@ -315,24 +315,37 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
     {
         for (int i = 0; i < output->width; i++)
         {
-            float radius, curr_angle, in_tx_x, in_tx_y;
-            /* get center of output texel */
-            float out_tx_x = i + 0.5;
-            float out_tx_y = j + 0.5;
+            float radius, curr_angle;
+            int in_i, in_j;
             
-            cartesian_to_polar(out_tx_x, out_tx_y, &radius, &curr_angle, input->width, input->height);
+            /* get center of output texel */
+            float centered_i = i + 0.5;
+            float centered_j = j + 0.5;
+            
+            cartesian_to_polar(centered_i, centered_j, &radius, &curr_angle,
+                               input->width, input->height);
             curr_angle += angle;
-            polar_to_cartesian(radius, curr_angle, &in_tx_x, &in_tx_y, input->width, input->height);
+            polar_to_cartesian(radius, curr_angle, &centered_i, &centered_j,
+                               input->width, input->height);
+            in_i = (int) centered_i;
+            in_j = (int) centered_j;
+            
+            if(in_i >= 0 && in_i < input->width &&
+               in_j >= 0 && in_j < input->height)
+            {
+                output->data[j][i][R] = input->data[(int) (centered_j)][(int) (centered_i)][R];
+                output->data[j][i][G] = input->data[(int) (centered_j)][(int) (centered_i)][G];
+                output->data[j][i][B] = input->data[(int) (centered_j)][(int) (centered_i)][B];
+                output->data[j][i][A] = input->data[(int) (centered_j)][(int) (centered_i)][A];
+            }
+//            else //background color
+//            {
+//                output->data[j][i][R] = 100;
+//                output->data[j][i][G] = 100;
+//                output->data[j][i][B] = 100;
+//                output->data[j][i][A] = 1;
+//            }
 
-//                output->data[(int) (new_tx_y)][(int) (new_tx_x)][R] = input->data[j][i][R];
-//                output->data[(int) (new_tx_y)][(int) (new_tx_x)][G] = input->data[j][i][G];
-//                output->data[(int) (new_tx_y)][(int) (new_tx_x)][B] = input->data[j][i][B];
-//                output->data[(int) (new_tx_y)][(int) (new_tx_x)][A] = input->data[j][i][A];
-
-                output->data[j][i][R] = input->data[(int) (in_tx_y)][(int) (in_tx_x)][R];
-                output->data[j][i][G] = input->data[(int) (in_tx_y)][(int) (in_tx_x)][G];
-                output->data[j][i][B] = input->data[(int) (in_tx_y)][(int) (in_tx_x)][B];
-                output->data[j][i][A] = input->data[(int) (in_tx_y)][(int) (in_tx_x)][A];
             
 /****************************************************************/
 /* alternative */

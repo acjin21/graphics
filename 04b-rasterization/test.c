@@ -35,6 +35,9 @@ void set_color (POINT *p, float r, float g, float b, float a)
     p->color[A] = a;
 }
 
+/*
+ * set tex coords of point *p to (s, t, 0, 0)
+ */
 void set_tex (POINT *p, float s, float t)
 {
     p->tex[S] = s;

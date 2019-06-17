@@ -84,9 +84,9 @@ void read_ppm (char *file_name, IMAGE *img)
 /* clear texture image to specified rgba values */
 void clear_texture (IMAGE *texture, float r, float g, float b, float a)
 {
-    for(int i = 0; i < texture->width; i++)
+    for(int i = 0; i < 2000; i++)
     {
-        for(int j = 0; j < texture->height; j++)
+        for(int j = 0; j < 2000; j++)
         {
             texture->data[j][i][R] = r;
             texture->data[j][i][G] = g;
