@@ -20,7 +20,9 @@ int edge_counts[800];
 #define OFF 0
 
 IMAGE texture;
-IMAGE texture_in;
+IMAGE texture0;
+IMAGE texture1;
+
 extern float color_buffer[800][800][4];
 extern float depth_buffer[800][800];
 float alpha_blend = OFF;
@@ -333,21 +335,23 @@ void display(void)
     };
     file_index = (file_index + 1) % 7;
     char *ppm_file = file_names[file_index];
-    read_ppm(ppm_file, &texture_in);
+    clear_texture(&texture0, 0, 0, 0, 1);
+    read_ppm(ppm_file, &texture0);
     
     /* test image processing */
 //    fill (&texture, 255, 0, 0);
-//    luminosity(&texture_in, &texture);
-//    negative(&texture_in, &texture);
-//    flip_vertical(&texture_in, &texture);
-//    flip_horizontal(&texture_in, &texture);
-//    luminosity(&texture_in, &texture);
-    sepia(&texture_in, &texture);
-//    avg(&texture_in, &texture);
-//    min(&texture_in, &texture);
-//    max(&texture_in, &texture);
-//    clear_texture(&texture, 0, 0, 0, 1);
-//    rotate_ccw(&texture_in, &texture, 0);
+//    luminosity(&texture0, &texture);
+//    negative(&texture0, &texture);
+//    flip_vertical(&texture0, &texture);
+//    flip_horizontal(&texture0, &texture);
+//    luminosity(&texture0, &texture);
+//    sepia(&texture0, &texture);
+//    avg(&texture0, &texture);
+//    min(&texture0, &texture);
+//    max(&texture0, &texture);
+    clear_texture(&texture, 0, 0, 0, 1);
+    rotate_ccw(&texture0, &texture, 90);
+//    avg(&texture1, &texture);
     
     /*
      * clear color buffer
