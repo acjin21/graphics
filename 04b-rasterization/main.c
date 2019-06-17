@@ -85,8 +85,11 @@ void display(void)
     file_index %= NUM_FILES;
     char *ppm_file = file_names[file_index];
     file_index++;
-    read_ppm(ppm_file, &texture0);
-//    read_ppm("ppm/stop01.ppm", &texture0);
+    /* to rotate between ppm files */
+//    read_ppm(ppm_file, &texture0);
+    
+    /* for one specific ppm file */
+    read_ppm("ppm/me.ppm", &texture0);
     
 /*************************************************************************/
 /* test image processing */
@@ -106,8 +109,9 @@ void display(void)
 //    clear_texture(&texture, 100, 100, 100, 1);
 //    rotate_ccw(&texture0, &texture, 90);
     
-    copy(&texture0, &texture);
-    
+//    copy(&texture0, &texture);
+    lincoln(&texture0, &texture, counter);
+
     /*
      * clear color buffer
      */
@@ -165,8 +169,8 @@ int main(int argc, char **argv)
     /*
      * setup OpenGL state
      */
-//    glClearColor(0, 0, 0, 1);
-    glClearColor(255/255.0, 255/255.0,  153/255.0,  1); //light yellow
+    glClearColor(1, 1, 1, 1);
+//    glClearColor(255/255.0, 255/255.0,  153/255.0,  1); //light yellow
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     glPointSize(1.0);
     

@@ -338,30 +338,28 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
                 output->data[j][i][B] = input->data[in_j][in_i][B];
                 output->data[j][i][A] = input->data[in_j][in_i][A];
             }
-//            else //background color
-//            {
-//                output->data[j][i][R] = 100;
-//                output->data[j][i][G] = 100;
-//                output->data[j][i][B] = 100;
-//                output->data[j][i][A] = 1;
-//            }
-
-            
-/****************************************************************/
-/* alternative */
-/****************************************************************/
-
-//                float rad = angle * PI / 180.0;
-//                int in_j = (int) (((j - height / 2) * cos(rad) - (i - width / 2) * sin(rad) + (height / 2)) + 0.5);
-//                int in_i = (int) (((j - height / 2)  * sin(rad) + (i - width / 2) * cos(rad) + (width / 2)) + 0.5);
-//                printf("i: %i, j: %i; new_i = %i, new_j = %i\n", i, j, in_i, in_j);
-//    
-//                output->data[j][i][R] = input->data[in_j - 1][in_i - 1][R];
-//                output->data[j][i][G] = input->data[in_j - 1][in_i - 1][G];
-//                output->data[j][i][B] = input->data[in_j - 1][in_i - 1][B];
-//                output->data[j][i][A] = input->data[in_j - 1][in_i - 1][A];
-
         }
     }
-    
+}
+
+/*************************************************************************/
+/* beyond photography examples */
+/*************************************************************************/
+#define LINCOLN 5
+void lincoln (IMAGE *input, IMAGE *output, int scale)
+{
+    output->width = input->width;
+    output->height = input->height;
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            int new_j = (j / (LINCOLN + scale)) * (LINCOLN + scale);
+            int new_i = (i / (LINCOLN + scale)) * (LINCOLN + scale);
+            output->data[j][i][R] = input->data[new_j][new_i][R];
+            output->data[j][i][G] = input->data[new_j][new_i][G];
+            output->data[j][i][B] = input->data[new_j][new_i][B];
+            output->data[j][i][A] = input->data[new_j][new_i][A];
+        }
+    }
 }

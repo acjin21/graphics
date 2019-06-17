@@ -19,4 +19,5 @@ void polar_to_cartesian (float radius, float angle, float *x, float *y,
                          int width, int height);
 void rotate_ccw (IMAGE *input, IMAGE *output, float angle);
 
+void lincoln (IMAGE *input, IMAGE *output, int scale);
 #endif
