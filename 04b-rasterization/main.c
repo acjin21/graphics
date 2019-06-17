@@ -89,8 +89,8 @@ void display(void)
 //    read_ppm(ppm_file, &texture0);
     
     /* for one specific ppm file */
-    read_ppm("ppm/me.ppm", &texture0);
-    
+    read_ppm("ppm/me_square.ppm", &texture0);
+
 /*************************************************************************/
 /* test image processing */
 /*************************************************************************/
@@ -110,7 +110,11 @@ void display(void)
 //    rotate_ccw(&texture0, &texture, 90);
     
 //    copy(&texture0, &texture);
-    lincoln(&texture0, &texture, counter);
+//    lincoln(&texture0, &texture, counter);
+//    fisheye(&texture0, &texture);
+    einstein(&texture0, &texture);
+
+
 
     /*
      * clear color buffer

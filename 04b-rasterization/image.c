@@ -363,3 +363,74 @@ void lincoln (IMAGE *input, IMAGE *output, int scale)
         }
     }
 }
+
+void fisheye (IMAGE *input, IMAGE *output)
+{
+    output->width = input->width;
+    output->height = input->height;
+    float x = input->width / 2.0;
+    float y = input->height / 2.0;
+
+    float new_radius, radius, curr_angle;
+    float new_i, new_j;
+
+    float max_radius = sqrt(x * x + y * y);
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            cartesian_to_polar(i, j, &radius, &curr_angle,
+                               input->width, input->height);
+            
+            float new_r = radius * radius / max_radius;
+            
+            polar_to_cartesian(new_r, curr_angle, &new_i, &new_j,
+                               input->width, input->height);
+            
+            output->data[j][i][R] = input->data[(int) new_j][(int) new_i][R];
+            output->data[j][i][G] = input->data[(int) new_j][(int) new_i][G];
+            output->data[j][i][B] = input->data[(int) new_j][(int) new_i][B];
+            output->data[j][i][A] = input->data[(int) new_j][(int) new_i][A];
+        }
+    }
+}
+
+#define CLAMP(val,max_val)\
+{                   \
+val = (val >= max_val) ? max_val - 1 : val; \
+val = (val < 0) ? 0 : val; \
+}
+
+void einstein (IMAGE *input, IMAGE *output)
+{
+    output->width = input->width;
+    output->height = input->height;
+    float x = input->width / 2.0;
+    float y = input->height / 2.0;
+    
+    float new_radius, radius, curr_angle;
+    float new_i, new_j;
+    
+    float max_radius = sqrt(x * x + y * y);
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            cartesian_to_polar(i, j, &radius, &curr_angle,
+                               input->width, input->height);
+            
+            float new_r = sqrt(radius * max_radius);
+            
+            polar_to_cartesian(new_r, curr_angle, &new_i, &new_j,
+                               input->width, input->height);
+            
+            CLAMP(new_i, input->width);
+            CLAMP(new_j, input->height);
+
+            output->data[j][i][R] = input->data[(int) new_j][(int) new_i][R];
+            output->data[j][i][G] = input->data[(int) new_j][(int) new_i][G];
+            output->data[j][i][B] = input->data[(int) new_j][(int) new_i][B];
+            output->data[j][i][A] = input->data[(int) new_j][(int) new_i][A];
+        }
+    }
+}

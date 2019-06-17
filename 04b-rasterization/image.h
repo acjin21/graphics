@@ -20,4 +20,6 @@ void polar_to_cartesian (float radius, float angle, float *x, float *y,
 void rotate_ccw (IMAGE *input, IMAGE *output, float angle);
 
 void lincoln (IMAGE *input, IMAGE *output, int scale);
+void fisheye (IMAGE *input, IMAGE *output);
+void einstein (IMAGE *input, IMAGE *output);
 #endif
