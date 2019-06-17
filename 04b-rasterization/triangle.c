@@ -343,8 +343,9 @@ void display(void)
         "ppm/snail.ascii.ppm",
         "ppm/star_field.ascii.ppm"
     };
-    file_index = (file_index + 1) % 7;
-    char *ppm_file = file_names[file_index];
+    file_index %= 7;
+    char *ppm_file = file_names[file_index++];
+    
     clear_texture(&texture0, 0, 0, 0, 1);
     read_ppm(ppm_file, &texture0);
     
@@ -362,6 +363,7 @@ void display(void)
     avg(&texture0, &texture);
 //    min(&texture0, &texture);
 //    max(&texture0, &texture);
+    
 //    clear_texture(&texture, 0, 0, 0, 1);
 //    rotate_ccw(&texture0, &texture, 90);
     

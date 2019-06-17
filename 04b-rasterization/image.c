@@ -119,11 +119,10 @@ void luminosity (IMAGE *input, IMAGE *output)
         {
             float luminosity = (input->data[j][i][R] + input->data[j][i][G] +
                                 input->data[j][i][B]) / 3.0;
-            int color = (int) (luminosity * 255);
-            output->data[j][i][R] = color;
-            output->data[j][i][G] = color;
-            output->data[j][i][B] = color;
-            output->data[j][i][A] = color;
+            output->data[j][i][R] = (int) (luminosity);
+            output->data[j][i][G] = (int) (luminosity);
+            output->data[j][i][B] = (int) (luminosity);
+//            output->data[j][i][A] = 1;
         }
     }
 }
@@ -140,15 +139,14 @@ void sepia (IMAGE *input, IMAGE *output)
     {
         for (int i = 0; i < output->width; i++)
         {
-            //            float r_scale[3] = {0.393, 0.769, 0.189};
-            //            float g_scale[3] = {0.349, 0.686, 0.168};
-            //            float b_scale[3] = {0.272, 0.534, 0.131};
             int r = input->data[j][i][R];
             int g = input->data[j][i][G];
             int b = input->data[j][i][B];
+            
             float sr = 0.393 * r + 0.769 * g + 0.189 * b;
             float sg = 0.349 * r + 0.686 * g + 0.168 * b;
             float sb = 0.272 * r + 0.534 * g + 0.131 * b;
+            
             output->data[j][i][R] = sr > 255 ? 255 : sr;
             output->data[j][i][G] = sg > 255 ? 255 : sg;
             output->data[j][i][B] = sb > 255 ? 255 : sb;
@@ -183,14 +181,12 @@ void avg (IMAGE *input, IMAGE *output)
                 {
                     if(m >= 0 && m < input->width && n >= 0 && n < input->height)
                     {
-                        
 //                        printf("(%i, %i)\n", m, n);
                         total_r += input->data[n][m][R];
                         total_g += input->data[n][m][G];
                         total_b += input->data[n][m][B];
                         total_a += input->data[n][m][A];
                         count++;
-
                     }
                 }
             }
@@ -225,11 +221,11 @@ void min (IMAGE *input, IMAGE *output)
                     if(m >= 0 && m < input->width && n >= 0 && n < input->height)
                     {
                         min_r = (input->data[n][m][R] < min_r) ?
-                        input->data[n][m][R] : min_r;
+                            input->data[n][m][R] : min_r;
                         min_g = (input->data[n][m][G] < min_g) ?
-                        input->data[n][m][G] : min_g;
+                            input->data[n][m][G] : min_g;
                         min_b = (input->data[n][m][B] < min_b) ?
-                        input->data[n][m][B] : min_b;
+                            input->data[n][m][B] : min_b;
                     }
                 }
             }
