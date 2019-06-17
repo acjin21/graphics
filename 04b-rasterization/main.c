@@ -67,7 +67,7 @@ void display(void)
 /* test reading in texture files */
 /*************************************************************************/
 
-    char file_names[8][100] =
+    char file_names[11][100] =
     {
         "ppm/blackbuck.ascii.ppm",
         "ppm/out.ppm",
@@ -76,13 +76,17 @@ void display(void)
         "ppm/pbmlib.ascii.ppm",
         "ppm/sines.ascii.ppm",
         "ppm/snail.ascii.ppm",
-        "ppm/star_field.ascii.ppm"
+        "ppm/star_field.ascii.ppm",
+        "ppm/apollonian_gasket.ascii.pgm",
+        "ppm/mona_lisa.ascii.pgm",
+        "ppm/stop01.ppm"
+
     };
-    file_index %= 8;
+    file_index %= 11;
     char *ppm_file = file_names[file_index];
     file_index++;
-    read_ppm(ppm_file, &texture0);
-
+//    read_ppm(ppm_file, &texture0);
+    read_ppm("ppm/stop01.ppm", &texture0);
     
 /*************************************************************************/
 /* test image processing */
@@ -99,8 +103,10 @@ void display(void)
 //    min(&texture0, &texture);
 //    max(&texture0, &texture);
     
-    clear_texture(&texture, 100, 100, 100, 1);
-    rotate_ccw(&texture0, &texture, 90);
+//    clear_texture(&texture, 100, 100, 100, 1);
+//    rotate_ccw(&texture0, &texture, 90);
+    
+    copy(&texture0, &texture);
     
     /*
      * clear color buffer

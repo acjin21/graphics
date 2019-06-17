@@ -242,17 +242,19 @@ void draw_tri_test (void)
 //                      -382.41208, 0.34534, 0.75442, 0.00000,
 //                      57.88364, 50.44135, 0.20961, 0.00000);
 
-
-    draw_tex_triangle(-300, 300, 0, 0,
-                      -300, -300, 0, 0,
-                      300, -300, 0, 0,
+    int texture_width = 300;
+    
+    draw_tex_triangle(-texture_width, texture_width, 0, 0,
+                      -texture_width, -texture_width, 0, 0,
+                      texture_width, -texture_width, 0, 0,
                       0, 3, 2);
 
-    draw_tex_triangle(300, -300, 0, 0,
-                      300, 300, 0, 0,
-                      -300, 300, 0, 0,
+    draw_tex_triangle(texture_width, -texture_width, 0, 0,
+                      texture_width, texture_width, 0, 0,
+                      -texture_width, texture_width, 0, 0,
                       2, 1, 0);
     
+    /* opt for random texture coords */
 //    draw_spec_triangle(-300, 300, 0, 0,
 //                      -300, -300, 0, 0,
 //                      300, -300, 0, 0);

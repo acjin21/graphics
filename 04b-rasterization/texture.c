@@ -1,6 +1,8 @@
 #include "texture.h"
 
 #include <stdio.h>
+#include <string.h>
+
 /*************************************************************************/
 /* textures */
 /*************************************************************************/
@@ -46,35 +48,67 @@ void checkerboard_texture (IMAGE *img)
     }
 }
 
-/* read a .ppm file into texture */
+/* read a .ppm or .pgm file with option comment into texture */
 void read_ppm (char *file_name, IMAGE *img)
 {
     FILE *fp;
+    char ppm_type[5];
+
     fp = fopen(file_name, "r");
     int width, height;
     float max;
     
-    fscanf(fp, "P3\n%i %i\n", &width, &height);
-    printf("width = %i, height = %i\n", width, height);
+    fscanf(fp, "%s\n", ppm_type);
     
+    /* get a comment */
+    int next_ch;
+    char comment[500];
+    next_ch = getc(fp);
+    if(next_ch == '#')
+    {
+        fgets(comment, 500, fp);
+    }
+    else
+    {
+        ungetc(next_ch, fp);
+    }
+    
+    fscanf(fp, "%i %i\n" , &width, &height);
+    printf("%i, %i\n", width, height);
     fscanf(fp, "%f\n", &max);
-    printf("max = %f\n", max);
     
     img->width = width;
     img->height = height;
-    int r, g, b, a;
-    
-    for (int t = 0; t < height; t++)
+    int r, g, b, a, c;
+    if(strcmp(ppm_type, "P3") == 0)
     {
-        for (int s = 0; s < width; s++)
+        for (int t = 0; t < height; t++)
         {
-            fscanf(fp, "%i %i %i", &r, &g, &b);
-            img->data[t][s][R] = (float) r / max * 255.0;
-            img->data[t][s][G] = (float) g / max * 255.0;
-            img->data[t][s][B] = (float) b / max * 255.0;
-            img->data[t][s][A] = 1;
+            for (int s = 0; s < width; s++)
+            {
+                fscanf(fp, "%i %i %i", &r, &g, &b);
+                img->data[t][s][R] = (float) r / max * 255.0;
+                img->data[t][s][G] = (float) g / max * 255.0;
+                img->data[t][s][B] = (float) b / max * 255.0;
+                img->data[t][s][A] = 1;
+            }
         }
     }
+    else if (!strcmp(ppm_type, "P2"))
+    {
+        for (int t = 0; t < height; t++)
+        {
+            for (int s = 0; s < width; s++)
+            {
+                fscanf(fp, "%i", &c);
+                img->data[t][s][R] = (float) c / max * 255.0;
+                img->data[t][s][G] = (float) c / max * 255.0;
+                img->data[t][s][B] = (float) c / max * 255.0;
+                img->data[t][s][A] = 1;
+            }
+        }
+    }
+    
     fclose(fp);
 }
 
