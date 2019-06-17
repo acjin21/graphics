@@ -1,4 +1,6 @@
-#include "triangle.h"
+#include "macros.h"
+#include "point.h"
+#include "raster.h"
 
 /****************************************/
 /* helper funcs */

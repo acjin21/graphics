@@ -3,7 +3,8 @@
 
 #include "macros.h"
 #include "vector.h"
-#include "triangle.h"
+#include "point.h"
+
 #define DRAW 0
 #define WALK 1
 

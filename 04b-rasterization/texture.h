@@ -1,6 +1,9 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include "macros.h"
+#include "util.h"
+
 typedef struct image
 {
     int width;

@@ -1,10 +1,10 @@
 #include "raster.h"
 
+#include <stdio.h>
+
 /* for rasterization */
 POINT span[800][2];
 int edge_counts[800];
-
-
 
 void store_point (POINT *p);
 void reset_edge_counts (void);

@@ -1,6 +1,8 @@
 #include "color.h"
 #include "macros.h"
 
+extern int window_size;
+
 void clear_color_buffer (float r, float g, float b, float a)
 {
     for(int row = 0; row < 800; row++)
@@ -13,4 +15,20 @@ void clear_color_buffer (float r, float g, float b, float a)
             color_buffer[row][col][A] = a;
         }
     }
+}
+
+void draw_color_buffer (void)
+{
+    glBegin(GL_POINTS);
+    for(int y = -window_size; y < window_size; y++)
+    {
+        for(int x = -window_size; x < window_size; x++)
+        {
+            int r = (int) (y + 400);
+            int c = (int) (x + 400);
+            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[r][c][A]);
+            glVertex2f( x, y);
+        }
+    }
+    glEnd();
 }

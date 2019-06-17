@@ -310,6 +310,7 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
 {
     int width = (output->width = input->width);
     int height = (output->height = input->height);
+    
     //for each output texel, find its corresponding input texel
     for (int j = 0; j < output->height; j++)
     {
@@ -330,13 +331,12 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
             in_i = (int) centered_i;
             in_j = (int) centered_j;
             
-            if(in_i >= 0 && in_i < input->width &&
-               in_j >= 0 && in_j < input->height)
+            if(in_i >= 0 && in_i < input->width && in_j >= 0 && in_j < input->height)
             {
-                output->data[j][i][R] = input->data[(int) (centered_j)][(int) (centered_i)][R];
-                output->data[j][i][G] = input->data[(int) (centered_j)][(int) (centered_i)][G];
-                output->data[j][i][B] = input->data[(int) (centered_j)][(int) (centered_i)][B];
-                output->data[j][i][A] = input->data[(int) (centered_j)][(int) (centered_i)][A];
+                output->data[j][i][R] = input->data[in_j][in_i][R];
+                output->data[j][i][G] = input->data[in_j][in_i][G];
+                output->data[j][i][B] = input->data[in_j][in_i][B];
+                output->data[j][i][A] = input->data[in_j][in_i][A];
             }
 //            else //background color
 //            {

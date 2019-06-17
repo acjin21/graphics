@@ -1,4 +1,32 @@
-#include "triangle.h"
+/*
+ * To build:  gcc -framework OpenGL -framework GLUT line.c -o line
+ *
+ */
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
+#endif
+
+/*************************************************************************/
+/* header files                                                          */
+/*************************************************************************/
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include <limits.h>
+#include <stdio.h>
+
+#include "macros.h"
+#include "vector.h"
+#include "texture.h" //IMAGE typedef, texture and ppm functions
+#include "image.h" //uses IMAGE typedef, image processing funcs
+#include "util.h" //random_float
+#include "color.h" 
+#include "depth.h"
+#include "raster.h"
+#include "point.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -12,113 +40,6 @@ int draw_prog = 1;
 IMAGE texture;
 IMAGE texture0;
 IMAGE texture1;
-
-extern float color_buffer[800][800][4];
-extern float depth_buffer[800][800];
-
-/* modes */
-int alpha_blend = OFF;
-int depth_test = OFF;
-int texturing = ON;
-int modulate = OFF;
-
-
-/*************************************************************************/
-/* buffer util funcs */
-/*************************************************************************/
-void draw_color_buffer (void)
-{
-    glBegin(GL_POINTS);
-    for(int y = -window_size; y < window_size; y++)
-    {
-        for(int x = -window_size; x < window_size; x++)
-        {
-            int r = (int) (y + 400);
-            int c = (int) (x + 400);
-            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[r][c][A]);
-            glVertex2f( x, y);
-        }
-    }
-    glEnd();
-}
-
-/*************************************************************************/
-/* draw a point */
-/*************************************************************************/
-void draw_point (POINT *p)
-{
-    glBegin(GL_POINTS);
-        int r = (int) (p->position[Y] + 400);
-        int c = (int) (p->position[X] + 400);
-        float blend_weight = 0.50;
-    
-        if(texturing)
-        {
-            int s, t;
-            s = (int) (p->tex[S] * texture.width);
-            t = (int) (p->tex[T] * texture.height);
-            
-            if(p->tex[S] == 1 || p->tex[T] == 1)
-            {
-                s = p->tex[S] == 1 ? texture.width - 1 : s;
-                t = p->tex[T] == 1 ? texture.width - 1 : t;
-            }
-            color_buffer[r][c][R] = texture.data[t][s][R] / 255.0;
-            color_buffer[r][c][G] = texture.data[t][s][G] / 255.0;
-            color_buffer[r][c][B] = texture.data[t][s][B] / 255.0;
-            color_buffer[r][c][A] = texture.data[t][s][A] / 255.0;
-            if(modulate)
-            {
-                color_buffer[r][c][R] *= p->color[R];
-                color_buffer[r][c][G] *= p->color[G];
-                color_buffer[r][c][B] *= p->color[B];
-                color_buffer[r][c][A] *= p->color[A];
-
-            }
-        }
-        else
-        {
-            if((depth_test && p->position[Z] < depth_buffer[r][c]) || !depth_test)
-            {
-                if(alpha_blend)
-                {
-                    float new_r, new_g, new_b, new_a;
-
-                    new_r = (1 - blend_weight) * color_buffer[r][c][R] +
-                        blend_weight * p->color[R];
-                    new_g = (1 - blend_weight) * color_buffer[r][c][G] +
-                        blend_weight * p->color[G];
-                    new_b = (1 - blend_weight) * color_buffer[r][c][B] +
-                        blend_weight * p->color[B];
-                    new_a = (1 - blend_weight) * color_buffer[r][c][A] +
-                        blend_weight * p->color[A];
-
-                    /* write blended color to color_buffer */
-                    color_buffer[r][c][R] = new_r;
-                    color_buffer[r][c][G] = new_g;
-                    color_buffer[r][c][B] = new_b;
-                    color_buffer[r][c][A] = new_a;
-                }
-                else
-                {
-                    /* write p.color to color_buffer */
-                    color_buffer[r][c][R] = p->color[R];
-                    color_buffer[r][c][G] = p->color[G];
-                    color_buffer[r][c][B] = p->color[B];
-                    color_buffer[r][c][A] = p->color[A];
-                }
-                if(depth_test)
-                {
-                    depth_buffer[r][c] = p->position[Z];
-                }
-            }
-    }
-    /* draw point on screen */
-    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
-              color_buffer[r][c][B], color_buffer[r][c][A]);
-    glVertex2f(p->position[X], p->position[Y]);
-    glEnd();
-}
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -179,7 +100,7 @@ void display(void)
 //    max(&texture0, &texture);
     
     clear_texture(&texture, 100, 100, 100, 1);
-    rotate_ccw(&texture0, &texture, 45);
+    rotate_ccw(&texture0, &texture, 90);
     
     /*
      * clear color buffer
