@@ -1,3 +1,5 @@
+#ifndef TRIANGLE_H
+#define TRIANGLE_H
 
 /*
  * To build:  gcc -framework OpenGL -framework GLUT line.c -o line
@@ -24,6 +26,9 @@
 /*************************************************************************/
 #define DRAW 0
 #define WALK 1
+
+#define ON 1
+#define OFF 0
 
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
 
@@ -67,3 +72,4 @@ extern void draw_triangle (POINT *v0, POINT *v1, POINT *v2);
 extern void draw_color_buffer(void);
 
 
+#endif

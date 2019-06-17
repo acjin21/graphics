@@ -38,7 +38,6 @@ void checkerboard_texture (IMAGE *img)
         {
             if(i % 32 == 0 && i / 32 != 0)
             {
-                //                printf("switch color at column %i\n", i);
                 /* if start new block and not 0, switch color */
                 color = (color == 255 ? 0 : 255);
             }
@@ -82,6 +81,7 @@ void read_ppm (char *file_name, IMAGE *img)
     fclose(fp);
 }
 
+/* clear texture image to specified rgba values */
 void clear_texture (IMAGE *texture, float r, float g, float b, float a)
 {
     for(int i = 0; i < texture->width; i++)

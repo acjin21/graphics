@@ -13,21 +13,23 @@ int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 int draw_prog = 1;
 
+/* for rasterization */
 POINT span[800][2];
 int edge_counts[800];
 
-#define ON 1
-#define OFF 0
-
+/* for textures and image processing */
 IMAGE texture;
 IMAGE texture0;
 IMAGE texture1;
 
 extern float color_buffer[800][800][4];
 extern float depth_buffer[800][800];
-float alpha_blend = OFF;
-float depth_test = OFF;
-float texturing = ON;
+
+/* modes */
+int alpha_blend = OFF;
+int depth_test = OFF;
+int texturing = ON;
+int modulate = OFF;
 
 /*************************************************************************/
 /* utility functions                                                     */
@@ -95,9 +97,9 @@ void draw_color_buffer (void)
     {
         for(int x = -window_size; x < window_size; x++)
         {
-            int row = (int) (y + 400);
-            int col = (int) (x + 400);
-            glColor4f(color_buffer[row][col][R], 0, 0, color_buffer[row][col][A]);
+            int r = (int) (y + 400);
+            int c = (int) (x + 400);
+            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[row][col][A]);
             glVertex2f( x, y);
         }
     }
@@ -110,8 +112,8 @@ void draw_color_buffer (void)
 void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
-        int row = (int) (p->position[Y] + 400);
-        int col = (int) (p->position[X] + 400);
+        int r = (int) (p->position[Y] + 400);
+        int c = (int) (p->position[X] + 400);
         float blend_weight = 0.50;
     
         if(texturing)
@@ -125,70 +127,76 @@ void draw_point (POINT *p)
                 s = p->tex[S] == 1 ? texture.width - 1 : s;
                 t = p->tex[T] == 1 ? texture.width - 1 : t;
             }
-            color_buffer[row][col][R] = texture.data[t][s][R] / 255.0;
-            color_buffer[row][col][G] = texture.data[t][s][G] / 255.0;
-            color_buffer[row][col][B] = texture.data[t][s][B] / 255.0;
-            color_buffer[row][col][A] = texture.data[t][s][A] / 255.0;
+            color_buffer[r][c][R] = texture.data[t][s][R] / 255.0;
+            color_buffer[r][c][G] = texture.data[t][s][G] / 255.0;
+            color_buffer[r][c][B] = texture.data[t][s][B] / 255.0;
+            color_buffer[r][c][A] = texture.data[t][s][A] / 255.0;
+            if(modulate)
+            {
+                color_buffer[r][c][R] *= p->color[R];
+                color_buffer[r][c][G] *= p->color[G];
+                color_buffer[r][c][B] *= p->color[B];
+                color_buffer[r][c][A] *= p->color[A];
+
+            }
         }
         else
         {
-            if((depth_test && p->position[Z] < depth_buffer[row][col]) || !depth_test)
+            if((depth_test && p->position[Z] < depth_buffer[r][c]) || !depth_test)
             {
                 if(alpha_blend)
                 {
                     float new_r, new_g, new_b, new_a;
-//                    if (texturing)
-//                    {
-//                          int s, t;
-//                    }
-                    new_r = (1 - blend_weight) * color_buffer[row][col][R] +
+
+                    new_r = (1 - blend_weight) * color_buffer[r][c][R] +
                         blend_weight * p->color[R];
-                    new_g = (1 - blend_weight) * color_buffer[row][col][G] +
+                    new_g = (1 - blend_weight) * color_buffer[r][c][G] +
                         blend_weight * p->color[G];
-                    new_b = (1 - blend_weight) * color_buffer[row][col][B] +
+                    new_b = (1 - blend_weight) * color_buffer[r][c][B] +
                         blend_weight * p->color[B];
-                    new_a = (1 - blend_weight) * color_buffer[row][col][A] +
+                    new_a = (1 - blend_weight) * color_buffer[r][c][A] +
                         blend_weight * p->color[A];
 
                     /* write blended color to color_buffer */
-                    color_buffer[row][col][R] = new_r;
-                    color_buffer[row][col][G] = new_g;
-                    color_buffer[row][col][B] = new_b;
-                    color_buffer[row][col][A] = new_a;
+                    color_buffer[r][c][R] = new_r;
+                    color_buffer[r][c][G] = new_g;
+                    color_buffer[r][c][B] = new_b;
+                    color_buffer[r][c][A] = new_a;
                 }
                 else
                 {
                     /* write p.color to color_buffer */
-                    color_buffer[row][col][R] = p->color[R];
-                    color_buffer[row][col][G] = p->color[G];
-                    color_buffer[row][col][B] = p->color[B];
-                    color_buffer[row][col][A] = p->color[A];
+                    color_buffer[r][c][R] = p->color[R];
+                    color_buffer[r][c][G] = p->color[G];
+                    color_buffer[r][c][B] = p->color[B];
+                    color_buffer[r][c][A] = p->color[A];
                 }
                 if(depth_test)
                 {
-                    depth_buffer[row][col] = p->position[Z];
+                    depth_buffer[r][c] = p->position[Z];
                 }
             }
     }
     /* draw point on screen */
-    glColor4f(color_buffer[row][col][R], color_buffer[row][col][G],
-              color_buffer[row][col][B], color_buffer[row][col][A]);
-    glVertex2f( p->position[X],  p->position[Y]);
+    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
+              color_buffer[r][c][B], color_buffer[r][c][A]);
+    glVertex2f(p->position[X], p->position[Y]);
     glEnd();
 }
 
 /* store point in span */
 void store_point (POINT *p)
 {
-    int row = (int) (p->position[Y] + 400);
-    int count = edge_counts[row];
+    int r = (int) (p->position[Y] + 400);
+    int count = edge_counts[r];
     
     /* sanity check */
-    if(count < 0 || count > 2) {
-        printf("ERR221: row %i count %i out of bounds\n", row, count);
+    if(count < 0 || count > 2)
+    {
+        printf("ERR: row %i, count %i out of bounds\n", r, count);
     }
-    span[row][count] = *p;
-    edge_counts[row]++;
+    span[r][count] = *p;
+    edge_counts[r]++;
 }
 
 /*************************************************************************/
@@ -206,7 +214,6 @@ void draw_line( POINT *start, POINT *end, int mode )
     vector_subtract(end->color, start->color, delta.color);
     vector_subtract(end->tex, start->tex, delta.tex);
 
-    
     /*
      * determine whether line is x-major or y-major
      */
@@ -321,8 +328,11 @@ void display(void)
     }
     if( draw_one_frame == 0 )
         return;
-	
-    /* test reading in texture files */
+    
+/*************************************************************************/
+/* test reading in texture files */
+/*************************************************************************/
+
     char file_names[7][100] =
     {
         "ppm/blackbuck.ascii.ppm",
@@ -338,7 +348,10 @@ void display(void)
     clear_texture(&texture0, 0, 0, 0, 1);
     read_ppm(ppm_file, &texture0);
     
-    /* test image processing */
+/*************************************************************************/
+/* test image processing */
+/*************************************************************************/
+    
 //    fill (&texture, 255, 0, 0);
 //    luminosity(&texture0, &texture);
 //    negative(&texture0, &texture);
@@ -351,7 +364,6 @@ void display(void)
 //    max(&texture0, &texture);
     clear_texture(&texture, 0, 0, 0, 1);
     rotate_ccw(&texture0, &texture, 90);
-//    avg(&texture1, &texture);
     
     /*
      * clear color buffer
