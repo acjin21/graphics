@@ -3,7 +3,9 @@
 
 #include "raster.h"
 #include "vector.h"
+
 void init_cube(void);
 void xform_model(void);
 void draw_model(void);
+
 #endif

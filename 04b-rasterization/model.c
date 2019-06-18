@@ -7,14 +7,16 @@ int num_vertices = 0;
 int triangle_list[4000][3];
 int num_triangles = 0;
 
-void set_vec4 (float vec[4], float w_x, float w_y, float w_z, float w_w)
+/* set vec to  */
+void set_vec4 (float vec[4], float x, float y, float z, float w)
 {
-    vec[0] = w_x;
-    vec[1] = w_y;
-    vec[2] = w_z;
-    vec[3] = w_w;
+    vec[0] = x;
+    vec[1] = y;
+    vec[2] = z;
+    vec[3] = w;
 }
 
+/* set triangle vertices to indices v0_idx, v1_idx, and v2_idx. */
 void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
 {
     triangle_list[t_idx][0] = v0_idx;
@@ -22,57 +24,57 @@ void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
     triangle_list[t_idx][2] = v2_idx;
 }
 
-
+/* set vertices of a unit cube with world space coordinates and
+    random color + random tex coords */
 void init_cube(void)
 {
     set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
     set_vec4(vertex_list[0].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[0].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[1].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[1].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[2].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[2].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
     set_vec4(vertex_list[3].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[3].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
     set_vec4(vertex_list[4].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[4].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[5].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[5].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[6].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[6].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+             random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
     set_vec4(vertex_list[7].color, random_float(0, 1),
              random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[7].tex, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
-    
+             random_float(0, 1), 0, 0);
     num_vertices = 8;
     
     set_triangle(0, 0, 2, 1);
@@ -88,11 +90,10 @@ void init_cube(void)
     set_triangle(10, 7, 2, 3);
     set_triangle(11, 7, 6, 2);
     
-    
     num_triangles = 12;
-    
 }
 
+/* transform model from world space to screen space */
 void xform_model(void)
 {
     int scale = 200;
@@ -102,15 +103,17 @@ void xform_model(void)
     }
 }
 
+/* draw wire-frame model */
 void draw_model(void)
 {
     for(int i = 0; i < num_triangles; i++)
     {
-        draw_line(&vertex_list[triangle_list[i][0]],
-                  &vertex_list[triangle_list[i][1]], DRAW);
-        draw_line(&vertex_list[triangle_list[i][1]],
-                  &vertex_list[triangle_list[i][2]], DRAW);
-        draw_line(&vertex_list[triangle_list[i][0]],
-                  &vertex_list[triangle_list[i][2]], DRAW);
+        int t0 = triangle_list[i][0];
+        int t1 = triangle_list[i][1];
+        int t2 = triangle_list[i][2];
+
+        draw_line(&vertex_list[t0], &vertex_list[t1], DRAW);
+        draw_line(&vertex_list[t1], &vertex_list[t2], DRAW);
+        draw_line(&vertex_list[t0], &vertex_list[t2], DRAW);
     }
 }
