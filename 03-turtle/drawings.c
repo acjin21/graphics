@@ -83,20 +83,13 @@ void draw_star (float len)
 /* draw a V with 60 deg angle between two sides of length 'len' */
 void draw_V (float len, float angle)
 {
-    if(len < 1.0) return;
-    
     left(angle);
     forward(len);
-    draw_V(len / 2.0, angle);
-    left(angle);
     backward(len);
-    
     right(2 * angle);
     forward(len);
-    draw_V(len / 2.0, angle);
-    right(2 * angle);
     backward(len);
-    left(2 * angle);
+    left(angle);
 }
 
 void draw_V_rec (float len)
@@ -138,6 +131,7 @@ void draw_witch_hat (float len)
 {
     float dx = -1.5 * len;
     set_xy(dx, 0);
+    set_heading(90);
     //    printf("(%f, %f)\n", curr_x, curr_y);
     right(90);
     forward(len);
@@ -227,14 +221,14 @@ void draw_n_gon (int n, float len)
 /* draw a random shape with random start (x, y), random heading, random length, random num sides, and random color */
 void draw_random_shape (void)
 {
-    float start_x = random_float(-window_size/2.0, 0);
-    float start_y = random_float(-window_size/2.0, 0);
+    float start_x = random_float(-window_size, window_size);
+    float start_y = random_float(-window_size, window_size);
     float rand_heading = random_float(0, 360);
     
     set_xy(start_x, start_y);
     heading = rand_heading;
     
-    float rand_len = random_float(50, 150);
+    float rand_len = random_float(30, 80);
     int rand_n = (int) random_float(3,21);
     
     float rand_r = random_float(0, 1);
@@ -243,4 +237,32 @@ void draw_random_shape (void)
     
     glColor4f(rand_r, rand_g, rand_b, 1.0);
     draw_n_gon(rand_n, rand_len);
+}
+
+/* draw entire random walk with 'num_steps' total steps,
+    displayed all at once */
+void static_random_walk(int num_steps)
+{
+    set_xy(0, 0);
+    set_heading(random_float(0, 360));
+    for(int i = 0; i < num_steps; i++)
+    {
+            glColor4f(random_float(0, 1),
+                      random_float(0, 1),
+                      random_float(0, 1),
+                      1);
+            forward(random_float(10, 100));
+
+            right(random_float(0, 360));
+        
+            /*
+             * if any step in steps_hist makes the turtle go offscreen,
+             *  fix the current step data for the next draw iteration by
+             *  setting the dist for that step = 0.
+             */
+            if(fabsf(curr_x) > window_size || fabsf(curr_y) > window_size)
+            {
+                right(180);
+            }
+    }
 }
