@@ -11,6 +11,7 @@
 
 #include "macros.h"
 #include "texture.h"
+#include "vector.h"
 
 typedef struct point {
     float world[4];
@@ -20,5 +21,7 @@ typedef struct point {
 } POINT;
 
 void draw_point (POINT *p);
-
+void set_position (POINT *p, float x, float y, float z, float w);
+void set_color (POINT *p, float r, float g, float b, float a);
+void set_tex (POINT *p, float s, float t);
 #endif

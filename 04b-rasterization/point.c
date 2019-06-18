@@ -94,3 +94,27 @@ void draw_point (POINT *p)
     glVertex2f(p->position[X], p->position[Y]);
     glEnd();
 }
+
+/*
+ * set position of point *p to (x, y, z, w)
+ */
+void set_position (POINT *p, float x, float y, float z, float w)
+{
+    set_vec4(p->position, x, y, z, w);
+}
+
+/*
+ * set color of point *p to (r, g, b, a)
+ */
+void set_color (POINT *p, float r, float g, float b, float a)
+{
+    set_vec4(p->color, r, g, b, a);
+}
+
+/*
+ * set tex coords of point *p to (s, t, 0, 0)
+ */
+void set_tex (POINT *p, float s, float t)
+{
+    set_vec4(p->color, s, t, 0, 0);
+}
