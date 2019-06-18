@@ -117,14 +117,14 @@ void reset_edge_counts (void)
         edge_counts[i] = 0;
     }
 }
-
+void print_tri_vertices (POINT *v0, POINT *v1, POINT *v2);
 /* draw triangle with vertices *v0, *v1, *v2 */
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
     printf("====================================\ndrawing new triangle\n");
     reset_edge_counts();
     
-//    print_tri_vertices(v0, v1, v2);
+    print_tri_vertices(v0, v1, v2);
     
     draw_line (v0, v1, WALK);
     draw_line (v1, v2, WALK);
@@ -141,15 +141,24 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
  */
 void print_point (POINT *p)
 {
-    printf("{%.5f, %.5f, %.5f, %.5f}, ",
+    printf("position: {%.5f, %.5f, %.5f, %.5f}, ",
            p->position[X], p->position[Y], p->position[Z], p->position[W]);
+}
+void print_color (POINT *p)
+{
+    printf("color {%.2f, %.2f, %.2f, %.2f}, ",
+           p->color[R], p->color[G], p->color[B], p->color[A]);
 }
 
 void print_tri_vertices (POINT *v0, POINT *v1, POINT *v2)
 {
     print_point(v0);
+    print_color(v0);
     print_point(v1);
+    print_color(v1);
     print_point(v2);
+    print_color(v2);
+
     printf("\n");
     
 }
