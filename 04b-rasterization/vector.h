@@ -45,4 +45,5 @@ void vec2f_rotate (float theta, float v[4], float res[4]);
  */
 void vec2f_reflect_x (float v[4], float res[4]);
 
+void set_vec4 (float vec[4], float x, float y, float z, float w);
 #endif

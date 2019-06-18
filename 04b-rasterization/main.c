@@ -219,10 +219,16 @@ static void Key(unsigned char key, int x, int y)
         /* draw wire frame */
         case 'd':       draw_mode = 1 - draw_mode;      break;
         /* rotations */
-        case 'x':       dx_angle += 10;     break;
-        case 'y':       dy_angle += 10;     break;
-        case 'z':       dz_angle += 10;     break;
-        case 't':       dx_angle += 10;     dy_angle += 10;     dz_angle += 10;     break;
+        case 'x':       dx_angle += 10;                 break;
+        case 'y':       dy_angle += 10;                 break;
+        case 'z':       dz_angle += 10;                 break;
+            
+        case 't':       dx_angle += 10;
+                        dy_angle += 10;
+                        dz_angle += 10;                 break;
+        case 'r':       dx_angle = 0;
+                        dy_angle = 0;
+                        dz_angle = 0;                   break;
 
         case 'a':       draw_one_frame = 1;             break;
         case 'q':       exit(0);                        break;

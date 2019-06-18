@@ -66,3 +66,12 @@ void vec2f_reflect_x (float v[4], float res[4])
     }
     res[1] *= -1;
 }
+
+/* set vec4 */
+void set_vec4 (float vec[4], float x, float y, float z, float w)
+{
+    vec[0] = x;
+    vec[1] = y;
+    vec[2] = z;
+    vec[3] = w;
+}

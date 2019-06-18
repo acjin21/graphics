@@ -198,3 +198,75 @@ void print_span (int row_start, int row_end)
     }
 }
 
+
+#define MIN3(a,b,c) (((a) < (b)) ? (((a) < (c)) ? (a) : (c)) : (((b) < (c)) ? (b) : (c)))
+#define MAX3(a,b,c) (((a) > (b)) ? (((a) > (c)) ? (a) : (c)) : (((b) > (c)) ? (b) : (c)))
+
+/*
+ * edgeFunction()
+ */
+
+float edgeFunction( float a[4], float b[4], float c[4] )
+{
+    return( c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0] );
+}
+
+/*
+ * draw_triangle_barycentric()
+ */
+void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
+{
+    int     minx = MIN3(v0->position[X],v1->position[X],v2->position[X]);
+    int     miny = MIN3(v0->position[Y],v1->position[Y],v2->position[Y]);
+    int     maxx = MAX3(v0->position[X],v1->position[X],v2->position[X]);
+    int     maxy = MAX3(v0->position[Y],v1->position[Y],v2->position[Y]);
+    float   area = edgeFunction(v0->position, v1->position, v2->position);
+    int     x, y;
+    float   w[4];
+    POINT   p;
+    
+    /*
+     * for all the points in triangle bounding box
+     */
+    for( y = miny-1; y < maxy+2; y++ )
+    {
+        for( x = minx-1; x < maxx+2; x++ )
+        {
+            set_vec4(p.position, x+0.5, y+0.5, 0, 1 );
+            /*
+             * compute barycentric weights
+             */
+            w[0] = edgeFunction(v1->position, v2->position, p.position);
+            w[1] = edgeFunction(v2->position, v0->position, p.position);
+            w[2] = edgeFunction(v0->position, v1->position, p.position);
+            w[3] = 0.0;
+            
+            if( w[0] >= 0 && w[1] >= 0 && w[2] >= 0 )
+            {
+                /*
+                 * if point is inside triangle, compute barycentric weighting of vertex attributes (e.g. z, color, s, t)
+                 */
+                scalar_divide(area, w, w);
+                p.position[Z]    = w[0] * v0->position[Z] +
+                                w[1] * v1->position[Z] +
+                                w[2] * v2->position[Z];
+                p.color[R]  = w[0] * v0->color[R] +
+                                w[1] * v1->color[R] +
+                                w[2] * v2->color[R];
+                p.color[G]  = w[0] * v0->color[G] +
+                                w[1] * v1->color[G] +
+                                w[2] * v2->color[G];
+                p.color[B]  = w[0] * v0->color[B] +
+                                w[1] * v1->color[B] +
+                                w[2] * v2->color[B];
+                p.tex[S]    = w[0] * v0->tex[S] +
+                                w[1] * v1->tex[S] +
+                                w[2] * v2->tex[S];
+                p.tex[T]    = w[0] * v0->tex[T] +
+                                w[1] * v1->tex[T] +
+                                w[2] * v2->tex[T];
+                draw_point(&p);
+            }
+        }
+    }
+}
