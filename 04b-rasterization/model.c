@@ -1,5 +1,5 @@
 #include "model.h"
-
+#include <math.h>
 /* modeling */
 POINT vertex_list[2000];
 int num_vertices = 0;
@@ -103,8 +103,8 @@ void xform_model(void)
     }
 }
 
-/* draw wire-frame model */
-void draw_model(void)
+/* draw wire-frame or filled in model */
+void draw_model(int mode)
 {
     for(int i = 0; i < num_triangles; i++)
     {
@@ -112,8 +112,58 @@ void draw_model(void)
         int t1 = triangle_list[i][1];
         int t2 = triangle_list[i][2];
 
-        draw_line(&vertex_list[t0], &vertex_list[t1], DRAW);
-        draw_line(&vertex_list[t1], &vertex_list[t2], DRAW);
-        draw_line(&vertex_list[t0], &vertex_list[t2], DRAW);
+        // FRAME = 0, FILL = 1
+        if(mode == FRAME)
+        {
+            draw_line(&vertex_list[t0], &vertex_list[t1], DRAW);
+            draw_line(&vertex_list[t1], &vertex_list[t2], DRAW);
+            draw_line(&vertex_list[t0], &vertex_list[t2], DRAW);
+        }
+        else if(mode == FILL)
+        {
+            draw_triangle(&vertex_list[t0], &vertex_list[t1], &vertex_list[t2]);
+        }
+    }
+}
+
+void rotate_model(float x_angle, float y_angle, float z_angle, int axis)
+{
+    z_angle *= (PI / 180.0);
+    y_angle *= (PI / 180.0);
+    x_angle *= (PI / 180.0);
+
+    float nx, ny, nz;
+    for(int i = 0; i < num_vertices; i++)
+    {
+        POINT p = vertex_list[i];
+
+        if(axis == Z)
+        {
+            /* about z axis */
+            nx = p.world[X] * cos(z_angle) - p.world[Y] * sin(z_angle);
+            ny = p.world[X] * sin(z_angle) + p.world[Y] * cos(z_angle);
+            vertex_list[i].world[X] = nx;
+            vertex_list[i].world[Y] = ny;
+        }
+        else if(axis == Y)
+        {
+            /* about y axis */
+            nx = p.world[X] * cos(y_angle) - p.world[Z] * sin(y_angle);
+            nz = p.world[X] * sin(y_angle) + p.world[Z] * cos(y_angle);
+            vertex_list[i].world[X] = nx;
+            vertex_list[i].world[Z] = nz;
+        }
+        else if(axis == X)
+        {
+            /* about x axis */
+            ny = p.world[Y] * cos(x_angle) - p.world[Z] * sin(x_angle);
+            nz = p.world[Y] * sin(x_angle) + p.world[Z] * cos(x_angle);
+            vertex_list[i].world[Y] = ny;
+            vertex_list[i].world[Z] = nz;
+        }
+        
+
+        
+
     }
 }

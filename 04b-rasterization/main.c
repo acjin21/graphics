@@ -30,6 +30,12 @@
 #include "model.h"
 
 /*************************************************************************/
+/* defines                                                               */
+/*************************************************************************/
+#define IMG_PROC 0
+#define MODEL 1
+
+/*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
 int window_size = 400;
@@ -41,6 +47,14 @@ int draw_prog = 1;
 IMAGE texture;
 IMAGE texture0;
 IMAGE texture1;
+
+int main_mode = MODEL;
+int draw_mode = FRAME;
+
+float dx_angle = 0;
+float dy_angle = 0;
+float dz_angle = 0;
+int axis = Z;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -68,99 +82,106 @@ void display(void)
 /* test reading in texture files */
 /*************************************************************************/
 #define NUM_FILES 12
-    char file_names[NUM_FILES][100] =
+
+    if(main_mode == IMG_PROC)
     {
-        "ppm/blackbuck.ascii.ppm",
-        "ppm/out.ppm",
-        "ppm/feep.ascii.ppm",
-        "ppm/feep2.ascii.ppm",
-        "ppm/pbmlib.ascii.ppm",
-        "ppm/sines.ascii.ppm",
-        "ppm/snail.ascii.ppm",
-        "ppm/star_field.ascii.ppm",
-        "ppm/apollonian_gasket.ascii.pgm",
-        "ppm/mona_lisa.ascii.pgm",
-        "ppm/stop01.ppm",
-        "ppm/me.ppm"
-    };
-    file_index %= NUM_FILES;
-    char *ppm_file = file_names[6];
-    file_index++;
-    /* to rotate between ppm files */
-//    read_ppm(ppm_file, &texture0);
-    
-    /* for one specific ppm file */
-//    read_ppm("ppm/me_square.ppm", &texture0);
-//    read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
-//    luminosity(&texture0, &texture1);
-//    oil_transfer(&texture0, &texture);
-//    tiling(&texture0, &texture);
+        char file_names[NUM_FILES][100] =
+        {
+            "ppm/blackbuck.ascii.ppm",
+            "ppm/out.ppm",
+            "ppm/feep.ascii.ppm",
+            "ppm/feep2.ascii.ppm",
+            "ppm/pbmlib.ascii.ppm",
+            "ppm/sines.ascii.ppm",
+            "ppm/snail.ascii.ppm",
+            "ppm/star_field.ascii.ppm",
+            "ppm/apollonian_gasket.ascii.pgm",
+            "ppm/mona_lisa.ascii.pgm",
+            "ppm/stop01.ppm",
+            "ppm/me.ppm"
+        };
+        file_index %= NUM_FILES;
+        char *ppm_file = file_names[6];
+        file_index++;
+        
+        /* to rotate between ppm files */
+        read_ppm(ppm_file, &texture0);
+        
+        /* for one specific ppm file */
+//        read_ppm("ppm/me_square.ppm", &texture0);
+//        read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
+//        luminosity(&texture0, &texture1);
+//        oil_transfer(&texture0, &texture);
+//        tiling(&texture0, &texture);
+    }
 
 /*************************************************************************/
 /* test image processing */
 /*************************************************************************/
-    
-//    fill (&texture, 255, 0, 0);
-//    copy(&texture0, &texture);
-    
-//    switch(counter % 14)
-//    {
-//        case 0:
-//            luminosity(&texture0, &texture);
-//            write_ppm("out_ppm/luminosity.ppm", &texture);
-//            break;
-//        case 1:
-//            negative(&texture0, &texture);
-//            write_ppm("out_ppm/negative.ppm", &texture);
-//            break;
-//        case 2:
-//            flip_vertical(&texture0, &texture);
-//            break;
-//        case 3:
-//            flip_horizontal(&texture0, &texture);
-//            break;
-//        case 4:
-//            sepia(&texture0, &texture);
-//            write_ppm("out_ppm/sepia.ppm", &texture);
-//            break;
-//        case 5:
-//            avg(&texture0, &texture);
-//            break;
-//        case 6:
-//            min(&texture0, &texture);
-//            break;
-//        case 7:
-//            max(&texture0, &texture);
-//            break;
-//        case 8:
-//            clear_texture(&texture, 100, 100, 100, 1);
-//            rotate_ccw(&texture0, &texture, 90);
-//            break;
-//        case 9:
-//            lincoln(&texture0, &texture, 3);
-//            write_ppm("out_ppm/lincoln.ppm", &texture);
-//            break;
-//        case 10:
-//            clear_texture(&texture, 100, 100, 100, 1);
-//            fisheye(&texture0, &texture);
-//            write_ppm("out_ppm/fisheye.ppm", &texture);
-//            break;
-//        case 11:
-//            clear_texture(&texture, 100, 100, 100, 1);
-//            einstein(&texture0, &texture);
-//            write_ppm("out_ppm/einstein.ppm", &texture);
-//            break;
-//        case 12:
-//            clear_texture(&texture, 100, 100, 100, 1);
-//            luminosity(&texture0, &texture1);
-//            oil_transfer(&texture1, &texture);
-//            write_ppm("out_ppm/oil_paint.ppm", &texture);
-//            break;
-//        case 13:
-//            clear_texture(&texture, 100, 100, 100, 1);
-//            tiling(&texture0, &texture);
-//            break;
-//    }
+    if (main_mode == IMG_PROC)
+    {
+        //    fill (&texture, 255, 0, 0);
+        //    copy(&texture0, &texture);
+        switch(counter % 14)
+        {
+            case 0:
+                luminosity(&texture0, &texture);
+                write_ppm("out_ppm/luminosity.ppm", &texture);
+                break;
+            case 1:
+                negative(&texture0, &texture);
+                write_ppm("out_ppm/negative.ppm", &texture);
+                break;
+            case 2:
+                flip_vertical(&texture0, &texture);
+                break;
+            case 3:
+                flip_horizontal(&texture0, &texture);
+                break;
+            case 4:
+                sepia(&texture0, &texture);
+                write_ppm("out_ppm/sepia.ppm", &texture);
+                break;
+            case 5:
+                avg(&texture0, &texture);
+                break;
+            case 6:
+                min(&texture0, &texture);
+                break;
+            case 7:
+                max(&texture0, &texture);
+                break;
+            case 8:
+                clear_texture(&texture, 100, 100, 100, 1);
+                rotate_ccw(&texture0, &texture, 90);
+                break;
+            case 9:
+                lincoln(&texture0, &texture, 3);
+                write_ppm("out_ppm/lincoln.ppm", &texture);
+                break;
+            case 10:
+                clear_texture(&texture, 100, 100, 100, 1);
+                fisheye(&texture0, &texture);
+                write_ppm("out_ppm/fisheye.ppm", &texture);
+                break;
+            case 11:
+                clear_texture(&texture, 100, 100, 100, 1);
+                einstein(&texture0, &texture);
+                write_ppm("out_ppm/einstein.ppm", &texture);
+                break;
+            case 12:
+                clear_texture(&texture, 100, 100, 100, 1);
+                luminosity(&texture0, &texture1);
+                oil_transfer(&texture1, &texture);
+                write_ppm("out_ppm/oil_paint.ppm", &texture);
+                break;
+            case 13:
+                clear_texture(&texture, 100, 100, 100, 1);
+                tiling(&texture0, &texture);
+                break;
+        }
+        draw_tri_test();
+    }
     
     /*
      * clear color buffer
@@ -171,15 +192,15 @@ void display(void)
     glPointSize(2.0);
     printf("\nNEW DISPLAY: %i\n", counter);
     counter++;
-//    draw_tri_test();
     
-/***********************************************************************/
-/* 3d modeling */
-/***********************************************************************/
-    init_cube();
-    xform_model();
-    draw_model();
-
+    if(main_mode == MODEL)
+    {
+        init_cube();
+        rotate_model(dx_angle, dy_angle, dz_angle, axis);
+        xform_model();
+        draw_model(draw_mode);
+    }
+    
     /*
      * show results
      */
@@ -196,10 +217,19 @@ static void Key(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        case 'a':       draw_one_frame = 1;     glutPostRedisplay();    break;
-        case 'q':       exit(0);                                        break;
-        case '\033':    exit(0);                                        break;
+        case 'd':       draw_mode = 1 - draw_mode;      break;
+        case 'x':       axis = X;   dx_angle += 10;                  break;
+        case 'y':       axis = Y;   dy_angle += 10;                  break;
+        case 'z':       axis = Z;   dz_angle += 10;                  break;
+
+
+        case 'a':       draw_one_frame = 1;             break;
+        case 'q':       exit(0);                        break;
+        case '\033':    exit(0);                        break;
     }
+    
+    draw_one_frame = 1;
+    glutPostRedisplay();
 }
 
 /*
