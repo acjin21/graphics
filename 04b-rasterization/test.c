@@ -128,6 +128,9 @@ void draw_random_triangle (void)
     set_color(&v0, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
     set_color(&v1, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
     set_color(&v2, random_float(0, 1), random_float(0, 1), random_float(0, 1), 1);
+    set_tex(&v0, random_float(0, 1), random_float(0, 1));
+    set_tex(&v1, random_float(0, 1), random_float(0, 1));
+    set_tex(&v2, random_float(0, 1), random_float(0, 1));
     draw_triangle(&v0, &v1, &v2);
 }
 
@@ -152,9 +155,9 @@ void draw_spec_triangle (float x1, float y1, float z1, float w1,
     set_color(&v0, 1, 0, 0, 1);
     set_color(&v1, 0, 1, 0, 1);
     set_color(&v2, 0, 0, 1, 1);
-//    set_tex(&v0, random_float(0, 1), random_float(0, 1));
-//    set_tex(&v1, random_float(0, 1), random_float(0, 1));
-//    set_tex(&v2, random_float(0, 1), random_float(0, 1));
+    set_tex(&v0, random_float(0, 1), random_float(0, 1));
+    set_tex(&v1, random_float(0, 1), random_float(0, 1));
+    set_tex(&v2, random_float(0, 1), random_float(0, 1));
 
     draw_triangle(&v0, &v1, &v2);
 }
@@ -178,10 +181,28 @@ void draw_tex_triangle(float x1, float y1, float z1, float w1,
     draw_triangle(&v0, &v1, &v2);
 
 }
+
+void triangle(float x1, float y1, float z1, float w1,
+              float r1, float g1, float b1, float a1,
+              float x2, float y2, float z2, float w2,
+              float r2, float g2, float b2, float a2,
+              float x3, float y3, float z3, float w3,
+              float r3, float g3, float b3, float a3)
+{
+    set_position(&v0, x1, y1, z1, w1);
+    set_position(&v1, x2, y2, z2, w2);
+    set_position(&v2, x3, y3, z3, w3);
+    
+    set_color(&v0, r1, g1, b1, a1);
+    set_color(&v1, r2, g2, b2, a2);
+    set_color(&v2, r3, g3, b3, a3);
+    
+    draw_triangle(&v0, &v1, &v2);
+
+}
 /* multiple triangles, one screen */
 void draw_tri_test (void)
 {
-    
 //    draw_one_tri_test(0, 1, 2);
 //    draw_one_tri_test(3, 4, 5);
 //    draw_one_tri_test(6, 7, 8);
@@ -215,7 +236,17 @@ void draw_tri_test (void)
 
 //    draw_random_triangle();
 //    draw_random_triangle();
-//    
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+//    draw_random_triangle();
+
+
+//
 //    draw_monocolor_triangle(1, 0, 0, 1);
 //    draw_monocolor_triangle(0, 0, 1, 1);
     
@@ -226,7 +257,7 @@ void draw_tri_test (void)
 //    draw_spec_triangle(-40.68011, 289.05457, 0.17508, 0.00000,
 //                       35.09961, 319.07886, 0.94707, 0.00000,
 //                       -87.13196, 373.33948, 0.89594, 0.00000);
-    
+//
 //    draw_spec_triangle(290.04358, 362.96429, 0.92604, 0.00000,
 //                       -396.30756, 58.77557, 0.30082, 0.00000,
 //                       301.90027, -362.56009, 0.56592, 0.00000);
@@ -234,7 +265,7 @@ void draw_tri_test (void)
 //    draw_spec_triangle(-30.45807, 91.12082, 0.83429, 0.00000,
 //                        354.93848, -148.41795, 0.42457, 0.00000,
 //                       257.21490, -188.35483, 0.40048, 0.00000);
-    
+//
 //    draw_spec_triangle(-146.75006, -28.35825, 0.72892, 0.00000,
 //                       391.45844, 42.38004, 0.85149, 0.00000,
 //                       -371.22293, 56.35294, 0.40549, 0.00000);
@@ -242,8 +273,16 @@ void draw_tri_test (void)
 //                      -382.41208, 0.34534, 0.75442, 0.00000,
 //                      57.88364, 50.44135, 0.20961, 0.00000);
 
-    int texture_width = 300;
+/* opt for random texture coords */
+//    draw_spec_triangle(-300, 300, 0, 0,
+//                      -300, -300, 0, 0,
+//                      300, -300, 0, 0);
+//
+//    draw_spec_triangle(300, -300, 0, 0,
+//                      300, 300, 0, 0,
+//                      -300, 300, 0, 0);
     
+    int texture_width = 300;
     draw_tex_triangle(-texture_width, texture_width, 0, 0,
                       -texture_width, -texture_width, 0, 0,
                       texture_width, -texture_width, 0, 0,
@@ -253,27 +292,23 @@ void draw_tri_test (void)
                       texture_width, texture_width, 0, 0,
                       -texture_width, texture_width, 0, 0,
                       2, 1, 0);
-    
-    /* opt for random texture coords */
-//    draw_spec_triangle(-300, 300, 0, 0,
-//                      -300, -300, 0, 0,
-//                      300, -300, 0, 0);
+
+/* for PPT pictures re: depth testing and alpha blending */
+//triangle (-72.36426, -225.91920, 0.46948, 0.00000,
+//          0.92, 0.83, 0.09, 1.00,
+//          203.59888, 286.41882, 0.56330, 0.00000,
+//          0.24, 0.68, 0.60, 1.00,
+//          14.64468, -267.31415, 0.38595, 0.00000,
+//          0.42, 0.60, 0.48, 1.00);
 //
-//    draw_spec_triangle(300, -300, 0, 0,
-//                      300, 300, 0, 0,
-//                      -300, 300, 0, 0);
+//triangle(-162.48351, 339.86841, 0.00994, 0.00000,
+//         0.92, 0.03, 0.38, 1.00,
+//         369.57483, 244.60480, 0.64053, 0.00000,
+//         0.53, 0.57, 0.65, 1.00,
+//         -134.43372, -227.62827, 0.51475, 0.00000,
+//         0.51, 0.95, 0.95, 1.00);
     
     
 //    draw_color_buffer();
-    
-    
-    /*********************/
-    /* draw calls        */
-    /*********************/
-    //    draw_triangle(&v0, &v2, &v1);
-    //    draw_triangle(&v1, &v0, &v2);
-    //    draw_triangle(&v1, &v2, &v0);
-    //    draw_triangle(&v2, &v0, &v1);
-    //    draw_triangle(&v2, &v1, &v0);
 
 }

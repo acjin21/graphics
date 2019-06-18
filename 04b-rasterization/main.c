@@ -83,45 +83,69 @@ void display(void)
         "ppm/me.ppm"
     };
     file_index %= NUM_FILES;
-    char *ppm_file = file_names[file_index];
+    char *ppm_file = file_names[6];
     file_index++;
     /* to rotate between ppm files */
-//    read_ppm(ppm_file, &texture0);
+    read_ppm(ppm_file, &texture0);
     
     /* for one specific ppm file */
-//    read_ppm("ppm/me_square.ppm", &texture0);
-    read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
+    read_ppm("ppm/me_square.ppm", &texture0);
+//    read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
+//    luminosity(&texture0, &texture1);
+//    oil_transfer(&texture0, &texture);
+    tiling(&texture0, &texture);
 
 /*************************************************************************/
 /* test image processing */
 /*************************************************************************/
     
 //    fill (&texture, 255, 0, 0);
-//    luminosity(&texture0, &texture);
-//    negative(&texture0, &texture);
-//    flip_vertical(&texture0, &texture);
-//    flip_horizontal(&texture0, &texture);
-//    luminosity(&texture0, &texture);
-//    sepia(&texture0, &texture);
-//    avg(&texture0, &texture);
-//    min(&texture0, &texture);
-//    max(&texture0, &texture);
-    
-//    clear_texture(&texture, 100, 100, 100, 1);
-//    rotate_ccw(&texture0, &texture, 90);
-    
 //    copy(&texture0, &texture);
-//    lincoln(&texture0, &texture, counter);
-//    fisheye(&texture0, &texture);
-    einstein(&texture0, &texture);
-
-
-
+//    switch(counter % 12)
+//    {
+//        case 0:
+//            luminosity(&texture0, &texture);
+//            break;
+//        case 1:
+//            negative(&texture0, &texture);
+//            break;
+//        case 2:
+//            flip_vertical(&texture0, &texture);
+//            break;
+//        case 3:
+//            flip_horizontal(&texture0, &texture);
+//            break;
+//        case 4:
+//            sepia(&texture0, &texture);
+//            break;
+//        case 5:
+//            avg(&texture0, &texture);
+//            break;
+//        case 6:
+//            min(&texture0, &texture);
+//            break;
+//        case 7:
+//            max(&texture0, &texture);
+//            break;
+//        case 8:
+//            clear_texture(&texture, 100, 100, 100, 1);
+//            rotate_ccw(&texture0, &texture, 90);
+//            break;
+//        case 9:
+//            lincoln(&texture0, &texture, 2);
+//            break;
+//        case 10:
+//            fisheye(&texture0, &texture);
+//            break;
+//        case 11:
+//            einstein(&texture0, &texture);
+//            break;
+//    }
     /*
      * clear color buffer
      */
     glClear(GL_COLOR_BUFFER_BIT );
-    clear_color_buffer(0, 0, 0, 1);
+    clear_color_buffer(1, 1, 1, 1);
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     printf("\nNEW DISPLAY: %i\n", counter);
@@ -174,7 +198,7 @@ int main(int argc, char **argv)
     /*
      * setup OpenGL state
      */
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0.7, 0.7, 0.7, 1);
 //    glClearColor(255/255.0, 255/255.0,  153/255.0,  1); //light yellow
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     glPointSize(1.0);

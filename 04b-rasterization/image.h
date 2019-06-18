@@ -22,4 +22,6 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle);
 void lincoln (IMAGE *input, IMAGE *output, int scale);
 void fisheye (IMAGE *input, IMAGE *output);
 void einstein (IMAGE *input, IMAGE *output);
+void oil_transfer (IMAGE *input, IMAGE *output);
+void tiling (IMAGE *input, IMAGE *output);
 #endif

@@ -2,6 +2,7 @@
 
 #include "macros.h"
 #include <math.h>
+#include <stdio.h>
 
 /*************************************************************************/
 /* image processing */
@@ -346,6 +347,7 @@ void rotate_ccw (IMAGE *input, IMAGE *output, float angle)
 /* beyond photography examples */
 /*************************************************************************/
 #define LINCOLN 5
+/* lincoln effect: pixelate image */
 void lincoln (IMAGE *input, IMAGE *output, int scale)
 {
     output->width = input->width;
@@ -364,6 +366,7 @@ void lincoln (IMAGE *input, IMAGE *output, int scale)
     }
 }
 
+/* fisheye effect */
 void fisheye (IMAGE *input, IMAGE *output)
 {
     output->width = input->width;
@@ -401,6 +404,7 @@ val = (val >= max_val) ? max_val - 1 : val; \
 val = (val < min_val) ? min_val : val; \
 }
 
+/* einstein caricature */
 void einstein (IMAGE *input, IMAGE *output)
 {
     output->width = input->width;
@@ -435,7 +439,100 @@ void einstein (IMAGE *input, IMAGE *output)
     }
 }
 
+#define N 5
+
+/* oil painting transformation:
+    for every dot, calculate a histogram of surrounding 2N x 2N pixels and
+    assign the value of the most frequently occuring brightness.
+    Assumes that rgb channels all hold the same value. */
 void oil_transfer (IMAGE *input, IMAGE *output)
 {
-    
+    int x, y;
+    int dx, dy, largest_freq, mfp;
+    int histogram[256];
+    output->height = input->height;
+    output->width = input->width;
+    for(y = N; y < output->height - N; y++)
+    {
+        for(x = N; x < output->width - N; x++)
+        {
+            /* reset the histogram */
+            for(dx = 0; dx < 256; dx++)
+            {
+                histogram[dx] = 0;
+            }
+            
+            /* visit each pixel in the 2N x 2N neighborhood
+             and update the histogram with counts */
+            for(dy = y - N; dy <= y + N; dy++)
+            {
+                for(dx = x - N; dx <= x + N; dx++)
+                {
+                    //assuming rgb channels are all the same value
+                    histogram[input->data[dy][dx][R]]++;
+                }
+            }
+            /* find the most frequent 0-255 pixel
+             and color the current pixel with that value */
+            largest_freq = 0;
+            for(int i = 0; i < 256; i++)
+            {
+                if(histogram[i] > largest_freq)
+                {
+                    largest_freq = histogram[i];
+                    mfp = i;
+                }
+            }
+            output->data[y][x][R] = mfp;
+            output->data[y][x][G] = mfp;
+            output->data[y][x][B] = mfp;
+            output->data[y][x][A] = input->data[y][x][A];
+        }
+    }
 }
+
+/* decompose image into randomly displaced tiles */
+#define TILE_SIZE 50
+void tiling (IMAGE *input, IMAGE *output)
+{
+    int x, y, dx, dy;
+    int ox, oy, nx, ny;
+    
+    output->height = input->height;
+    output->width = input->width;
+    
+    for(y = 0; y < output->height - TILE_SIZE; y += TILE_SIZE)
+    {
+        for(x = 0; x < output->width - TILE_SIZE; x += TILE_SIZE)
+        {
+            /* calculate random displacement between tiles */
+            dx = ((int) random_float(0, 20) & 31) - 16;
+            dy = ((int) random_float(0, 20) & 31) - 16;
+            
+            /* for all the pixels of old image that correspond to one tile */
+            for(oy = y; oy < y + TILE_SIZE; oy++)
+            {
+                for(ox = x; ox < x + TILE_SIZE; ox++)
+                {
+                    /* new pixel is old tile pixel + displacement */
+                    nx = ox + dx;
+                    ny = oy + dy;
+                    
+                    /* if new pixel out of bounds, do not color */
+                    if(nx >= output->width || ny >= output->height
+                       || nx < 0 || ny < 0)
+                    {
+                        continue;
+                    }
+                    output->data[ny][nx][R] = input->data[oy][ox][R];
+                    output->data[ny][nx][G] = input->data[oy][ox][G];
+                    output->data[ny][nx][B] = input->data[oy][ox][B];
+                    output->data[ny][nx][A] = input->data[oy][ox][A];
+                }
+            }
+                
+        }
+    }
+}
+
+
