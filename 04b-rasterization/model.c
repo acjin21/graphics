@@ -29,50 +29,50 @@ void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
 void init_cube(void)
 {
     set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[0].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[0].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[0].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[1].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[1].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[1].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[2].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[2].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[2].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[3].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[3].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[3].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[4].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[4].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[4].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[5].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[5].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[5].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[6].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[6].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[6].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[7].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+    //set_vec4(vertex_list[7].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[7].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     num_vertices = 8;
@@ -126,7 +126,7 @@ void draw_model(int mode)
     }
 }
 
-void rotate_model(float x_angle, float y_angle, float z_angle, int axis)
+void rotate_model(float x_angle, float y_angle, float z_angle)
 {
     z_angle *= (PI / 180.0);
     y_angle *= (PI / 180.0);
@@ -135,35 +135,24 @@ void rotate_model(float x_angle, float y_angle, float z_angle, int axis)
     float nx, ny, nz;
     for(int i = 0; i < num_vertices; i++)
     {
-        POINT p = vertex_list[i];
+        POINT *p = &vertex_list[i];
 
-        if(axis == Z)
-        {
-            /* about z axis */
-            nx = p.world[X] * cos(z_angle) - p.world[Y] * sin(z_angle);
-            ny = p.world[X] * sin(z_angle) + p.world[Y] * cos(z_angle);
-            vertex_list[i].world[X] = nx;
-            vertex_list[i].world[Y] = ny;
-        }
-        else if(axis == Y)
-        {
-            /* about y axis */
-            nx = p.world[X] * cos(y_angle) - p.world[Z] * sin(y_angle);
-            nz = p.world[X] * sin(y_angle) + p.world[Z] * cos(y_angle);
-            vertex_list[i].world[X] = nx;
-            vertex_list[i].world[Z] = nz;
-        }
-        else if(axis == X)
-        {
-            /* about x axis */
-            ny = p.world[Y] * cos(x_angle) - p.world[Z] * sin(x_angle);
-            nz = p.world[Y] * sin(x_angle) + p.world[Z] * cos(x_angle);
-            vertex_list[i].world[Y] = ny;
-            vertex_list[i].world[Z] = nz;
-        }
-        
+        /* about z axis */
+        nx = p->world[X] * cos(z_angle) - p->world[Y] * sin(z_angle);
+        ny = p->world[X] * sin(z_angle) + p->world[Y] * cos(z_angle);
+        vertex_list[i].world[X] = nx;
+        vertex_list[i].world[Y] = ny;
 
-        
+        /* about y axis */
+        nx = p->world[X] * cos(y_angle) - p->world[Z] * sin(y_angle);
+        nz = p->world[X] * sin(y_angle) + p->world[Z] * cos(y_angle);
+        vertex_list[i].world[X] = nx;
+        vertex_list[i].world[Z] = nz;
 
+        /* about x axis */
+        ny = p->world[Y] * cos(x_angle) - p->world[Z] * sin(x_angle);
+        nz = p->world[Y] * sin(x_angle) + p->world[Z] * cos(x_angle);
+        vertex_list[i].world[Y] = ny;
+        vertex_list[i].world[Z] = nz;
     }
 }

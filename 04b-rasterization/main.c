@@ -54,7 +54,6 @@ int draw_mode = FRAME;
 float dx_angle = 0;
 float dy_angle = 0;
 float dz_angle = 0;
-int axis = Z;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -196,7 +195,7 @@ void display(void)
     if(main_mode == MODEL)
     {
         init_cube();
-        rotate_model(dx_angle, dy_angle, dz_angle, axis);
+        rotate_model(dx_angle, dy_angle, dz_angle);
         xform_model();
         draw_model(draw_mode);
     }
@@ -217,11 +216,13 @@ static void Key(unsigned char key, int x, int y)
 {
     switch (key)
     {
+        /* draw wire frame */
         case 'd':       draw_mode = 1 - draw_mode;      break;
-        case 'x':       axis = X;   dx_angle += 10;                  break;
-        case 'y':       axis = Y;   dy_angle += 10;                  break;
-        case 'z':       axis = Z;   dz_angle += 10;                  break;
-
+        /* rotations */
+        case 'x':       dx_angle += 10;     break;
+        case 'y':       dy_angle += 10;     break;
+        case 'z':       dz_angle += 10;     break;
+        case 't':       dx_angle += 10;     dy_angle += 10;     dz_angle += 10;     break;
 
         case 'a':       draw_one_frame = 1;             break;
         case 'q':       exit(0);                        break;
