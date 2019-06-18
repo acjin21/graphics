@@ -143,34 +143,38 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     else {
         scalar_divide(fabsf(delta.position[Y]), delta.position, step.position); // dx/dy
     }
-    
-        for(p = start; (int) p.position[Y] < (int)end.position[Y];)
+    int prev_row;
+    for(p = start; (int) p.position[Y] < (int)end.position[Y];)
+    {
+        /* calculate scale based on Y coordinate for color interp. */
+        vector_subtract(p.position, start.position, scale);
+        scalar_divide(fabsf(delta.position[Y]), scale, scale);
+        scalar_multiply(scale[Y], delta.color, step.color);
+        vector_add(p.color, step.color, p.color);
+        
+        if (mode == DRAW)
         {
-            /* calculate scale based on Y coordinate for color interp. */
-            vector_subtract(p.position, start.position, scale);
-            scalar_divide(fabsf(delta.position[Y]), scale, scale);
-            scalar_multiply(scale[Y], delta.color, step.color);
-            vector_add(p.color, step.color, p.color);
+            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+            draw_point_2(&p);
+        }
+        else if (mode == WALK)
+        {
+            int row = (int) p.position[Y] + 400;
+            int count = edge_counts[row];
             
-            if (mode == DRAW)
-            {
-                glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
-                draw_point_2(&p);
-            }
-            else if (mode == WALK)
-            {
-                int row = (int) p.position[Y] + 400;
-                int count = edge_counts[row];
-                
-                /* sanity check */
-                if(count < 0 || count > 2) printf("ERR: count out of bounds\n");
+            /* sanity check */
+            if(count < 0 || count > 2) printf("ERR: count out of bounds\n");
 
-                //fill in the walk data
+            //fill in the walk data
+            if(row != prev_row)
+            {
                 span[row][count] = (int) p.position[X];
                 edge_counts[row]++;
             }
-            vector_add(p.position, step.position, p.position);
+            prev_row = row;
         }
+        vector_add(p.position, step.position, p.position);
+    }
 }
 
 /* draw horizontal scan lines of triangle */
@@ -182,9 +186,9 @@ void draw_spans(void)
         int count = edge_counts[r];
         
         if(count == 0) continue;
-//        if(count == 1) {
-//            draw_point(span[r][0], r-400);
-//        }
+        if(count == 1) {
+            draw_point(span[r][0], r-400);
+        }
         else if(count == 2){
             int end_x = span[r][count-1];
             for(int c = start_x; c <= end_x; c++)

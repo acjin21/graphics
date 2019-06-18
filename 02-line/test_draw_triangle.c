@@ -92,6 +92,14 @@ void cpy_vec4 (float dest[4], float val[4])
     }
 }
 
+void set_vec4 (float dest[4], float x, float y, float z, float w)
+{
+    dest[0] = x;
+    dest[1] = y;
+    dest[2] = z;
+    dest[3] = w;
+}
+
 POINT v0, v1, v2;
 
 float points[18][4] =
@@ -126,17 +134,39 @@ void draw_one_tri_test (int i0, int i1, int i2)
     
 }
 
+void draw_random_triangle (void)
+{
+    printf("random");
+    set_vec4(v0.position, random_float(-window_size, window_size),
+             random_float(-window_size, window_size), 0, 0);
+    set_vec4(v1.position, random_float(-window_size, window_size),
+             random_float(-window_size, window_size), 0, 0);
+    set_vec4(v2.position, random_float(-window_size, window_size),
+             random_float(-window_size, window_size), 0, 0);
+    
+    set_vec4(v0.color, random_float(0, 1), random_float(0, 1),
+             random_float(0, 1), 1);
+    set_vec4(v1.color, random_float(0, 1), random_float(0, 1),
+             random_float(0, 1), 1);
+    set_vec4(v2.color, random_float(0, 1), random_float(0, 1),
+             random_float(0, 1), 1);
+    
+    draw_triangle(&v0, &v1, &v2);
+    
+}
+
 /* multiple triangles, one screen */
 void draw_tri_test (void)
 {
     
-    draw_one_tri_test(0, 1, 2);
-    draw_one_tri_test(3, 4, 5);
-    draw_one_tri_test(6, 7, 8);
-    draw_one_tri_test(9, 10, 11);
-    draw_one_tri_test(12, 13, 14);
-    draw_one_tri_test(15, 16, 17);
+//    draw_one_tri_test(0, 1, 2);
+//    draw_one_tri_test(3, 4, 5);
+//    draw_one_tri_test(6, 7, 8);
+//    draw_one_tri_test(9, 10, 11);
+//    draw_one_tri_test(12, 13, 14);
+//    draw_one_tri_test(15, 16, 17);
 //    random_tests();
+    draw_random_triangle();
     
     /*********************/
     /* draw calls        */
