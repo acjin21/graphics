@@ -31,8 +31,8 @@ void scalar_divide (float s, float v[4], float res[4])
 {
     if (s == 0)
     {
-        printf("error: div by zero\n");
-        return;
+        //printf("error: div by zero\n");
+        //return;
     }
     scalar_multiply(1.0 / s, v, res);
 }

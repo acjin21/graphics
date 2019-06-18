@@ -14,7 +14,7 @@ extern float depth_buffer[800][800];
 /* modes */
 int alpha_blend = OFF;
 int depth_test = OFF;
-int texturing = ON;
+int texturing = OFF;
 int modulate = OFF;
 
 /*************************************************************************/

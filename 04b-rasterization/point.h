@@ -13,10 +13,12 @@
 #include "texture.h"
 
 typedef struct point {
+    float world[4];
     float position[4];
     float color[4];
     float tex[4];
 } POINT;
 
 void draw_point (POINT *p);
+
 #endif

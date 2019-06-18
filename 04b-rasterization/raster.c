@@ -197,3 +197,4 @@ void print_span (int row_start, int row_end)
                i, start, end, edge_counts[i]);
     }
 }
+
