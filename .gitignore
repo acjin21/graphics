@@ -1,7 +1,11 @@
 */*
+
 !*/*.*
-!*/ppm/*
+!*/ppm
+!*/out_ppm
+
 !*/Makefile
+
 *.DS_Store
 */.DS_Store
 # Prerequisites

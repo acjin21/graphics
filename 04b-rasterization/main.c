@@ -106,9 +106,11 @@ void display(void)
     {
         case 0:
             luminosity(&texture0, &texture);
+            write_ppm("out_ppm/luminosity.ppm", &texture);
             break;
         case 1:
             negative(&texture0, &texture);
+            write_ppm("out_ppm/negative.ppm", &texture);
             break;
         case 2:
             flip_vertical(&texture0, &texture);
@@ -118,6 +120,7 @@ void display(void)
             break;
         case 4:
             sepia(&texture0, &texture);
+            write_ppm("out_ppm/sepia.ppm", &texture);
             break;
         case 5:
             avg(&texture0, &texture);
@@ -134,19 +137,23 @@ void display(void)
             break;
         case 9:
             lincoln(&texture0, &texture, 3);
+            write_ppm("out_ppm/lincoln.ppm", &texture);
             break;
         case 10:
             clear_texture(&texture, 100, 100, 100, 1);
             fisheye(&texture0, &texture);
+            write_ppm("out_ppm/fisheye.ppm", &texture);
             break;
         case 11:
             clear_texture(&texture, 100, 100, 100, 1);
             einstein(&texture0, &texture);
+            write_ppm("out_ppm/einstein.ppm", &texture);
             break;
         case 12:
             clear_texture(&texture, 100, 100, 100, 1);
             luminosity(&texture0, &texture1);
             oil_transfer(&texture1, &texture);
+            write_ppm("out_ppm/oil_paint.ppm", &texture);
             break;
         case 13:
             clear_texture(&texture, 100, 100, 100, 1);

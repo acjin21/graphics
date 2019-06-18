@@ -108,8 +108,38 @@ void read_ppm (char *file_name, IMAGE *img)
             }
         }
     }
-    
     fclose(fp);
+}
+
+void write_ppm (char *file_name, IMAGE *img)
+{
+    FILE *fp;
+    fp = fopen(file_name, "w");
+
+    
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents overwritten.\n", file_name);
+        fputs("P3\n", fp);
+        fprintf(fp, "%i %i\n", img->width, img->height);
+        fprintf(fp, "%i\n", 255);
+        for(int j = 0; j < img->height; j++)
+        {
+            for(int i = 0; i < img->width; i++)
+            {
+                int r = img->data[j][i][R];
+                int g = img->data[j][i][G];
+                int b = img->data[j][i][B];
+                fprintf(fp, "%i %i %i\n", r, g, b);
+            }
+        }
+        printf("Done writing ppm file to %s\n", file_name);
+        fclose(fp);
+    }
 }
 
 /* clear texture image to specified rgba values */
