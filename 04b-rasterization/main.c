@@ -88,8 +88,8 @@ void display(void)
 /*************************************************************************/
 #define NUM_FILES 12
 
-    if(main_mode == IMG_PROC)
-    {
+//    if(main_mode == IMG_PROC)
+//    {
         char file_names[NUM_FILES][100] =
         {
             "ppm/blackbuck.ascii.ppm",
@@ -110,15 +110,15 @@ void display(void)
         file_index++;
         
         /* to rotate between ppm files */
-        read_ppm(ppm_file, &texture0);
-        
+//        read_ppm(ppm_file, &texture0);
+    
         /* for one specific ppm file */
-//        read_ppm("ppm/me_square.ppm", &texture0);
+        read_ppm("ppm/me_square.ppm", &texture);
 //        read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
 //        luminosity(&texture0, &texture1);
 //        oil_transfer(&texture0, &texture);
 //        tiling(&texture0, &texture);
-    }
+//    }
 
 /*************************************************************************/
 /* test image processing */
@@ -200,8 +200,8 @@ void display(void)
     
     if(main_mode == MODEL)
     {
-//        init_cube();
-        init_mesh();
+        init_cube();
+//        init_mesh();
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
      * textures
      */
 //    random_texture(&texture);
-    checkerboard_texture(&texture);
+//    checkerboard_texture(&texture);
     
     /*
      * start loop that calls display() and Key() routines

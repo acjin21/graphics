@@ -1,19 +1,8 @@
 #include "macros.h"
 #include "point.h"
 #include "raster.h"
+#include "vector.h"
 
-/****************************************/
-/* helper funcs */
-/****************************************/
-
-/* copy contents of val[4] into dest[4] */
-void cpy_vec4 (float dest[4], float val[4])
-{
-    for(int i = 0; i < 4; i++)
-    {
-        dest[i] = val[i];
-    }
-}
 
 /****************************************/
 /* test vars and functions */

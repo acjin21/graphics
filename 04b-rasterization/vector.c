@@ -75,3 +75,12 @@ void set_vec4 (float vec[4], float x, float y, float z, float w)
     vec[2] = z;
     vec[3] = w;
 }
+
+/* copy contents of val[4] into dest[4] */
+void cpy_vec4 (float dest[4], float val[4])
+{
+    for(int i = 0; i < 4; i++)
+    {
+        dest[i] = val[i];
+    }
+}
