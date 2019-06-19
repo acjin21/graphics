@@ -25,6 +25,7 @@ void draw_point (POINT *p)
     glBegin(GL_POINTS);
     int r = (int) (p->position[Y] + 400);
     int c = (int) (p->position[X] + 400);
+    if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
     float blend_weight = 0.50;
     
     if(texturing)

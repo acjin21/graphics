@@ -20,50 +20,50 @@ void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
 void init_cube(void)
 {
     set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[0].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[0].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[0].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[1].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[1].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[1].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[2].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[2].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[2].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[3].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[3].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[3].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[4].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[4].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[4].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[5].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[5].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[5].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[6].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[6].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[6].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[7].color, random_float(0, 1),
-             random_float(0, 1), random_float(0, 1), 0);
+//    set_vec4(vertex_list[7].color, random_float(0, 1),
+//             random_float(0, 1), random_float(0, 1), 0);
     set_vec4(vertex_list[7].tex, random_float(0, 1),
              random_float(0, 1), 0, 0);
     num_vertices = 8;
@@ -85,9 +85,8 @@ void init_cube(void)
 }
 
 /* transform model from world space to screen space */
-void xform_model(void)
+void xform_model(float scale)
 {
-    int scale = 200;
     for(int i = 0; i < num_vertices; i++)
     {
         scalar_multiply(scale, vertex_list[i].world, vertex_list[i].position);
@@ -147,5 +146,36 @@ void rotate_model(float x_angle, float y_angle, float z_angle)
         nz = p->world[Y] * sin(x_angle) + p->world[Z] * cos(x_angle);
         vertex_list[i].world[Y] = ny;
         vertex_list[i].world[Z] = nz;
+    }
+}
+
+void translate_model (float distance)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        vertex_list[i].world[Z] += distance;
+    }
+}
+
+void perspective_xform(float near, float far)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        float x, y, z;
+        x = vertex_list[i].world[X];
+        y = vertex_list[i].world[Y];
+        z = vertex_list[i].world[Z];
+        
+        vertex_list[i].position[X] = near * x / z;
+        vertex_list[i].position[Y] = near * y / z;
+        vertex_list[i].position[Z] = z / (far - near); //normalize Z
+    }
+}
+
+void viewport_xform(float scale)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        scalar_multiply(scale, vertex_list[i].position, vertex_list[i].position);
     }
 }

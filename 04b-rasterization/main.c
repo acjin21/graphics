@@ -50,10 +50,13 @@ IMAGE texture1;
 
 int main_mode = MODEL;
 int draw_mode = FRAME;
+int proj_mode = ORTHO;
 
 float dx_angle = 0;
 float dy_angle = 0;
 float dz_angle = 0;
+
+float z_transl = 5;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -196,7 +199,18 @@ void display(void)
     {
         init_cube();
         rotate_model(dx_angle, dy_angle, dz_angle);
-        xform_model();
+        switch(proj_mode)
+        {
+            case ORTHO:
+                xform_model(300);
+                break;
+            case PERSPECT:
+                translate_model(z_transl);
+                perspective_xform(3.0, 40.0);
+                viewport_xform(300);
+                break;
+        }
+        
         draw_model(draw_mode);
     }
     
@@ -229,6 +243,25 @@ static void Key(unsigned char key, int x, int y)
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
                         dz_angle = 0;                   break;
+        
+        /* Z translation */
+        case '+':
+            if(PERSPECT)
+            {
+                z_transl += 0.10;
+                break;
+            }
+            
+        case '-':
+            if(PERSPECT)
+            {
+                z_transl -= 0.10;
+                break;
+            }
+        
+        /* toggle projection mode */
+        case 'p':       proj_mode = 1 - proj_mode;       break;
+
 
         case 'a':       draw_one_frame = 1;             break;
         case 'q':       exit(0);                        break;
