@@ -200,7 +200,8 @@ void display(void)
     
     if(main_mode == MODEL)
     {
-        init_cube();
+//        init_cube();
+        init_mesh();
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {

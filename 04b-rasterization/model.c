@@ -38,29 +38,15 @@ void init_cube(void)
     set_vec4(vertex_list[6].color, 1, 0, 0, 0);
     set_vec4(vertex_list[7].color, 0, 1, 0, 0);
 
-    set_vec4(vertex_list[0].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[0].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[1].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[2].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[3].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[4].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[5].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[6].tex, random_float(0, 1), random_float(0, 1), 0, 0);
+    set_vec4(vertex_list[7].tex, random_float(0, 1), random_float(0, 1), 0, 0);
     
-    set_vec4(vertex_list[1].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[2].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[3].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[4].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[5].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[6].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
-    
-    set_vec4(vertex_list[7].tex, random_float(0, 1),
-             random_float(0, 1), 0, 0);
     num_vertices = 8;
     
     set_triangle(0, 0, 2, 1);
@@ -79,12 +65,51 @@ void init_cube(void)
     num_triangles = 12;
 }
 
+void init_mesh (void)
+{
+    for(int r = 0; r < 32; r++)
+    {
+        for(int c = 0; c < 32; c++)
+        {
+            POINT *p = &vertex_list[(r * 32) + c];
+            
+            p->world[X] = (float) c / 32.0;
+            p->world[Y] = (float) r / 32.0;
+            p->world[Z] = cos((float) r / 32.0 * 2.0 * PI) *
+                sin((float) c / 32.0 * 2.0 * PI);
+            p->world[W] = 1.0;
+        }
+    }
+    num_vertices = 32 * 32;
+    printf("num_vertices %i\n", num_vertices);
+    int n = 0;
+    for(int r = 0; r < 30; r++)
+    {
+        for(int c = 0; c < 30; c++)
+        {
+            set_triangle(n, r * 32 + c, (r + 1) * 32 + c, (r + 1) * 32 + (c + 1));
+            n++;
+            set_triangle(n, r * 32 + c, (r + 1) * 32 + (c + 1), r * 32 + (c + 1));
+            n++;
+        }
+    }
+    num_triangles = n;
+    printf("n_tris %i\n", num_triangles);
+
+}
+
 /* transform model from world space to screen space */
 void xform_model(float scale)
 {
     for(int i = 0; i < num_vertices; i++)
     {
-        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].position);
+//        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].position);
+        vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
+        vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
+        vertex_list[i].position[Z] = vertex_list[i].world[Z];
+        vertex_list[i].position[W] = 1.0;
+
+
     }
 }
 
@@ -166,6 +191,7 @@ void perspective_xform(float near, float far)
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
         vertex_list[i].position[Z] = z / (far - near); //normalize Z
+        vertex_list[i].position[W] = 1.0;
     }
 }
 

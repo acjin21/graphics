@@ -12,6 +12,8 @@
 #define PERSPECT 1
 
 void init_cube(void);
+void init_mesh (void);
+
 void xform_model(float scale);
 void draw_model(int mode);
 void rotate_model(float x_angle, float y_angle, float z_angle);
