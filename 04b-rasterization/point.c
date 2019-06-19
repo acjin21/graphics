@@ -8,8 +8,7 @@ extern float depth_buffer[800][800];
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
-#define ON 1
-#define OFF 0
+
 
 /* modes */
 int alpha_blend = OFF;
@@ -119,3 +118,4 @@ void set_tex (POINT *p, float s, float t)
 {
     set_vec4(p->color, s, t, 0, 0);
 }
+

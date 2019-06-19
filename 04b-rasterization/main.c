@@ -51,7 +51,10 @@ IMAGE texture1;
 int main_mode = MODEL;
 int draw_mode = FRAME;
 int proj_mode = ORTHO;
-
+int depth_test_mode = OFF;
+int texturing_mode = OFF;
+extern int depth_test;
+extern int texturing;
 float dx_angle = 0;
 float dy_angle = 0;
 float dz_angle = 0;
@@ -231,15 +234,16 @@ static void Key(unsigned char key, int x, int y)
     switch (key)
     {
         /* draw wire frame */
-        case 'd':       draw_mode = 1 - draw_mode;      break;
+        case 'f':       draw_mode = 1 - draw_mode;      break;
         /* rotations */
         case 'x':       dx_angle += 10;                 break;
         case 'y':       dy_angle += 10;                 break;
         case 'z':       dz_angle += 10;                 break;
             
-        case 't':       dx_angle += 10;
+        case 'm':       dx_angle += 10;
                         dy_angle += 10;
                         dz_angle += 10;                 break;
+            
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
                         dz_angle = 0;                   break;
@@ -259,13 +263,16 @@ static void Key(unsigned char key, int x, int y)
                 break;
             }
         
+        /* texturing */
+        case 't':       texturing = 1 - texturing;        break;
+        case 'd':       depth_test = 1 - depth_test;      break;
         /* toggle projection mode */
-        case 'p':       proj_mode = 1 - proj_mode;       break;
+        case 'p':       proj_mode = 1 - proj_mode;                  break;
 
 
-        case 'a':       draw_one_frame = 1;             break;
-        case 'q':       exit(0);                        break;
-        case '\033':    exit(0);                        break;
+        case 'a':       draw_one_frame = 1;                         break;
+        case 'q':       exit(0);                                    break;
+        case '\033':    exit(0);                                    break;
     }
     
     draw_one_frame = 1;
@@ -305,7 +312,7 @@ int main(int argc, char **argv)
      * textures
      */
 //    random_texture(&texture);
-//    checkerboard_texture(&texture);
+    checkerboard_texture(&texture);
     
     /*
      * start loop that calls display() and Key() routines

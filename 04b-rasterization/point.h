@@ -13,6 +13,9 @@
 #include "texture.h"
 #include "vector.h"
 
+#define ON 1
+#define OFF 0
+
 typedef struct point {
     float world[4];
     float position[4];
