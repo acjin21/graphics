@@ -59,7 +59,7 @@ float dx_angle = 0;
 float dy_angle = 0;
 float dz_angle = 0;
 
-float z_transl = 5;
+float z_transl = 4;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -200,8 +200,8 @@ void display(void)
     
     if(main_mode == MODEL)
     {
-//        init_cube();
-        init_mesh();
+        init_cube();
+//        init_mesh();
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {
@@ -210,12 +210,13 @@ void display(void)
                 break;
             case PERSPECT:
                 translate_model(z_transl);
-                perspective_xform(3.0, 40.0);
+                perspective_xform(3.0, 16.0);
                 viewport_xform(300);
                 break;
         }
         
         draw_model(draw_mode);
+        draw_depth_buffer();
     }
     
     /*
