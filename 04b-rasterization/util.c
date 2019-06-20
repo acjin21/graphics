@@ -1,5 +1,6 @@
 #include "util.h"
 #include <stdlib.h>
+
 /*
  * random_float()
  */

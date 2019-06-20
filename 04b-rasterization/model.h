@@ -12,7 +12,7 @@
 #define PERSPECT 1
 
 void init_cube(void);
-void init_mesh (void);
+void init_mesh (int n);
 
 void xform_model(float scale);
 void draw_model(int mode);

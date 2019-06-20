@@ -11,25 +11,23 @@ typedef struct face
     int tex[3];
 } FACE;
 
-/* modeling */
-POINT vertex_list[2000];
-float tex_list[100][4];
-float color_list[100][4];
+#define NUM_VERTS 5000
+
+/****************************************************************/
+/* global variables */
+/****************************************************************/
+POINT vertex_list[NUM_VERTS];
+float tex_list[NUM_VERTS][4];
+float color_list[NUM_VERTS][4];
 
 int num_vertices = 0;
 
-int triangle_list[4000][3];
-FACE face_list[4000];
+FACE face_list[10000];
 int num_triangles = 0;
 
-/* set triangle vertices to indices v0_idx, v1_idx, and v2_idx. */
-void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
-{
-    triangle_list[t_idx][0] = v0_idx;
-    triangle_list[t_idx][1] = v1_idx;
-    triangle_list[t_idx][2] = v2_idx;
-}
-
+/****************************************************************/
+/* functions */
+/****************************************************************/
 void set_face (int i, int v0, int v1, int v2,
                       int c0, int c1, int c2,
                       int t0, int t1, int t2)
@@ -60,34 +58,17 @@ void init_cube (void)
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
 
-    set_vec4(vertex_list[0].color, 1, 0, 0, 0);
-    set_vec4(vertex_list[1].color, 0, 1, 0, 0);
-    set_vec4(vertex_list[2].color, 0, 0, 1, 0);
-    set_vec4(vertex_list[3].color, 1, 0, 0, 0);
-    set_vec4(vertex_list[4].color, 0, 1, 0, 0);
-    set_vec4(vertex_list[5].color, 0, 0, 1, 0);
-    set_vec4(vertex_list[6].color, 1, 0, 0, 0);
-    set_vec4(vertex_list[7].color, 0, 1, 0, 0);
-
+    /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
     set_vec4(tex_list[1], 1, 0, 0, 0);
     set_vec4(tex_list[2], 0, 1, 0, 0);
     set_vec4(tex_list[3], 1, 1, 0, 0);
 
+    /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
 
-//    set_vec4(vertex_list[0].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[1].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[2].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[3].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[4].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[5].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[6].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//    set_vec4(vertex_list[7].tex, random_float(0, 1), random_float(0, 1), 0, 0);
-//
-    
     num_vertices = 8;
     //              vertices    colors      texture coords
     set_face(0,     0, 2, 1,    0, 1, 2,    0, 3, 1);
@@ -106,36 +87,47 @@ void init_cube (void)
     num_triangles = 12;
 }
 
-void init_mesh (void)
+/* init a 32 x 32 wavy mesh */
+void init_mesh (int n)
 {
-    for(int r = 0; r < 32; r++)
+    for(int r = 0; r < n; r++)
     {
-        for(int c = 0; c < 32; c++)
+        for(int c = 0; c < n; c++)
         {
-            POINT *p = &vertex_list[(r * 32) + c];
+            POINT *p = &vertex_list[(r * n) + c];
             
-            p->world[X] = (float) c / 32.0;
-            p->world[Y] = (float) r / 32.0;
-            p->world[Z] = cos((float) r / 32.0 * 2.0 * PI) *
-                sin((float) c / 32.0 * 2.0 * PI);
+            /* world coordinates */
+            p->world[X] = (float) c / (float) n ;
+            p->world[Z] = (float) r / (float) n;
+            p->world[Y] = cos((float) r / (float) n * 2 * PI) *
+                          sin((float) c / (float) n * 2 * PI);
             p->world[W] = 1.0;
+            
+            /* set colors and textures for each vertex */
+            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
+                                            (float) r / (float) n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
+                                              (float) r / (float) n, 0, 1);
         }
     }
-    num_vertices = 32 * 32;
-    int n = 0;
-    for(int r = 0; r < 30; r++)
+    num_vertices = n * n;
+    
+    int t = 0;
+    for(int r = 0; r < n - 2; r++)
     {
-        for(int c = 0; c < 30; c++)
+        for(int c = 0; c < n - 2; c++)
         {
-            set_face(n, r * 32 + c, (r + 1) * 32 + c, (r + 1) * 32 + (c + 1),
-                     0, 1, 2,   0, 3, 1);
-            n++;
-            set_face(n, r * 32 + c, (r + 1) * 32 + (c + 1), r * 32 + (c + 1),
-                     0, 1, 2,   0, 3, 1);
-            n++;
+            set_face(t, r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                        r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                        r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
+            t++;
+            set_face(t, r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                        r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                        r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            t++;
         }
     }
-    num_triangles = n;
+    num_triangles = t;
 
 }
 
@@ -144,13 +136,10 @@ void xform_model(float scale)
 {
     for(int i = 0; i < num_vertices; i++)
     {
-//        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].position);
         vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
         vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
         vertex_list[i].position[Z] = vertex_list[i].world[Z];
         vertex_list[i].position[W] = 1.0;
-
-
     }
 }
 
@@ -159,19 +148,22 @@ void draw_model(int mode)
 {
     for(int i = num_triangles - 1; i >= 0; i--)
     {
-        FACE f0 = face_list[i];
-        int v0 = f0.vertices[0];
-        int v1 = f0.vertices[1];
-        int v2 = f0.vertices[2];
+        FACE f = face_list[i];
+        /* get indices from face object */
+        int v0 = f.vertices[0];
+        int v1 = f.vertices[1];
+        int v2 = f.vertices[2];
         
-        int c0 = f0.colors[0];
-        int c1 = f0.colors[1];
-        int c2 = f0.colors[2];
+        int c0 = f.colors[0];
+        int c1 = f.colors[1];
+        int c2 = f.colors[2];
         
-        int t0 = f0.tex[0];
-        int t1 = f0.tex[1];
-        int t2 = f0.tex[2];
-
+        int t0 = f.tex[0];
+        int t1 = f.tex[1];
+        int t2 = f.tex[2];
+        
+        /* fix the colors and textures of each point in vertex_list to the
+            color and tex coords specified by FACE object */
         cpy_vec4(vertex_list[v0].color, color_list[c0]);
         cpy_vec4(vertex_list[v0].tex, tex_list[t0]);
         
@@ -190,13 +182,14 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            draw_triangle_barycentric (&vertex_list[v0],
-                                      &vertex_list[v1],
-                                      &vertex_list[v2]);
+            draw_triangle_barycentric (&vertex_list[v0], &vertex_list[v1],
+                                       &vertex_list[v2]);
         }
     }
 }
 
+/* 3d rotation x_angle about the x axis, y_angle about the y axis, and
+    z_angle about the z axis */
 void rotate_model(float x_angle, float y_angle, float z_angle)
 {
     z_angle *= (PI / 180.0);
@@ -254,11 +247,12 @@ void perspective_xform(float near, float far)
     }
 }
 
+/* scale normalized view coordinates to screen coordinates
+ *  (for perspective proj) */
 void viewport_xform(float scale)
 {
     for(int i = 0; i < num_vertices; i++)
     {
-//        scalar_multiply(scale, vertex_list[i].position, vertex_list[i].position);
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
         vertex_list[i].position[Z] *= 1;

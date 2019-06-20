@@ -8,8 +8,6 @@ extern float depth_buffer[800][800];
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
-
-
 /* modes */
 int alpha_blend = OFF;
 int depth_test = OFF;
@@ -21,7 +19,7 @@ int modulate = OFF;
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-    glBegin(GL_POINTS);
+//    glBegin(GL_POINTS);
     int r = (int) (p->position[Y] + 400);
     int c = (int) (p->position[X] + 400);
     if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
@@ -48,7 +46,6 @@ void draw_point (POINT *p)
             color_buffer[r][c][G] *= p->color[G];
             color_buffer[r][c][B] *= p->color[B];
             color_buffer[r][c][A] *= p->color[A];
-            
         }
     }
     else
@@ -85,15 +82,14 @@ void draw_point (POINT *p)
             if(depth_test)
             {
                 depth_buffer[r][c] = p->position[Z];
-//                printf("depth_buffer: %f\n", p->position[Z]);
             }
         }
     }
     /* draw point on screen */
-    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
-              color_buffer[r][c][B], color_buffer[r][c][A]);
-    glVertex2f(p->position[X], p->position[Y]);
-    glEnd();
+//    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
+//              color_buffer[r][c][B], color_buffer[r][c][A]);
+//    glVertex2f(p->position[X], p->position[Y]);
+//    glEnd();
 }
 
 /*
