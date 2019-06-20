@@ -1,5 +1,8 @@
 #include "model.h"
 #include <math.h>
+#include <stdio.h>
+
+extern float depth_buffer[800][800];
 
 typedef struct face
 {
@@ -86,7 +89,7 @@ void init_cube (void)
 //
     
     num_vertices = 8;
-    
+    //              vertices    colors      texture coords
     set_face(0,     0, 2, 1,    0, 1, 2,    0, 3, 1);
     set_face(1,     0, 3, 2,    0, 1, 2,    0, 2, 3);
     set_face(2,     1, 6, 5,    0, 1, 2,    0, 3, 1);
@@ -124,9 +127,11 @@ void init_mesh (void)
     {
         for(int c = 0; c < 30; c++)
         {
-            set_triangle(n, r * 32 + c, (r + 1) * 32 + c, (r + 1) * 32 + (c + 1));
+            set_face(n, r * 32 + c, (r + 1) * 32 + c, (r + 1) * 32 + (c + 1),
+                     0, 1, 2,   0, 3, 1);
             n++;
-            set_triangle(n, r * 32 + c, (r + 1) * 32 + (c + 1), r * 32 + (c + 1));
+            set_face(n, r * 32 + c, (r + 1) * 32 + (c + 1), r * 32 + (c + 1),
+                     0, 1, 2,   0, 3, 1);
             n++;
         }
     }
@@ -152,7 +157,7 @@ void xform_model(float scale)
 /* draw wire-frame or filled in model */
 void draw_model(int mode)
 {
-    for(int i = 0; i < num_triangles; i++)
+    for(int i = num_triangles - 1; i >= 0; i--)
     {
         FACE f0 = face_list[i];
         int v0 = f0.vertices[0];
@@ -185,7 +190,7 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            draw_triangle_barycentric(&vertex_list[v0],
+            draw_triangle(&vertex_list[v0],
                                       &vertex_list[v1],
                                       &vertex_list[v2]);
         }
@@ -244,7 +249,9 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
-        vertex_list[i].position[Z] = z / (far - near); //normalize Z
+        vertex_list[i].position[Z] = (float) z / (far - near); //normalize Z
+//        printf("%f\n", vertex_list[i].position[Z]);
+        
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -256,5 +263,9 @@ void viewport_xform(float scale)
 //        scalar_multiply(scale, vertex_list[i].position, vertex_list[i].position);
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
+        depth_buffer[(int)(vertex_list[i].position[Y] + 400)][(int)(vertex_list[i].position[X] + 400)] = vertex_list[i].position[Z];
+        
+        vertex_list[i].position[Z] *= 1;
+
     }
 }

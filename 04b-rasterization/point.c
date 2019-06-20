@@ -1,6 +1,6 @@
 
 #include "point.h"
-
+#include <stdio.h>
 extern IMAGE texture;
 extern float color_buffer[800][800][4];
 extern float depth_buffer[800][800];
@@ -85,6 +85,7 @@ void draw_point (POINT *p)
             if(depth_test)
             {
                 depth_buffer[r][c] = p->position[Z];
+//                printf("depth_buffer: %f\n", p->position[Z]);
             }
         }
     }

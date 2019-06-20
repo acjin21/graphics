@@ -82,7 +82,7 @@ void display(void)
     }
     if( draw_one_frame == 0 )
         return;
-    
+    printf("depth test ON/OFF = %i\n", depth_test);
 /*************************************************************************/
 /* test reading in texture files */
 /*************************************************************************/
@@ -216,6 +216,8 @@ void display(void)
         }
         
         draw_model(draw_mode);
+//        draw_color_buffer();
+        draw_depth_buffer();
     }
     
     /*
@@ -265,12 +267,10 @@ static void Key(unsigned char key, int x, int y)
             }
         
         /* texturing */
-        case 't':       texturing = 1 - texturing;        break;
-        case 'd':       depth_test = 1 - depth_test;      break;
+        case 't':       texturing = 1 - texturing;                  break;
+        case 'd':       depth_test = 1 - depth_test;                break;
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                  break;
-
-
         case 'a':       draw_one_frame = 1;                         break;
         case 'q':       exit(0);                                    break;
         case '\033':    exit(0);                                    break;
