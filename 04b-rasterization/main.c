@@ -34,6 +34,8 @@
 /*************************************************************************/
 #define IMG_PROC 0
 #define MODEL 1
+#define DEPTH   0
+#define COLOR   1
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -51,8 +53,8 @@ IMAGE texture1;
 int main_mode = MODEL;
 int draw_mode = FRAME;
 int proj_mode = ORTHO;
-int depth_test_mode = OFF;
-int texturing_mode = OFF;
+int buffer = COLOR;
+
 extern int depth_test;
 extern int texturing;
 float dx_angle = 0;
@@ -61,6 +63,7 @@ float dz_angle = 0;
 
 float z_transl = 4;
 
+float mesh_dx = 0;
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -82,7 +85,10 @@ void display(void)
     }
     if( draw_one_frame == 0 )
         return;
-    
+    if(buffer == DEPTH)
+    {
+        depth_test = ON;
+    }
 /*************************************************************************/
 /* test reading in texture files */
 /*************************************************************************/
@@ -200,8 +206,8 @@ void display(void)
     
     if(main_mode == MODEL)
     {
-        init_cube();
-//        init_mesh();
+//        init_cube();
+        init_mesh(mesh_dx);
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {
@@ -216,7 +222,14 @@ void display(void)
         }
         
         draw_model(draw_mode);
-        draw_depth_buffer();
+        if(buffer == COLOR)
+        {
+            draw_color_buffer();
+        }
+        else
+        {
+            draw_depth_buffer();
+        }
     }
     
     /*
@@ -270,7 +283,7 @@ static void Key(unsigned char key, int x, int y)
         case 'd':       depth_test = 1 - depth_test;      break;
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                  break;
-
+        case 'w':       mesh_dx += 0.1;                     break;
 
         case 'a':       draw_one_frame = 1;                         break;
         case 'q':       exit(0);                                    break;

@@ -26,7 +26,8 @@ void draw_color_buffer (void)
         {
             int r = (int) (y + 400);
             int c = (int) (x + 400);
-            glColor4f(color_buffer[r][c][R], 0, 0, color_buffer[r][c][A]);
+            glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
+                      color_buffer[r][c][B], color_buffer[r][c][A]);
             glVertex2f( x, y);
         }
     }

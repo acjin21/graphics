@@ -65,7 +65,7 @@ void init_cube(void)
     num_triangles = 12;
 }
 
-void init_mesh (void)
+void init_mesh (float mesh_dx)
 {
     for(int r = 0; r < 32; r++)
     {
@@ -75,8 +75,8 @@ void init_mesh (void)
             
             p->world[X] = (float) c / 32.0;
             p->world[Y] = (float) r / 32.0;
-            p->world[Z] = cos((float) r / 32.0 * 2.0 * PI) *
-                sin((float) c / 32.0 * 2.0 * PI);
+            p->world[Z] = cos(mesh_dx + (float) r / 32.0 * 2.0 * PI) *
+                sin(mesh_dx + (float) c / 32.0 * 2.0 * PI);
             p->world[W] = 1.0;
         }
     }
