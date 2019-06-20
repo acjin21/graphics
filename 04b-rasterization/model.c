@@ -190,7 +190,7 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            draw_triangle(&vertex_list[v0],
+            draw_triangle_barycentric (&vertex_list[v0],
                                       &vertex_list[v1],
                                       &vertex_list[v2]);
         }
@@ -249,9 +249,7 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
-        vertex_list[i].position[Z] = (float) z / (far - near); //normalize Z
-//        printf("%f\n", vertex_list[i].position[Z]);
-        
+        vertex_list[i].position[Z] = (float) z / (far - near); //normalize Z        
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -263,8 +261,6 @@ void viewport_xform(float scale)
 //        scalar_multiply(scale, vertex_list[i].position, vertex_list[i].position);
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
-        depth_buffer[(int)(vertex_list[i].position[Y] + 400)][(int)(vertex_list[i].position[X] + 400)] = vertex_list[i].position[Z];
-        
         vertex_list[i].position[Z] *= 1;
 
     }

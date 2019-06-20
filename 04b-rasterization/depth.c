@@ -25,8 +25,6 @@ void draw_depth_buffer (void)
             
             
             glColor4f(depth_buffer[y][x], depth_buffer[y][x], depth_buffer[y][x], 1);
-//            printf("depth = %f\n", depth_buffer[r][c]);
-
             glVertex2f(x - 400, y - 400);
         }
     }

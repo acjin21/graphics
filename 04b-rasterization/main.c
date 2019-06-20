@@ -210,7 +210,7 @@ void display(void)
                 break;
             case PERSPECT:
                 translate_model(z_transl);
-                perspective_xform(3.0, 40.0);
+                perspective_xform(3.0, 10.0);
                 viewport_xform(300);
                 break;
         }
