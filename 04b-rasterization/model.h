@@ -8,11 +8,10 @@
 #define FRAME 0
 #define FILL 1
 
-#define ORTHO 0
-#define PERSPECT 1
+
 
 void init_cube(void);
-void init_mesh (int n);
+void init_mesh (int n, float mesh_dx);
 
 void xform_model(float scale);
 void draw_model(int mode);

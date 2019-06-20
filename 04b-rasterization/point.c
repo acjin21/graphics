@@ -15,11 +15,10 @@ int texturing = OFF;
 int modulate = OFF;
 
 /*************************************************************************/
-/* draw a point */
+/* draw a point into color_buffer */
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-//    glBegin(GL_POINTS);
     int r = (int) (p->position[Y] + 400);
     int c = (int) (p->position[X] + 400);
     if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
@@ -85,11 +84,6 @@ void draw_point (POINT *p)
             }
         }
     }
-    /* draw point on screen */
-//    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
-//              color_buffer[r][c][B], color_buffer[r][c][A]);
-//    glVertex2f(p->position[X], p->position[Y]);
-//    glEnd();
 }
 
 /*

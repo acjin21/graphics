@@ -20,9 +20,9 @@
 
 #include "macros.h"
 #include "vector.h"
-#include "texture.h" //IMAGE typedef, texture and ppm functions
-#include "image.h" //uses IMAGE typedef, image processing funcs
-#include "util.h" //random_float
+#include "texture.h"    //IMAGE typedef, texture and ppm functions
+#include "image.h"      //uses IMAGE typedef, image processing funcs
+#include "util.h"       //random_float
 #include "color.h" 
 #include "depth.h"
 #include "raster.h"
@@ -34,8 +34,17 @@
 /*************************************************************************/
 #define IMG_PROC 0
 #define MODEL 1
+
 #define DEPTH 0
 #define COLOR 1
+
+#define INIT_DZ 5
+
+#define ORTHO 0
+#define PERSPECT 1
+
+#define CUBE 0
+#define MESH 1
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -45,30 +54,38 @@ int draw_one_frame = 1;
 int draw_prog = 1;
 
 /* for textures and image processing */
-IMAGE texture;
+IMAGE texture;          /* final display texture */
 IMAGE texture0;
 IMAGE texture1;
 
-int main_mode = MODEL;
-int draw_mode = FRAME;
-int proj_mode = ORTHO;
+/* toggles/knobs */
+int main_mode = MODEL;  /* demo type (IMG_PROC / MODEL) */
+int draw_mode = FRAME;  /* draw model as wireframe or filled (FRAME/FILL) */
+int proj_mode = ORTHO;  /* projection type (ORTHO/PERSPECT) */
+int buffer = COLOR;     /* which buffer to draw from (COLOR/DEPTH) */
+extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
+extern int texturing;   /* whether texturing is turned on (OFF/ON) */
+extern int modulate;    /* whether modulating is turned on (OFF/ON) */
+extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
+int model = CUBE;       /* model shape (CUBE/MESH) */
+int texture_idx = 0;
+int filter = 0;
 
-int buffer = COLOR;
+/* offset vars */
+float dx_angle = 0;     /* init 3D rotation angle about the x axis */
+float dy_angle = 0;     /* init 3D rotation angle about the y axis */
+float dz_angle = 0;     /* init 3D rotation angle about the z axis */
 
-extern int depth_test;
-extern int texturing;
-float dx_angle = 0;
-float dy_angle = 0;
-float dz_angle = 0;
+float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
-float z_transl = 5;
+float mesh_da = 0;      /* flowing mesh animation */
 
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
 extern void draw_tri_test(void);
 int counter = 0;
-int file_index = 0;
+int file_index = 0; // for image processing
 
 /*
  * display routine
@@ -87,55 +104,96 @@ void display(void)
         return;
     }
     
+    /*******************************************************/
+    /* adjustments to make demos look nice */
+    /*******************************************************/
+
+    /* if drawing depth buffer, turn on depth testing
+        so there's something to look at. */
     if(buffer == DEPTH)
     {
         depth_test = ON;
     }
-/*************************************************************************/
-/* test reading in texture files */
-/*************************************************************************/
-#define NUM_FILES 12
+    /* if modulating, turn on texturing and fill the model. */
+    if(modulate == ON)
+    {
+        texturing = ON;
+        draw_mode = FILL;
+    }
+    /* since alpha blending does not blend textures, if alpha blending is on,
+        turn off texturing and fill the model. */
+    if(alpha_blend == ON)
+    {
+        draw_mode = FILL;
+        texturing = OFF;
+    }
+    if(main_mode == IMG_PROC)
+    {
+        texturing = ON;
+    }
+    /*******************************************************/
+    /* Reading in texture files */
+    /*******************************************************/
+    #define N_PPM_FILES 12
+    #define N_TEXTURES (N_PPM_FILES + 2)
+    /* to rotate between ppm files */
 
-//    if(main_mode == IMG_PROC)
-//    {
-        char file_names[NUM_FILES][100] =
+    char file_names[N_PPM_FILES][100] =
+    {
+        "ppm/blackbuck.ascii.ppm",
+        "ppm/out.ppm",
+        "ppm/feep.ascii.ppm",
+        "ppm/feep2.ascii.ppm",
+        "ppm/pbmlib.ascii.ppm",
+        "ppm/sines.ascii.ppm",
+        "ppm/snail.ascii.ppm",
+        "ppm/star_field.ascii.ppm",
+        "ppm/apollonian_gasket.ascii.pgm",
+        "ppm/mona_lisa.ascii.pgm",
+        "ppm/stop01.ppm",
+        "ppm/me_square.ppm"
+    };
+    /* only for image processing */
+    if (main_mode == IMG_PROC)
+    {
+        clear_texture(&texture0, 0, 0, 0, 1);
+        file_index %= N_PPM_FILES;
+        char *ppm_file = file_names[file_index];
+        read_ppm(ppm_file, &texture0);
+    }
+    else
+    {
+        if (texture_idx < N_PPM_FILES)
         {
-            "ppm/blackbuck.ascii.ppm",
-            "ppm/out.ppm",
-            "ppm/feep.ascii.ppm",
-            "ppm/feep2.ascii.ppm",
-            "ppm/pbmlib.ascii.ppm",
-            "ppm/sines.ascii.ppm",
-            "ppm/snail.ascii.ppm",
-            "ppm/star_field.ascii.ppm",
-            "ppm/apollonian_gasket.ascii.pgm",
-            "ppm/mona_lisa.ascii.pgm",
-            "ppm/stop01.ppm",
-            "ppm/me.ppm"
-        };
-        file_index %= NUM_FILES;
-        char *ppm_file = file_names[6];
-        file_index++;
-        
-        /* to rotate between ppm files */
-//        read_ppm(ppm_file, &texture0);
+            char *ppm_file = file_names[texture_idx];
+            /* to rotate between ppm files */
+            read_ppm(ppm_file, &texture);
+        }
+        else if (texture_idx == N_PPM_FILES)
+        {
+            random_texture(&texture);
+        }
+        else if (texture_idx == N_PPM_FILES + 1)
+        {
+            checkerboard_texture(&texture);
+        }
+    }
     
-        /* for one specific ppm file */
-        read_ppm("ppm/me_square.ppm", &texture);
-//        read_ppm("ppm/mona_lisa.ascii.pgm", &texture0);
-//        luminosity(&texture0, &texture1);
-//        oil_transfer(&texture0, &texture);
-//        tiling(&texture0, &texture);
-//    }
-
-/*************************************************************************/
-/* test image processing */
-/*************************************************************************/
+    /*
+     * clear color and depth buffers
+     */
+    clear_color_buffer(1, 1, 1, 1);
+    clear_depth_buffer(1.0);
+    
+    /*******************************************************/
+    /* Image processing */
+    /*******************************************************/
+#define N_FILTERS 14
     if (main_mode == IMG_PROC)
     {
         //    fill (&texture, 255, 0, 0);
         //    copy(&texture0, &texture);
-        switch(counter % 14)
+        switch(filter % N_FILTERS)
         {
             case 0:
                 luminosity(&texture0, &texture);
@@ -193,23 +251,41 @@ void display(void)
                 tiling(&texture0, &texture);
                 break;
         }
+        glPointSize(2.0);
         draw_tri_test();
+        
     }
     
-    /*
-     * clear color buffer
-     */
-    glClear(GL_COLOR_BUFFER_BIT );
-    clear_color_buffer(1, 1, 1, 1);
-    clear_depth_buffer(1.0);
-    glPointSize(2.0);
-    printf("\nNEW DISPLAY: %i\n", counter);
+
+    
+    /* console logging for some of the more ambiguous knobs */
+    if (main_mode == MODEL)
+    {
+        printf("\n============================\nNEW DISPLAY: %i\n", counter);
+        printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
+        printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
+        printf(".....................\n");
+        printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
+        printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
+        printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
+        printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
+        printf(".....................\n");
+    }
     counter++;
     
+    /*******************************************************/
+    /* 3D MODELING */
+    /*******************************************************/
     if(main_mode == MODEL)
     {
-        init_cube();
-//        init_mesh(32);
+        if(model == CUBE)
+        {
+            init_cube();
+        }
+        else
+        {
+            init_mesh(32, mesh_da);
+        }
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {
@@ -217,12 +293,11 @@ void display(void)
                 xform_model(300);
                 break;
             case PERSPECT:
-                translate_model(z_transl);
-                perspective_xform(3.0, 10.0);
-                viewport_xform(500);
+                translate_model(dz);
+                perspective_xform(3.0, 1000.0);
+                viewport_xform(300);
                 break;
         }
-        
         draw_model(draw_mode);
         
         if(buffer == COLOR)
@@ -234,13 +309,17 @@ void display(void)
             draw_depth_buffer();
         }
     }
+    else // IMG_PROC
+    {
+        draw_tri_test();
+        draw_color_buffer();
+    }
     
     /*
      * show results
      */
     glutSwapBuffers();
-    glutPostRedisplay();//Necessary for Mojave.
-
+    glutPostRedisplay(); // Necessary for Mojave.
     draw_one_frame = 0;
 }
 
@@ -251,45 +330,67 @@ static void Key(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        /* draw wire frame */
-        case 'f':       draw_mode = 1 - draw_mode;      break;
+        /* switch between image processing and 3D modeling modes */
+        case 'M':       main_mode = 1 - main_mode;          break;
+            
+        /*******************************************************/
+        /* COMMANDS FOR IMAGE PROC */
+        /*******************************************************/
+        /* rotate between diff PPM files */
+        case 'P':       file_index++;   filter = 0;         break;
+        /* rotate between diff image processing filters */
+        case 'F':       filter = (filter + 1) % N_FILTERS;  break;
+            
+        /*******************************************************/
+        /* COMMANDS FOR 3D Modeling */
+        /*******************************************************/
+        /* draw wire frame or fill */
+        case 'f':       draw_mode = 1 - draw_mode;          break;
+        /* toggle model shape between cube and mesh */
+        case ' ':       model = 1 - model;                  break;
+            
         /* rotations */
-        case 'x':       dx_angle += 10;                 break;
-        case 'y':       dy_angle += 10;                 break;
-        case 'z':       dz_angle += 10;                 break;
+        case 'x':       dx_angle += 10;                     break;
+        case 'y':       dy_angle += 10;                     break;
+        case 'z':       dz_angle += 10;                     break;
             
-        case 'm':       dx_angle += 10;
+        /* 'tumble' around */
+        case 'u':       dx_angle += 10;
                         dy_angle += 10;
-                        dz_angle += 10;                 break;
+                        dz_angle += 10;                     break;
             
+        /* reset rotations and any offsets */
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
-                        dz_angle = 0;                   break;
+                        dz_angle = 0;
+                        dz = INIT_DZ;
+                        mesh_da = 0;                        break;
         
         /* Z translation */
-        case '+':
-            if(PERSPECT)
-            {
-                z_transl += 0.10;
-                break;
-            }
-            
-        case '-':
-            if(PERSPECT)
-            {
-                z_transl -= 0.10;
-                break;
-            }
+        case '+':       if(PERSPECT) dz += 0.20;            break;
+        case '-':       if(PERSPECT) dz -= 0.20;            break;
         
-        /* texturing */
-        case 't':       texturing = 1 - texturing;                  break;
-        case 'd':       depth_test = 1 - depth_test;                break;
+        /* point drawing modes */
+        case 't':       texturing = 1 - texturing;          break;
+        case 'd':       depth_test = 1 - depth_test;        break;
+        case 'm':       modulate = 1 - modulate;            break;
+        case 'b':       alpha_blend = 1 - alpha_blend;      break;
+            
+        case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
+
+            
         /* toggle projection mode */
-        case 'p':       proj_mode = 1 - proj_mode;                  break;
-        case 'c':       buffer = 1 - buffer;                         break;
-        case 'a':       draw_one_frame = 1;                         break;
-        case 'q':       exit(0);                                    break;
-        case '\033':    exit(0);                                    break;
+        case 'p':       proj_mode = 1 - proj_mode;          break;
+        
+        /* toggle between color and depth buffer */
+        case 'c':       buffer = 1 - buffer;                break;
+            
+        /* flowing mesh animation */
+        case 'w':       mesh_da += 0.5;                     break;
+
+        case 'a':       draw_one_frame = 1;                 break;
+        case 'q':       exit(0);                            break;
+        case '\033':    exit(0);                            break;
     }
     
     draw_one_frame = 1;
@@ -321,15 +422,9 @@ int main(int argc, char **argv)
      * setup OpenGL state
      */
     glClearColor(0.7, 0.7, 0.7, 1);
-//    glClearColor(255/255.0, 255/255.0,  153/255.0,  1); //light yellow
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 //    glPointSize(1.0);
-    
-    /*
-     * textures
-     */
-//    random_texture(&texture);
-//    checkerboard_texture(&texture);
+
     
     /*
      * start loop that calls display() and Key() routines

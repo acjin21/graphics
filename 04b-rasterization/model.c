@@ -87,8 +87,8 @@ void init_cube (void)
     num_triangles = 12;
 }
 
-/* init a 32 x 32 wavy mesh */
-void init_mesh (int n)
+/* init a n x n wavy mesh that starts at angle mesh_da */
+void init_mesh (int n, float mesh_da)
 {
     for(int r = 0; r < n; r++)
     {
@@ -99,8 +99,8 @@ void init_mesh (int n)
             /* world coordinates */
             p->world[X] = (float) c / (float) n ;
             p->world[Z] = (float) r / (float) n;
-            p->world[Y] = cos((float) r / (float) n * 2 * PI) *
-                          sin((float) c / (float) n * 2 * PI);
+            p->world[Y] = cos(mesh_da + (float) r / (float) n * 2 * PI) *
+                          sin(mesh_da + (float) c / (float) n * 2 * PI);
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */

@@ -74,7 +74,7 @@ void read_ppm (char *file_name, IMAGE *img)
     }
     
     fscanf(fp, "%i %i\n" , &width, &height);
-    printf("%i, %i\n", width, height);
+//    printf("%i, %i\n", width, height);
     fscanf(fp, "%f\n", &max);
     
     img->width = width;
