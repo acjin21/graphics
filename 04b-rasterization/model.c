@@ -48,7 +48,27 @@ void add_face (int v0, int v1, int v2,
     face_list[num_triangles].tex[1] = t1;
     face_list[num_triangles].tex[2] = t2;
     
+    POINT *p = &vertex_list[v0];
+    p->tri_list[p->num_tris] = num_triangles;
+    p->num_tris++;
+    
+    p = &vertex_list[v1];
+    p->tri_list[p->num_tris] = num_triangles;
+    p->num_tris++;
+    
+    p = &vertex_list[v2];
+    p->tri_list[p->num_tris] = num_triangles;
+    p->num_tris++;
+    
     num_triangles++;
+}
+
+void reset_num_tris (int num_verts)
+{
+    for(int i = 0; i < num_verts; i++)
+    {
+        vertex_list[i].num_tris = 0;
+    }
 }
 
 /****************************************************************/
@@ -58,6 +78,9 @@ void add_face (int v0, int v1, int v2,
     random color + random tex coords */
 void init_cube (void)
 {
+    /* add vertices */
+    num_vertices = 8;
+    
     set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
@@ -79,8 +102,10 @@ void init_cube (void)
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
 
-    num_vertices = 8;
+    /* reset num_tris for each vertex */
+    reset_num_tris(num_vertices);
     
+    /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
     add_face(0, 2, 1,    0, 1, 2,    0, 3, 1);
@@ -101,6 +126,8 @@ void init_cube (void)
 /* init a n x n wavy mesh that starts at angle mesh_da */
 void init_mesh (int n, float mesh_da)
 {
+    /* add vertices */
+    num_vertices = n * n;
     for(int r = 0; r < n; r++)
     {
         for(int c = 0; c < n; c++)
@@ -121,8 +148,9 @@ void init_mesh (int n, float mesh_da)
                                               (float) r / (float) n, 0, 1);
         }
     }
-    num_vertices = n * n;
+    reset_num_tris(num_vertices);
     
+    /* add triangles/faces */
     num_triangles = 0;
 
     for(int r = 0; r < n - 2; r++)
@@ -201,9 +229,9 @@ void calculate_face_normals (void)
         int p1_idx = face_list[i].vertices[1];
         int p2_idx = face_list[i].vertices[2];
         
-        POINT *p0 = vertex_list[p0_idx];
-        POINT *p1 = vertex_list[p1_idx];
-        POINT *p2 = vertex_list[p2_idx];
+        POINT *p0 = &vertex_list[p0_idx];
+        POINT *p1 = &vertex_list[p1_idx];
+        POINT *p2 = &vertex_list[p2_idx];
         
         //calculate v1, v2
         float v1[4], v2[4], normal[4];
