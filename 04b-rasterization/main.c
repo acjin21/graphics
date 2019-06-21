@@ -70,7 +70,7 @@ extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 int model = CUBE;       /* model shape (CUBE/MESH) */
 int texture_idx = 0;
 int filter = 0;
-
+extern int perspective;
 /* offset vars */
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
 float dy_angle = 0;     /* init 3D rotation angle about the y axis */
@@ -131,6 +131,14 @@ void display(void)
     {
         texturing = ON;
     }
+    if(proj_mode == PERSPECT)
+    {
+        perspective = ON;
+    }
+    else
+    {
+        perspective = OFF;
+    }
     /*******************************************************/
     /* Reading in texture files */
     /*******************************************************/
@@ -138,123 +146,126 @@ void display(void)
     #define N_TEXTURES (N_PPM_FILES + 2)
     /* to rotate between ppm files */
 
-    char file_names[N_PPM_FILES][100] =
-    {
-        "ppm/blackbuck.ascii.ppm",
-        "ppm/out.ppm",
-        "ppm/feep.ascii.ppm",
-        "ppm/feep2.ascii.ppm",
-        "ppm/pbmlib.ascii.ppm",
-        "ppm/sines.ascii.ppm",
-        "ppm/snail.ascii.ppm",
-        "ppm/star_field.ascii.ppm",
-        "ppm/apollonian_gasket.ascii.pgm",
-        "ppm/mona_lisa.ascii.pgm",
-        "ppm/stop01.ppm",
-        "ppm/me_square.ppm"
-    };
-    /* only for image processing */
-    if (main_mode == IMG_PROC)
-    {
-        clear_texture(&texture0, 0, 0, 0, 1);
-        file_index %= N_PPM_FILES;
-        char *ppm_file = file_names[file_index];
-        read_ppm(ppm_file, &texture0);
-    }
-    else
-    {
-        if (texture_idx < N_PPM_FILES)
-        {
-            char *ppm_file = file_names[texture_idx];
-            /* to rotate between ppm files */
-            read_ppm(ppm_file, &texture);
-        }
-        else if (texture_idx == N_PPM_FILES)
-        {
-            random_texture(&texture);
-        }
-        else if (texture_idx == N_PPM_FILES + 1)
-        {
-            checkerboard_texture(&texture);
-        }
-    }
-    
+//    char file_names[N_PPM_FILES][100] =
+//    {
+//        "ppm/blackbuck.ascii.ppm",
+//        "ppm/out.ppm",
+//        "ppm/feep.ascii.ppm",
+//        "ppm/feep2.ascii.ppm",
+//        "ppm/pbmlib.ascii.ppm",
+//        "ppm/sines.ascii.ppm",
+//        "ppm/snail.ascii.ppm",
+//        "ppm/star_field.ascii.ppm",
+//        "ppm/apollonian_gasket.ascii.pgm",
+//        "ppm/mona_lisa.ascii.pgm",
+//        "ppm/stop01.ppm",
+//        "ppm/me_square.ppm"
+//    };
+//    /* only for image processing */
+//    if (main_mode == IMG_PROC)
+//    {
+//        clear_texture(&texture0, 0, 0, 0, 1);
+//        file_index %= N_PPM_FILES;
+//        char *ppm_file = file_names[file_index];
+//        read_ppm(ppm_file, &texture0);
+//    }
+//    else
+//    {
+//        if (texture_idx < N_PPM_FILES)
+//        {
+//            char *ppm_file = file_names[texture_idx];
+//            /* to rotate between ppm files */
+//            read_ppm(ppm_file, &texture);
+//        }
+//        else if (texture_idx == N_PPM_FILES)
+//        {
+//            random_texture(&texture);
+//        }
+//        else if (texture_idx == N_PPM_FILES + 1)
+//        {
+//            checkerboard_texture(&texture);
+//        }
+//    }
+    checkerboard_texture(&texture);
+ 
+
     /*
      * clear color and depth buffers
      */
     clear_color_buffer(1, 1, 1, 1);
     clear_depth_buffer(1.0);
-    
+//    glPointSize(2.0);
+//    draw_tri_test();
     /*******************************************************/
     /* Image processing */
     /*******************************************************/
 #define N_FILTERS 14
-    if (main_mode == IMG_PROC)
-    {
-        //    fill (&texture, 255, 0, 0);
-        //    copy(&texture0, &texture);
-        switch(filter % N_FILTERS)
-        {
-            case 0:
-                luminosity(&texture0, &texture);
-                write_ppm("out_ppm/luminosity.ppm", &texture);
-                break;
-            case 1:
-                negative(&texture0, &texture);
-                write_ppm("out_ppm/negative.ppm", &texture);
-                break;
-            case 2:
-                flip_vertical(&texture0, &texture);
-                break;
-            case 3:
-                flip_horizontal(&texture0, &texture);
-                break;
-            case 4:
-                sepia(&texture0, &texture);
-                write_ppm("out_ppm/sepia.ppm", &texture);
-                break;
-            case 5:
-                avg(&texture0, &texture);
-                break;
-            case 6:
-                min(&texture0, &texture);
-                break;
-            case 7:
-                max(&texture0, &texture);
-                break;
-            case 8:
-                clear_texture(&texture, 100, 100, 100, 1);
-                rotate_ccw(&texture0, &texture, 90);
-                break;
-            case 9:
-                lincoln(&texture0, &texture, 3);
-                write_ppm("out_ppm/lincoln.ppm", &texture);
-                break;
-            case 10:
-                clear_texture(&texture, 100, 100, 100, 1);
-                fisheye(&texture0, &texture);
-                write_ppm("out_ppm/fisheye.ppm", &texture);
-                break;
-            case 11:
-                clear_texture(&texture, 100, 100, 100, 1);
-                einstein(&texture0, &texture);
-                write_ppm("out_ppm/einstein.ppm", &texture);
-                break;
-            case 12:
-                clear_texture(&texture, 100, 100, 100, 1);
-                luminosity(&texture0, &texture1);
-                oil_transfer(&texture1, &texture);
-                write_ppm("out_ppm/oil_paint.ppm", &texture);
-                break;
-            case 13:
-                clear_texture(&texture, 100, 100, 100, 1);
-                tiling(&texture0, &texture);
-                break;
-        }
-        glPointSize(2.0);
-        draw_tri_test();
-        
-    }
+//    if (main_mode == IMG_PROC)
+//    {
+//        //    fill (&texture, 255, 0, 0);
+//        //    copy(&texture0, &texture);
+//        switch(filter % N_FILTERS)
+//        {
+//            case 0:
+//                luminosity(&texture0, &texture);
+//                write_ppm("out_ppm/luminosity.ppm", &texture);
+//                break;
+//            case 1:
+//                negative(&texture0, &texture);
+//                write_ppm("out_ppm/negative.ppm", &texture);
+//                break;
+//            case 2:
+//                flip_vertical(&texture0, &texture);
+//                break;
+//            case 3:
+//                flip_horizontal(&texture0, &texture);
+//                break;
+//            case 4:
+//                sepia(&texture0, &texture);
+//                write_ppm("out_ppm/sepia.ppm", &texture);
+//                break;
+//            case 5:
+//                avg(&texture0, &texture);
+//                break;
+//            case 6:
+//                min(&texture0, &texture);
+//                break;
+//            case 7:
+//                max(&texture0, &texture);
+//                break;
+//            case 8:
+//                clear_texture(&texture, 100, 100, 100, 1);
+//                rotate_ccw(&texture0, &texture, 90);
+//                break;
+//            case 9:
+//                lincoln(&texture0, &texture, 3);
+//                write_ppm("out_ppm/lincoln.ppm", &texture);
+//                break;
+//            case 10:
+//                clear_texture(&texture, 100, 100, 100, 1);
+//                fisheye(&texture0, &texture);
+//                write_ppm("out_ppm/fisheye.ppm", &texture);
+//                break;
+//            case 11:
+//                clear_texture(&texture, 100, 100, 100, 1);
+//                einstein(&texture0, &texture);
+//                write_ppm("out_ppm/einstein.ppm", &texture);
+//                break;
+//            case 12:
+//                clear_texture(&texture, 100, 100, 100, 1);
+//                luminosity(&texture0, &texture1);
+//                oil_transfer(&texture1, &texture);
+//                write_ppm("out_ppm/oil_paint.ppm", &texture);
+//                break;
+//            case 13:
+//                clear_texture(&texture, 100, 100, 100, 1);
+//                tiling(&texture0, &texture);
+//                break;
+//        }
+//        glPointSize(2.0);
+//        draw_tri_test();
+//
+//    }
     
 
     
@@ -294,7 +305,7 @@ void display(void)
                 break;
             case PERSPECT:
                 translate_model(dz);
-                perspective_xform(3.0, 1000.0);
+                perspective_xform(3.0, 40.0);
                 viewport_xform(300);
                 break;
         }
@@ -339,7 +350,7 @@ static void Key(unsigned char key, int x, int y)
         /* rotate between diff PPM files */
         case 'P':       file_index++;   filter = 0;         break;
         /* rotate between diff image processing filters */
-        case 'F':       filter = (filter + 1) % N_FILTERS;  break;
+//        case 'F':       filter = (filter + 1) % N_FILTERS;  break;
             
         /*******************************************************/
         /* COMMANDS FOR 3D Modeling */

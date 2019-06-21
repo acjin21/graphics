@@ -242,8 +242,13 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
-        vertex_list[i].position[Z] = (float) z / (far - near); //normalize Z        
+//        vertex_list[i].position[Z] = 1.0 / ((float) z / (far - near));
+        vertex_list[i].position[Z] = (float) z / (far - near);
+
         vertex_list[i].position[W] = 1.0;
+        
+//        vertex_list[i].tex[S] *= vertex_list[i].position[Z];
+//        vertex_list[i].tex[T] *= vertex_list[i].position[Z];
     }
 }
 
