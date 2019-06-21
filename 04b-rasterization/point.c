@@ -15,7 +15,7 @@ int alpha_blend = OFF;
 int depth_test = OFF;
 int texturing = OFF;
 int modulate = OFF;
-
+int perspective_correct = OFF;
 /*************************************************************************/
 /* draw a point */
 /*************************************************************************/
@@ -30,26 +30,51 @@ void draw_point (POINT *p)
     
     if(texturing)
     {
-        int s, t;
-        s = (int) (p->tex[S] * texture.width);
-        t = (int) (p->tex[T] * texture.height);
+        float s, t;
+        int u, v;
         
-        if(p->tex[S] == 1 || p->tex[T] == 1)
+        if( perspective_correct == ON )
         {
-            s = p->tex[S] == 1 ? texture.width - 1 : s;
-            t = p->tex[T] == 1 ? texture.width - 1 : t;
+            //            printf("perspect on");
+            s = p->tex[S];
+            t = p->tex[T];
+            
+            float z = 1.0 / p->position[Z];
+            s *= z;
+            t *= z;
+            
+            u = (int) (s * texture.width);
+            v = (int) (t * texture.height);
+            
+            color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
+            color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
+            color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
+            color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
         }
-        color_buffer[r][c][R] = texture.data[t][s][R] / 255.0;
-        color_buffer[r][c][G] = texture.data[t][s][G] / 255.0;
-        color_buffer[r][c][B] = texture.data[t][s][B] / 255.0;
-        color_buffer[r][c][A] = texture.data[t][s][A] / 255.0;
+        
+        else
+        {
+            s = (p->tex[S] * texture.width);
+            t = (p->tex[T] * texture.height);
+            
+            if(p->tex[S] == 1 || p->tex[T] == 1)
+            {
+                s = p->tex[S] == 1 ? texture.width - 1 : s;
+                t = p->tex[T] == 1 ? texture.width - 1 : t;
+            }
+            color_buffer[r][c][R] = texture.data[(int) t][(int) s][R] / 255.0;
+            color_buffer[r][c][G] = texture.data[(int) t][(int) s][G] / 255.0;
+            color_buffer[r][c][B] = texture.data[(int) t][(int) s][B] / 255.0;
+            color_buffer[r][c][A] = texture.data[(int) t][(int) s][A] / 255.0;
+            
+        }
+        
         if(modulate)
         {
             color_buffer[r][c][R] *= p->color[R];
             color_buffer[r][c][G] *= p->color[G];
             color_buffer[r][c][B] *= p->color[B];
             color_buffer[r][c][A] *= p->color[A];
-            
         }
     }
     else

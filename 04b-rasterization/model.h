@@ -4,6 +4,7 @@
 #include "raster.h"
 #include "vector.h"
 #include "macros.h"
+//#include "point.h"
 
 #define FRAME 0
 #define FILL 1
@@ -13,6 +14,7 @@
 
 void init_cube(void);
 void init_mesh (float mesh_dx);
+void init_quad (void);
 
 void xform_model(float scale);
 void draw_model(int mode);

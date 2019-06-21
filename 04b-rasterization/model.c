@@ -7,6 +7,7 @@ int num_vertices = 0;
 int triangle_list[4000][3];
 int num_triangles = 0;
 
+extern int perspective_correct;
 /* set triangle vertices to indices v0_idx, v1_idx, and v2_idx. */
 void set_triangle (int t_idx, int v0_idx, int v1_idx, int v2_idx)
 {
@@ -63,6 +64,26 @@ void init_cube(void)
     set_triangle(11, 7, 6, 2);
     
     num_triangles = 12;
+}
+void init_quad (void)
+{
+    set_vec4(vertex_list[0].world, -0.5, 0.5, 0, 1.0);
+    set_vec4(vertex_list[1].world, 0.5, 0.5, 0, 1.0);
+    set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
+    set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
+    
+    num_vertices = 4;
+    
+    set_vec4(vertex_list[0].tex, 0, 0, 0, 0);
+    set_vec4(vertex_list[1].tex, 1, 0, 0, 0);
+    set_vec4(vertex_list[2].tex, 1, 1, 0, 0);
+    set_vec4(vertex_list[3].tex, 0, 1, 0, 0);
+    
+    set_triangle(0, 0, 2, 1);
+    set_triangle(1, 0, 3, 2);
+    num_triangles = 2;
+
+
 }
 
 void init_mesh (float mesh_dx)
@@ -131,7 +152,7 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            draw_triangle_barycentric(&vertex_list[t0],
+            draw_triangle(&vertex_list[t0],
                                       &vertex_list[t1],
                                       &vertex_list[t2]);
         }
@@ -190,8 +211,20 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
-        vertex_list[i].position[Z] = z / (far - near); //normalize Z
         vertex_list[i].position[W] = 1.0;
+        if(perspective_correct)
+        {
+            vertex_list[i].position[Z] = 1.0 / (z / (far - near));
+            
+            vertex_list[i].tex[S] *= vertex_list[i].position[Z];
+            vertex_list[i].tex[T] *= vertex_list[i].position[Z];
+        }
+        else
+        {
+            vertex_list[i].position[Z] = z / (far - near); //normalize Z
+
+        }
+
     }
 }
 

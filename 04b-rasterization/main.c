@@ -57,6 +57,7 @@ int buffer = COLOR;
 
 extern int depth_test;
 extern int texturing;
+extern int perspective_correct;
 float dx_angle = 0;
 float dy_angle = 0;
 float dz_angle = 0;
@@ -198,7 +199,7 @@ void display(void)
      * clear color buffer
      */
     glClear(GL_COLOR_BUFFER_BIT );
-    clear_color_buffer(1, 1, 1, 1);
+    clear_color_buffer(0, 0, 0, 1);
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     printf("\nNEW DISPLAY: %i\n", counter);
@@ -206,8 +207,9 @@ void display(void)
     
     if(main_mode == MODEL)
     {
+        init_quad();
 //        init_cube();
-        init_mesh(mesh_dx);
+//        init_mesh(mesh_dx);
         rotate_model(dx_angle, dy_angle, dz_angle);
         switch(proj_mode)
         {
@@ -262,7 +264,7 @@ static void Key(unsigned char key, int x, int y)
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
                         dz_angle = 0;                   break;
-        
+        case 'c':       perspective_correct = 1 - perspective_correct;      break;
         /* Z translation */
         case '+':
             if(PERSPECT)
@@ -279,11 +281,11 @@ static void Key(unsigned char key, int x, int y)
             }
         
         /* texturing */
-        case 't':       texturing = 1 - texturing;        break;
-        case 'd':       depth_test = 1 - depth_test;      break;
+        case 't':       texturing = 1 - texturing;                  break;
+        case 'd':       depth_test = 1 - depth_test;                break;
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                  break;
-        case 'w':       mesh_dx += 0.1;                     break;
+        case 'w':       mesh_dx += 0.1;                             break;
 
         case 'a':       draw_one_frame = 1;                         break;
         case 'q':       exit(0);                                    break;
