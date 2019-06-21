@@ -48,23 +48,12 @@ void normalize (float v[4])
     scalar_divide(len, v, v);
 }
 
-void vec2f_rotate (float theta, float v[4], float res[4])
+void vector_cross (float v1[4], float v2[4], float res[4])
 {
-    float x = v[0];
-    float y = v[1];
-    /* res.x = xcos(theta) - ysin(theta) */
-    res[0] = x * cos(theta) - y * sin(theta);
-    /* res.y = xsin(theta) + ycos(theta) */
-    res[1] = x * sin(theta) + y * cos(theta);
-}
-
-void vec2f_reflect_x (float v[4], float res[4])
-{
-    for(int i = 0; i < 4; i++)
-    {
-        res[i] = v[i];
-    }
-    res[1] *= -1;
+    res[X] = (v1[Y] * v2[Z]) - (v1[Z] * v2[Y]);
+    res[Y] = (v1[Z] * v2[X]) - (v1[X] * v2[Z]);
+    res[Z] = (v1[X] * v2[Y]) - (v1[Y] * v2[X]);
+    res[W] = 1.0;
 }
 
 /* set vec4 */
@@ -84,3 +73,4 @@ void cpy_vec4 (float dest[4], float val[4])
         dest[i] = val[i];
     }
 }
+

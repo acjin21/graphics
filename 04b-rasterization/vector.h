@@ -5,6 +5,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#include "macros.h"
 /*
  * compute element-wise addition of v1 and v2, storing sum in res
  */
@@ -35,15 +36,7 @@ float vector_length (float v[4]);
  */
 void normalize (float v[4]);
 
-/*
- * 2D rotation of v by theta degrees CCW, return rotated result in res
- */
-void vec2f_rotate (float theta, float v[4], float res[4]);
-
-/*
- * reflect v, a 2D vector, across the x axis, return reflected result in res
- */
-void vec2f_reflect_x (float v[4], float res[4]);
+void vector_cross (float v1[4], float v2[4], float res[4]);
 
 void set_vec4 (float vec[4], float x, float y, float z, float w);
 void cpy_vec4 (float dest[4], float val[4]);

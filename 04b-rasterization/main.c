@@ -297,6 +297,7 @@ void display(void)
             init_mesh(32, mesh_da);
         }
         rotate_model(dx_angle, dy_angle, dz_angle);
+        calculate_face_normals(); //calculate normals of all the model faces
         switch(proj_mode)
         {
             case ORTHO:
@@ -360,14 +361,14 @@ static void Key(unsigned char key, int x, int y)
         case ' ':       model = 1 - model;                  break;
             
         /* rotations */
-        case 'x':       dx_angle += 5;                     break;
-        case 'y':       dy_angle += 5;                     break;
-        case 'z':       dz_angle += 5;                     break;
+        case 'x':       dx_angle += 10;                     break;
+        case 'y':       dy_angle += 10;                     break;
+        case 'z':       dz_angle += 10;                     break;
             
         /* 'tumble' around */
-        case 'u':       dx_angle += 5;
-                        dy_angle += 5;
-                        dz_angle += 5;                     break;
+        case 'u':       dx_angle += 10;
+                        dy_angle += 10;
+                        dz_angle += 10;                     break;
             
         /* reset rotations and any offsets */
         case 'r':       dx_angle = 0;
