@@ -9,7 +9,7 @@ typedef struct face
     int vertices[3];
     int colors[3];
     int tex[3];
-    float normal[4]; //face normal in world coordinates
+    float f_normal[4]; //face normal in world coordinates
 } FACE;
 
 #define NUM_VERTS 5000
@@ -234,16 +234,16 @@ void calculate_face_normals (void)
         POINT *p2 = &vertex_list[p2_idx];
         
         //calculate v1, v2
-        float v1[4], v2[4], normal[4];
+        float v1[4], v2[4], f_normal[4];
         vector_subtract(p1->world, p0->world, v1);
         vector_subtract(p2->world, p0->world, v2);
         
         //cross v1, v2 = n
-        vector_cross(v1, v2, normal);
+        vector_cross(v1, v2, f_normal);
         //normalize(n)
-        normalize(normal);
+        normalize(f_normal);
         //store normal in face_list's normal property
-        cpy_vec4(face_list[i].normal, normal);
+        cpy_vec4(face_list[i].f_normal, f_normal);
         
     }
 }
@@ -251,6 +251,7 @@ void calculate_face_normals (void)
 /* calculate each vertex's normal as the average of surrounding triangles' face normals */
 void calculate_vertex_normals (void)
 {
+    float v_normal[4];
     for(int i = 0; i < num_vertices; i++)
     {
         //get the vertex
@@ -258,13 +259,14 @@ void calculate_vertex_normals (void)
         //if that vertex is a part of at least 1 triangle
         if(p->num_tris > 0)
         {
-            float v_normal[4];
-            set_vec4(v_normal, 0, 0, 0, 0); //set each element to 0
-            //for each triangle that this vertex participates in, calculate the avg of all the face normals
+            // reset v_normal
+            set_vec4(v_normal, 0, 0, 0, 0);
+            // for each triangle that this vertex participates in,
+            //    calculate the avg of all the face normals
             for(int t = 0; t < p->num_tris; t++)
             {
                 int tri_idx = p->tri_list[t];
-                vector_add(face_list[tri_idx].normal, v_normal, v_normal);
+                vector_add(face_list[tri_idx].f_normal, v_normal, v_normal);
             }
             scalar_divide(p->num_tris, v_normal, v_normal);
             normalize(v_normal);
