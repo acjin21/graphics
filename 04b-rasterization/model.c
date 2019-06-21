@@ -21,6 +21,9 @@ float tex_list[NUM_VERTS][4];
 float color_list[NUM_VERTS][4];
 
 int num_vertices = 0;
+int num_textures = 0;
+extern int texturing;
+extern int perspective_correct; // for perspective correct interpolation
 
 FACE face_list[10000];
 int num_triangles = 0;
@@ -63,6 +66,7 @@ void init_cube (void)
     set_vec4(tex_list[1], 1, 0, 0, 0);
     set_vec4(tex_list[2], 0, 1, 0, 0);
     set_vec4(tex_list[3], 1, 1, 0, 0);
+    num_textures = 4;
 
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
@@ -172,6 +176,19 @@ void draw_model(int mode)
         
         cpy_vec4(vertex_list[v2].color, color_list[c2]);
         cpy_vec4(vertex_list[v2].tex, tex_list[t2]);
+        
+        if(perspective_correct)
+        {
+            vertex_list[v0].tex[S] *= vertex_list[v0].position[Z];
+            vertex_list[v0].tex[T] *= vertex_list[v0].position[Z];
+            
+            vertex_list[v1].tex[S] *= vertex_list[v1].position[Z];
+            vertex_list[v1].tex[T] *= vertex_list[v1].position[Z];
+            
+            vertex_list[v2].tex[S] *= vertex_list[v2].position[Z];
+            vertex_list[v2].tex[T] *= vertex_list[v2].position[Z];
+        }
+
 
         // FRAME = 0, FILL = 1
         if(mode == FRAME)
@@ -242,13 +259,18 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
-        vertex_list[i].position[Z] = 1.0 / (z / (far - near));
-//        vertex_list[i].position[Z] = (float) z / (far - near);
+        if(perspective_correct && texturing)
+        {
+            vertex_list[i].position[Z] = 1.0 / (z / (far - near));
+        }
+        else
+        {
+            vertex_list[i].position[Z] = (float) z / (far - near);
+        }
 
         vertex_list[i].position[W] = 1.0;
         
-        vertex_list[i].tex[S] *= vertex_list[i].position[Z];
-        vertex_list[i].tex[T] *= vertex_list[i].position[Z];
+
     }
 }
 

@@ -13,8 +13,8 @@ int alpha_blend = OFF;
 int depth_test = OFF;
 int texturing = OFF;
 int modulate = OFF;
+int perspective_correct = OFF;
 
-int perspective = OFF;
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -30,9 +30,8 @@ void draw_point (POINT *p)
         float s, t;
         int u, v;
         
-        if( perspective == ON )
+        if( perspective_correct )
         {
-//            printf("perspect on");
             s = p->tex[S];
             t = p->tex[T];
             

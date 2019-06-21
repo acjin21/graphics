@@ -26,16 +26,21 @@ void random_texture (IMAGE *img)
 /* generate checkerboard texture */
 void checkerboard_texture (IMAGE *img)
 {
+
     img->width = 256;
     img->height = 256;
+    
+    int num_squares = 16;
+    int px_per_sq = img->width / num_squares;
+    
     int color;
     for(int j = 0; j < 256; j++)
     {
-        color = ((j / 32) % 2 == 0) ? 0 : 255;
+        color = ((j / px_per_sq) % 2 == 0) ? 0 : 255;
         
         for(int i = 0; i < 256; i++)
         {
-            if(i % 32 == 0 && i / 32 != 0)
+            if(i % px_per_sq == 0 && i / px_per_sq != 0)
             {
                 /* if start new block and not 0, switch color */
                 color = (color == 255 ? 0 : 255);

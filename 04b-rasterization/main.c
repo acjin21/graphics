@@ -67,6 +67,7 @@ extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
 extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
+extern int perspective_correct;
 int model = CUBE;       /* model shape (CUBE/MESH) */
 int texture_idx = 0;
 int filter = 0;
@@ -131,13 +132,9 @@ void display(void)
     {
         texturing = ON;
     }
-    if(proj_mode == PERSPECT)
+    if(proj_mode == ORTHO)
     {
-        perspective = ON;
-    }
-    else
-    {
-        perspective = OFF;
+        perspective_correct = OFF;
     }
     /*******************************************************/
     /* Reading in texture files */
@@ -146,47 +143,48 @@ void display(void)
     #define N_TEXTURES (N_PPM_FILES + 2)
     /* to rotate between ppm files */
 
-//    char file_names[N_PPM_FILES][100] =
-//    {
-//        "ppm/blackbuck.ascii.ppm",
-//        "ppm/out.ppm",
-//        "ppm/feep.ascii.ppm",
-//        "ppm/feep2.ascii.ppm",
-//        "ppm/pbmlib.ascii.ppm",
-//        "ppm/sines.ascii.ppm",
-//        "ppm/snail.ascii.ppm",
-//        "ppm/star_field.ascii.ppm",
-//        "ppm/apollonian_gasket.ascii.pgm",
-//        "ppm/mona_lisa.ascii.pgm",
-//        "ppm/stop01.ppm",
-//        "ppm/me_square.ppm"
-//    };
+    char file_names[N_PPM_FILES][100] =
+    {
+        "ppm/blackbuck.ascii.ppm",
+        "ppm/out.ppm",
+        "ppm/feep.ascii.ppm",
+        "ppm/feep2.ascii.ppm",
+        "ppm/pbmlib.ascii.ppm",
+        "ppm/sines.ascii.ppm",
+        "ppm/snail.ascii.ppm",
+        "ppm/star_field.ascii.ppm",
+        "ppm/apollonian_gasket.ascii.pgm",
+        "ppm/mona_lisa.ascii.pgm",
+        "ppm/stop01.ppm",
+        "ppm/me_square.ppm"
+    };
 //    /* only for image processing */
-//    if (main_mode == IMG_PROC)
-//    {
-//        clear_texture(&texture0, 0, 0, 0, 1);
-//        file_index %= N_PPM_FILES;
-//        char *ppm_file = file_names[file_index];
-//        read_ppm(ppm_file, &texture0);
-//    }
-//    else
-//    {
-//        if (texture_idx < N_PPM_FILES)
-//        {
-//            char *ppm_file = file_names[texture_idx];
-//            /* to rotate between ppm files */
-//            read_ppm(ppm_file, &texture);
-//        }
-//        else if (texture_idx == N_PPM_FILES)
-//        {
-//            random_texture(&texture);
-//        }
-//        else if (texture_idx == N_PPM_FILES + 1)
-//        {
-//            checkerboard_texture(&texture);
-//        }
-//    }
-    checkerboard_texture(&texture);
+    if (main_mode == IMG_PROC)
+    {
+        clear_texture(&texture0, 0, 0, 0, 1);
+        file_index %= N_PPM_FILES;
+        char *ppm_file = file_names[file_index];
+        read_ppm(ppm_file, &texture0);
+    }
+    else
+    {
+        texture_idx %= N_TEXTURES;
+        if (texture_idx < N_PPM_FILES)
+        {
+            char *ppm_file = file_names[texture_idx];
+            /* to rotate between ppm files */
+            read_ppm(ppm_file, &texture);
+        }
+        else if (texture_idx == N_PPM_FILES)
+        {
+            random_texture(&texture);
+        }
+        else if (texture_idx == N_PPM_FILES + 1)
+        {
+            checkerboard_texture(&texture);
+        }
+    }
+//    checkerboard_texture(&texture);
  
 
     /*
@@ -274,6 +272,7 @@ void display(void)
     {
         printf("\n============================\nNEW DISPLAY: %i\n", counter);
         printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
+        printf("Perspective Correct:\t%s\n", perspective_correct ? "ON" : "OFF");
         printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
         printf(".....................\n");
         printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
@@ -348,9 +347,9 @@ static void Key(unsigned char key, int x, int y)
         /* COMMANDS FOR IMAGE PROC */
         /*******************************************************/
         /* rotate between diff PPM files */
-        case 'P':       file_index++;   filter = 0;         break;
+        case 'P':       file_index++; texture_idx++;   filter = 0;         break;
         /* rotate between diff image processing filters */
-//        case 'F':       filter = (filter + 1) % N_FILTERS;  break;
+        case 'F':       filter = (filter + 1) % N_FILTERS;  break;
             
         /*******************************************************/
         /* COMMANDS FOR 3D Modeling */
@@ -361,14 +360,14 @@ static void Key(unsigned char key, int x, int y)
         case ' ':       model = 1 - model;                  break;
             
         /* rotations */
-        case 'x':       dx_angle += 10;                     break;
-        case 'y':       dy_angle += 10;                     break;
-        case 'z':       dz_angle += 10;                     break;
+        case 'x':       dx_angle += 5;                     break;
+        case 'y':       dy_angle += 5;                     break;
+        case 'z':       dz_angle += 5;                     break;
             
         /* 'tumble' around */
-        case 'u':       dx_angle += 10;
-                        dy_angle += 10;
-                        dz_angle += 10;                     break;
+        case 'u':       dx_angle += 5;
+                        dy_angle += 5;
+                        dz_angle += 5;                     break;
             
         /* reset rotations and any offsets */
         case 'r':       dx_angle = 0;
@@ -392,6 +391,8 @@ static void Key(unsigned char key, int x, int y)
             
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;          break;
+        /* toggle perspective-correct texturing */
+        case 'C':       perspective_correct = 1 - perspective_correct;  break;
         
         /* toggle between color and depth buffer */
         case 'c':       buffer = 1 - buffer;                break;
