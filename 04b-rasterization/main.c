@@ -298,6 +298,7 @@ void display(void)
         }
         rotate_model(dx_angle, dy_angle, dz_angle);
         calculate_face_normals(); //calculate normals of all the model faces
+        calculate_vertex_normals();
         switch(proj_mode)
         {
             case ORTHO:

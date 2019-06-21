@@ -36,6 +36,9 @@ float vector_length (float v[4]);
  */
 void normalize (float v[4]);
 
+/*
+ * vector cross product
+ */
 void vector_cross (float v1[4], float v2[4], float res[4]);
 
 void set_vec4 (float vec[4], float x, float y, float z, float w);

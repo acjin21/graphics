@@ -17,6 +17,7 @@ void xform_model(float scale);
 void draw_model(int mode);
 void rotate_model(float x_angle, float y_angle, float z_angle);
 void calculate_face_normals (void);
+void calculate_vertex_normals (void);
 
 void translate_model (float distance);
 void perspective_xform(float near, float far);
