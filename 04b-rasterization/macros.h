@@ -15,6 +15,7 @@
 #define T 1
 
 #define PI 3.1415926
+#define EPSILON 0.0001
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
 
 #endif

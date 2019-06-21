@@ -37,17 +37,24 @@ void scalar_divide (float s, float v[4], float res[4])
     scalar_multiply(1.0 / s, v, res);
 }
 
+/* calculate length of vector v */
 float vector_length (float v[4])
 {
-    return sqrt(v[0] * v[0] + v[1] * v[1]);
+    return sqrt(v[X] * v[X] + v[Y] * v[Y] + v[Z] * v[Z]);
 }
 
+/* in-place normalization of vector v */
 void normalize (float v[4])
 {
     float len = vector_length(v);
+    if(len == 0)
+    {
+        len = EPSILON;
+    }
     scalar_divide(len, v, v);
 }
 
+/* calculate cross product v1 x v2 and store in res */
 void vector_cross (float v1[4], float v2[4], float res[4])
 {
     res[X] = (v1[Y] * v2[Z]) - (v1[Z] * v2[Y]);

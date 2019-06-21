@@ -33,8 +33,8 @@ int num_triangles = 0;
 /* helper functions */
 /****************************************************************/
 void add_face (int v0, int v1, int v2,
-                      int c0, int c1, int c2,
-                      int t0, int t1, int t2)
+               int c0, int c1, int c2,
+               int t0, int t1, int t2)
 {
     face_list[num_triangles].vertices[0] = v0;
     face_list[num_triangles].vertices[1] = v1;
@@ -188,6 +188,9 @@ void rotate_model(float x_angle, float y_angle, float z_angle)
     }
 }
 
+/****************************************************************/
+/* generate face normals */
+/****************************************************************/
 /* calculate normal of each triangular face */
 void calculate_face_normals (void)
 {
@@ -198,14 +201,14 @@ void calculate_face_normals (void)
         int p1_idx = face_list[i].vertices[1];
         int p2_idx = face_list[i].vertices[2];
         
-        POINT p0 = vertex_list[p0_idx];
-        POINT p1 = vertex_list[p1_idx];
-        POINT p2 = vertex_list[p2_idx];
+        POINT *p0 = vertex_list[p0_idx];
+        POINT *p1 = vertex_list[p1_idx];
+        POINT *p2 = vertex_list[p2_idx];
         
         //calculate v1, v2
         float v1[4], v2[4], normal[4];
-        vector_subtract(p1.world, p0.world, v1);
-        vector_subtract(p2.world, p0.world, v2);
+        vector_subtract(p1->world, p0->world, v1);
+        vector_subtract(p2->world, p0->world, v2);
         
         //cross v1, v2 = n
         vector_cross(v1, v2, normal);
@@ -213,6 +216,7 @@ void calculate_face_normals (void)
         normalize(normal);
         //store normal in face_list's normal property
         cpy_vec4(face_list[i].normal, normal);
+        
     }
 }
 
@@ -248,7 +252,6 @@ void perspective_xform(float near, float far)
         {
             vertex_list[i].position[Z] = (float) z / (far - near);
         }
-
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -262,7 +265,6 @@ void viewport_xform(float scale)
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
         vertex_list[i].position[Z] *= 1;
-
     }
 }
 
