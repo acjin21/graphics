@@ -23,6 +23,7 @@ typedef struct point {
     float tex[4];
     int tri_list[8];
     int num_tris;
+    float v_normal[4];
 } POINT;
 
 void draw_point (POINT *p);

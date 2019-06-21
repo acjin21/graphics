@@ -248,6 +248,32 @@ void calculate_face_normals (void)
     }
 }
 
+/* calculate each vertex's normal as the average of surrounding triangles' face normals */
+void calculate_vertex_normals (void)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        //get the vertex
+        POINT *p = &vertex_list[i];
+        //if that vertex is a part of at least 1 triangle
+        if(p->num_tris > 0)
+        {
+            float v_normal[4];
+            set_vec4(v_normal, 0, 0, 0, 0); //set each element to 0
+            //for each triangle that this vertex participates in, calculate the avg of all the face normals
+            for(int t = 0; t < p->num_tris; t++)
+            {
+                int tri_idx = p->tri_list[t];
+                vector_add(face_list[tri_idx].normal, v_normal, v_normal);
+            }
+            scalar_divide(p->num_tris, v_normal, v_normal);
+            normalize(v_normal);
+            //store normal in POINT struct's v_normal field
+            cpy_vec4(p->v_normal, v_normal);
+        }
+    }
+}
+
 /****************************************************************/
 /* for perspective projections */
 /****************************************************************/
