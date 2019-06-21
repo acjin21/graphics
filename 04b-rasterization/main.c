@@ -194,7 +194,7 @@ void display(void)
      */
     clear_color_buffer(1, 1, 1, 1);
     clear_depth_buffer(1.0);
-//    glPointSize(2.0);
+    glPointSize(2.0);
 //    draw_tri_test();
     /*******************************************************/
     /* Image processing */

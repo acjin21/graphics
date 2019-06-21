@@ -30,7 +30,7 @@ void draw_point (POINT *p)
         float s, t;
         int u, v;
         
-        if( 0 )//perspective == ON )
+        if( perspective == ON )
         {
 //            printf("perspect on");
             s = p->tex[S];
