@@ -21,16 +21,16 @@ POINT vertex_list[NUM_VERTS];
 float tex_list[NUM_VERTS][4];
 float color_list[NUM_VERTS][4];
 
+FACE face_list[10000];
+int num_triangles = 0;
 int num_vertices = 0;
 int num_normals = 0; //for finding centroids + endpoints in vertex_list
 int num_textures = 0;
-extern int texturing;
-extern int perspective_correct; // for perspective correct interpolation
-extern int normals; //whether drawing normals or not
-FACE face_list[10000];
-int num_triangles = 0;
 
-extern float light[4];
+extern int texturing; // mode: whether texturing or not
+extern int perspective_correct; // mode: for perspective correct interpolation
+extern int normals; // mode: whether drawing normals or not
+extern float light[4]; // light vector from light.c
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
