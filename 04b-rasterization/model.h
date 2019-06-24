@@ -9,7 +9,7 @@
 #define FILL 1
 
 
-
+void init_quad (void);
 void init_cube (float scale, float center[4]);
 void init_mesh (int n, float mesh_dx);
 

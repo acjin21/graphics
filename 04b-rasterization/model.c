@@ -76,6 +76,27 @@ void reset_num_tris (int num_verts)
 /****************************************************************/
 /* model init functions */
 /****************************************************************/
+
+void init_quad (void)
+{
+    num_vertices = 4;
+    
+    set_vec4(vertex_list[0].world, -0.5, 0.5, 0, 1.0);
+    set_vec4(vertex_list[1].world, 0.5, 0.5, 0, 1.0);
+    set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
+    set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
+    
+    reset_num_tris(num_vertices);
+    num_triangles = 0;
+    set_vec4(tex_list[0], 0, 0, 0, 0);
+    set_vec4(tex_list[1], 1, 0, 0, 0);
+    set_vec4(tex_list[2], 1, 1, 0, 0);
+    set_vec4(tex_list[3], 0, 1, 0, 0);
+    
+    add_face(0, 2, 1,    0, 0, 0,    0, 2, 1);
+    add_face(0, 3, 2,    0, 0, 0,    0, 3, 2);
+}
+
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
 void init_cube (float scale, float center[4])

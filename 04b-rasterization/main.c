@@ -43,8 +43,10 @@
 #define ORTHO 0
 #define PERSPECT 1
 
+#define N_MODELS 3
 #define CUBE 0
 #define MESH 1
+#define QUAD 2
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -68,7 +70,7 @@ extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
 extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 extern int perspective_correct;
-int model = CUBE;       /* model shape (CUBE/MESH) */
+int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
 int filter = 0;
 int normals = 0;
@@ -290,14 +292,13 @@ void display(void)
     if(main_mode == MODEL)
     {
         float center[4] = {1, 0, 0, 0};
-        if(model == CUBE)
+        switch (model)
         {
-            init_cube(1, center);
+            case CUBE:  init_cube(1, center);   break;
+            case MESH:  init_mesh(32, mesh_da); break;
+            case QUAD:  init_quad();            break;
         }
-        else
-        {
-            init_mesh(32, mesh_da);
-        }
+        
         rotate_model(center, dx_angle, dy_angle, dz_angle);
         calculate_face_normals(); //calculate normals of all the model faces
         calculate_vertex_normals();
@@ -362,7 +363,7 @@ static void Key(unsigned char key, int x, int y)
         /* draw wire frame or fill */
         case 'f':       draw_mode = 1 - draw_mode;          break;
         /* toggle model shape between cube and mesh */
-        case ' ':       model = 1 - model;                  break;
+        case ' ':       model = (model + 1) % N_MODELS;     break;
             
         /* rotations */
         case 'x':       dx_angle += 10;                     break;
