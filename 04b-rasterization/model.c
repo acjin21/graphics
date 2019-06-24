@@ -384,32 +384,21 @@ void draw_model(int mode)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
-        /* get indices from face object */
-        int v0 = f.vertices[0];
-        int v1 = f.vertices[1];
-        int v2 = f.vertices[2];
         
-        int c0 = f.colors[0];
-        int c1 = f.colors[1];
-        int c2 = f.colors[2];
+        POINT p0 = vertex_list[f.vertices[0]];
+        POINT p1 = vertex_list[f.vertices[1]];
+        POINT p2 = vertex_list[f.vertices[2]];
         
-        int t0 = f.tex[0];
-        int t1 = f.tex[1];
-        int t2 = f.tex[2];
-        
-        POINT p0 = vertex_list[v0];
-        POINT p1 = vertex_list[v1];
-        POINT p2 = vertex_list[v2];
         /* fix the colors and textures of each point in vertex_list to the
          color and tex coords specified by FACE object */
-        cpy_vec4(p0.color, color_list[c0]);
-        cpy_vec4(p0.tex, tex_list[t0]);
+        cpy_vec4(p0.color, color_list[f.colors[0]]);
+        cpy_vec4(p0.tex, tex_list[f.tex[0]]);
         
-        cpy_vec4(p1.color, color_list[c1]);
-        cpy_vec4(p1.tex, tex_list[t1]);
+        cpy_vec4(p1.color, color_list[f.colors[1]]);
+        cpy_vec4(p1.tex, tex_list[f.tex[1]]);
         
-        cpy_vec4(p2.color, color_list[c2]);
-        cpy_vec4(p2.tex, tex_list[t2]);
+        cpy_vec4(p2.color, color_list[f.colors[2]]);
+        cpy_vec4(p2.tex, tex_list[f.tex[2]]);
         
         if(perspective_correct)
         {
@@ -423,8 +412,7 @@ void draw_model(int mode)
             p2.tex[T] *= p2.position[Z];
         }
         
-
-//        // FRAME = 0, FILL = 1
+        // FRAME = 0, FILL = 1
         if(mode == FRAME)
         {
             draw_line(&p0, &p1, DRAW);
@@ -434,7 +422,6 @@ void draw_model(int mode)
         else if(mode == FILL)
         {
             float brightness = vector_dot(face_list[i].f_normal, light);
-            printf("brightness: %f\n", brightness);
             scalar_multiply(brightness, p0.color, p0.color);
             scalar_multiply(brightness, p1.color, p1.color);
             scalar_multiply(brightness, p2.color, p2.color);
