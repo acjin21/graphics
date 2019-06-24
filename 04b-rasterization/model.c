@@ -373,12 +373,12 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
     int width = n;
     int height = n;
     tube_radius *= 0.5;
-
+    int count = 0;
     /* add vertices */
     num_vertices = n * n;
-    for(int r = 0; r < n; r++)
+    for(int r = 0; r < height; r++)
     {
-        for(int c = 0; c < n; c++)
+        for(int c = 0; c < width; c++)
         {
             float u = (float) c / (width - 1);
             float v = (float) r / (height - 1);
@@ -387,7 +387,7 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             /* world coordinates */
             p->world[X] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
                             cos(v * 2 * PI) + center[X];
-            p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y];
+            p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y] + (count * (2 * tube_radius + 0.5));
             p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) * sin(v * 2 * PI) + center[Z];
             p->world[W] = 1.0;
             
@@ -398,6 +398,7 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             //                     (float) r / (float) n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
+        count += 0.03;
     }
     reset_num_tris(num_vertices);
     
