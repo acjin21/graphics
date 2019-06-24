@@ -449,7 +449,7 @@ void insert_normal_coords(void)
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, normal_color);
         
         //calculate endpoint
-        scalar_divide(4, face_list[i].f_normal, tmp);
+        scalar_divide(6, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
         //store endpoint
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].world, end.world);
@@ -677,6 +677,10 @@ void draw_model(int mode)
             scalar_multiply(brightness, p0.color, p0.color);
             scalar_multiply(brightness, p1.color, p1.color);
             scalar_multiply(brightness, p2.color, p2.color);
+            
+//            set_vec4(p0.color, brightness, brightness, brightness, 1);
+//            set_vec4(p1.color, brightness, brightness, brightness, 1);
+//            set_vec4(p2.color, brightness, brightness, brightness, 1);
 
             draw_triangle_barycentric (&p0, &p1, &p2);
         }

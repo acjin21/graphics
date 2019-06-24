@@ -21,6 +21,7 @@ typedef struct point {
     float position[4];
     float color[4];
     float tex[4];
+    
     int tri_list[8];
     int num_tris;
     float v_normal[4];

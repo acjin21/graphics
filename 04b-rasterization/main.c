@@ -73,6 +73,7 @@ extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
 extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
+extern int phong_shading;
 extern int perspective_correct;
 int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
@@ -370,42 +371,42 @@ static void Key(unsigned char key, int x, int y)
         /* COMMANDS FOR 3D Modeling */
         /*******************************************************/
         /* draw wire frame or fill */
-        case 'f':       draw_mode = 1 - draw_mode;          break;
+        case 'f':       draw_mode = 1 - draw_mode;                      break;
         /* toggle model shape between cube and mesh */
-        case ' ':       model = (model + 1) % N_MODELS;     break;
+        case ' ':       model = (model + 1) % N_MODELS;                 break;
             
         /* rotations */
-        case 'x':       dx_angle += 10;                     break;
-        case 'y':       dy_angle += 10;                     break;
-        case 'z':       dz_angle += 10;                     break;
+        case 'x':       dx_angle += 10;                                 break;
+        case 'y':       dy_angle += 10;                                 break;
+        case 'z':       dz_angle += 10;                                 break;
             
         /* 'tumble' around */
         case 'u':       dx_angle += 10;
                         dy_angle += 10;
-                        dz_angle += 10;                     break;
+                        dz_angle += 10;                                 break;
             
         /* reset rotations and any offsets */
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
                         dz_angle = 0;
                         dz = INIT_DZ;
-                        mesh_da = 0;                        break;
+                        mesh_da = 0;                                    break;
         
         /* Z translation */
-        case '+':       if(PERSPECT) dz += 0.20;            break;
-        case '-':       if(PERSPECT) dz -= 0.20;            break;
+        case '+':       if(PERSPECT) dz += 0.20;                        break;
+        case '-':       if(PERSPECT) dz -= 0.20;                        break;
         
         /* point drawing modes */
-        case 't':       texturing = 1 - texturing;          break;
-        case 'd':       depth_test = 1 - depth_test;        break;
-        case 'm':       modulate = 1 - modulate;            break;
-        case 'b':       alpha_blend = 1 - alpha_blend;      break;
-            
+        case 't':       texturing = 1 - texturing;                      break;
+        case 'd':       depth_test = 1 - depth_test;                    break;
+        case 'm':       modulate = 1 - modulate;                        break;
+        case 'b':       alpha_blend = 1 - alpha_blend;                  break;
+        case 'h':       phong_shading = 1 - phong_shading;              break;
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
 
             
         /* toggle projection mode */
-        case 'p':       proj_mode = 1 - proj_mode;          break;
+        case 'p':       proj_mode = 1 - proj_mode;                      break;
         /* toggle perspective-correct texturing */
         case 'C':       perspective_correct = 1 - perspective_correct;  break;
         

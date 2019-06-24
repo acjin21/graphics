@@ -14,7 +14,8 @@ int depth_test = OFF;
 int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
-
+int phong_shading = OFF;
+extern float light[4];
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -95,6 +96,15 @@ void draw_point (POINT *p)
                 color_buffer[r][c][G] = new_g;
                 color_buffer[r][c][B] = new_b;
                 color_buffer[r][c][A] = new_a;
+            }
+            else if(phong_shading)
+            {
+                float brightness = vector_dot(p->v_normal, light);
+                
+                color_buffer[r][c][R] = brightness * p->color[R];
+                color_buffer[r][c][G] = brightness * p->color[G];
+                color_buffer[r][c][B] = brightness * p->color[B];
+                color_buffer[r][c][A] = p->color[A];
             }
             else
             {
