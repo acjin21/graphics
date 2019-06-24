@@ -71,6 +71,7 @@ extern int perspective_correct;
 int model = CUBE;       /* model shape (CUBE/MESH) */
 int texture_idx = 0;
 int filter = 0;
+int normals = 0;
 extern int perspective;
 /* offset vars */
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
@@ -299,7 +300,7 @@ void display(void)
         rotate_model(dx_angle, dy_angle, dz_angle);
         calculate_face_normals(); //calculate normals of all the model faces
         calculate_vertex_normals();
-        insert_normal_coords();
+        if(normals) insert_normal_coords();
         switch(proj_mode)
         {
             case ORTHO:
@@ -402,7 +403,7 @@ static void Key(unsigned char key, int x, int y)
             
         /* flowing mesh animation */
         case 'w':       mesh_da += 0.5;                     break;
-
+        case 'n':       normals = 1 - normals;              break;
         case 'a':       draw_one_frame = 1;                 break;
         case 'q':       exit(0);                            break;
         case '\033':    exit(0);                            break;

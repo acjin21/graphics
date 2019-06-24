@@ -26,7 +26,7 @@ int num_normals = 0; //for finding centroids + endpoints in vertex_list
 int num_textures = 0;
 extern int texturing;
 extern int perspective_correct; // for perspective correct interpolation
-
+extern int normals; //whether drawing normals or not
 FACE face_list[10000];
 int num_triangles = 0;
 
@@ -189,17 +189,15 @@ void insert_normal_coords(void)
         avg_of_3_vecs(vertex_list[t0].world, vertex_list[t1].world,
                       vertex_list[t2].world, center.world);
         
-//        avg_of_3_vecs(vertex_list[t0].color, vertex_list[t1].color,
-//                      vertex_list[t2].color, center.color);
+        //draw red normals
         set_vec4(normal_color, 1, 0, 0, 1);
 
         //store centroid
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals].world, center.world);
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, normal_color);
         
-
         //calculate endpoint
-        scalar_divide(2, face_list[i].f_normal, tmp);
+        scalar_divide(4, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
         //store endpoint
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].world, end.world);
@@ -326,7 +324,9 @@ void calculate_vertex_normals (void)
 /* translate model in world space by distance units along the Z axis */
 void translate_model (float distance)
 {
-    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
+    int max_idx;
+    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    for(int i = 0; i < max_idx; i++)
     {
         vertex_list[i].world[Z] += distance;
     }
@@ -335,7 +335,9 @@ void translate_model (float distance)
 /* perspective transform from world to screen coordinates */
 void perspective_xform(float near, float far)
 {
-    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
+    int max_idx;
+    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    for(int i = 0; i < max_idx; i++)
     {
         float x, y, z;
         x = vertex_list[i].world[X];
@@ -360,7 +362,9 @@ void perspective_xform(float near, float far)
  *  (for perspective proj) */
 void viewport_xform(float scale)
 {
-    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
+    int max_idx;
+    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    for(int i = 0; i < max_idx; i++)
     {
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
@@ -416,14 +420,6 @@ void draw_model(int mode)
         
 
 //        // FRAME = 0, FILL = 1
-//        if(i == 0)
-//        {
-//            printf("(%f)\n", vertex_list[num_vertices + 2 * i].world[Z]);
-//            printf("(%f)\n", vertex_list[num_vertices + 2 * i + 1].world[Z]);
-//
-//        }
-
-
         if(mode == FRAME)
         {
 //            draw_line(&vertex_list[num_triangles + 2 * i], &vertex_list[num_triangles + 2 * i + 1], DRAW);
@@ -443,8 +439,14 @@ void draw_model(int mode)
             draw_triangle_barycentric (&vertex_list[v0], &vertex_list[v1],
                                        &vertex_list[v2]);
         }
-       
-        draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
+
+
+        if(normals)
+        {
+            set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
+            set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
+            draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
+        }
 
         //draw normals
 
