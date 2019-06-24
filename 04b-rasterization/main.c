@@ -43,11 +43,12 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 4
+#define N_MODELS 5
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
 #define CYLINDER 3
+#define CONE 4
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -299,6 +300,8 @@ void display(void)
             case MESH:  init_mesh(1, center, mesh_da);  break;
             case QUAD:  init_quad();                    break;
             case CYLINDER: init_cylinder(0.5, 2, center); break;
+            case CONE: init_cone (0.5, 2, center);      break;
+
         }
         
         rotate_model(center, dx_angle, dy_angle, dz_angle);

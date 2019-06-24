@@ -13,6 +13,7 @@ void init_quad (void);
 void init_cube (float scale, float center[4]);
 void init_mesh (float scale, float center[4], float mesh_da);
 void init_cylinder (float radius, float scale, float center[4]);
+void init_cone (float radius, float scale, float center[4]);
 
 void insert_normal_coords(void);
 
