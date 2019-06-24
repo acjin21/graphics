@@ -63,6 +63,7 @@ void vector_cross (float v1[4], float v2[4], float res[4])
     res[W] = 1.0;
 }
 
+/* component-wise average of 3 vectors: v1, v2, v3; result stored in res */
 void avg_of_3_vecs (float v1[4], float v2[4], float v3[4], float res[4])
 {
     vector_add(v1, v2, res);
@@ -70,6 +71,7 @@ void avg_of_3_vecs (float v1[4], float v2[4], float v3[4], float res[4])
     scalar_divide(3, res, res);
 }
 
+/* dot product of v1 and v2 */
 float vector_dot (float v1[4], float v2[4])
 {
     return v1[X] * v2[X] + v1[Y] * v2[Y] + v1[Z] * v2[Z];
