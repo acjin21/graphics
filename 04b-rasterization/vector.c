@@ -63,6 +63,13 @@ void vector_cross (float v1[4], float v2[4], float res[4])
     res[W] = 1.0;
 }
 
+void avg_of_3_vecs (float v1[4], float v2[4], float v3[4], float res[4])
+{
+    vector_add(v1, v2, res);
+    vector_add(res, v3, res);
+    scalar_divide(3, res, res);
+}
+
 /* set vec4 */
 void set_vec4 (float vec[4], float x, float y, float z, float w)
 {

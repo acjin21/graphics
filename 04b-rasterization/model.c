@@ -22,6 +22,7 @@ float tex_list[NUM_VERTS][4];
 float color_list[NUM_VERTS][4];
 
 int num_vertices = 0;
+int num_normals = 0; //for finding centroids + endpoints in vertex_list
 int num_textures = 0;
 extern int texturing;
 extern int perspective_correct; // for perspective correct interpolation
@@ -89,7 +90,7 @@ void init_cube (void)
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
-
+    
     /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
     set_vec4(tex_list[1], 1, 0, 0, 0);
@@ -108,8 +109,8 @@ void init_cube (void)
     /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
-    add_face(0, 2, 1,    0, 1, 2,    0, 3, 1);
-    add_face(0, 3, 2,    0, 1, 2,    0, 2, 3);
+    add_face(0, 2, 1,    0, 0, 0,    0, 3, 1);
+    add_face(0, 3, 2,    1, 1, 1,    0, 2, 3);
     add_face(1, 6, 5,    0, 1, 2,    0, 3, 1);
     add_face(1, 2, 6,    0, 1, 2,    0, 2, 3);
     add_face(5, 7, 4,    0, 1, 2,    0, 3, 1);
@@ -121,6 +122,7 @@ void init_cube (void)
     add_face(7, 2, 3,    0, 1, 2,    0, 3, 1);
     add_face(7, 6, 2,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
+    
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
@@ -168,17 +170,59 @@ void init_mesh (int n, float mesh_da)
 
 }
 
+//call after calculate_face_normals()
+//insert normals into vertex_list for a specific 3d model (2 * num_normals extra points added by this function)
+//call before 3D transformations; actually draw the normals in draw_model
+void insert_normal_coords(void)
+{
+    num_normals = 0;
+    float tmp[4], normal_color[4];
+    POINT center, end;
+    for(int i = 0; i < num_triangles; i++)
+    {
+        //get vertices of triangle
+        int t0 = face_list[i].vertices[0];
+        int t1 = face_list[i].vertices[1];
+        int t2 = face_list[i].vertices[2];
+        
+        //calculate centroid
+        avg_of_3_vecs(vertex_list[t0].world, vertex_list[t1].world,
+                      vertex_list[t2].world, center.world);
+        
+//        avg_of_3_vecs(vertex_list[t0].color, vertex_list[t1].color,
+//                      vertex_list[t2].color, center.color);
+        set_vec4(normal_color, 1, 0, 0, 1);
+
+        //store centroid
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].world, center.world);
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, normal_color);
+        
+
+        //calculate endpoint
+        scalar_divide(2, face_list[i].f_normal, tmp);
+        vector_add(center.world, tmp, end.world);
+        //store endpoint
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].world, end.world);
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].color, normal_color);
+
+
+        //increment num_normals
+        num_normals++;
+    }
+}
+
 /****************************************************************/
 /* model transformations */
 /****************************************************************/
 /* transform model from world space to screen space */
 void xform_model(float scale)
 {
-    for(int i = 0; i < num_vertices; i++)
+    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
     {
+        
         vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
         vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z];
+        vertex_list[i].position[Z] = vertex_list[i].world[Z] * -1;
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -192,7 +236,7 @@ void rotate_model(float x_angle, float y_angle, float z_angle)
     x_angle *= (PI / 180.0);
 
     float nx, ny, nz;
-    for(int i = 0; i < num_vertices; i++)
+    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
     {
         POINT *p = &vertex_list[i];
 
@@ -222,7 +266,7 @@ void rotate_model(float x_angle, float y_angle, float z_angle)
 /* calculate normal of each triangular face */
 void calculate_face_normals (void)
 {
-    for(int i = 0; i < num_triangles; i++)
+    for(int i = 0; i < num_triangles ; i++)
     {
         //get p0, p1, p2
         int p0_idx = face_list[i].vertices[0];
@@ -239,7 +283,7 @@ void calculate_face_normals (void)
         vector_subtract(p2->world, p0->world, v2);
         
         //cross v1, v2 = n
-        vector_cross(v1, v2, f_normal);
+        vector_cross(v2, v1, f_normal);
         //normalize(n)
         normalize(f_normal);
         //store normal in face_list's normal property
@@ -282,7 +326,7 @@ void calculate_vertex_normals (void)
 /* translate model in world space by distance units along the Z axis */
 void translate_model (float distance)
 {
-    for(int i = 0; i < num_vertices; i++)
+    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
     {
         vertex_list[i].world[Z] += distance;
     }
@@ -291,7 +335,7 @@ void translate_model (float distance)
 /* perspective transform from world to screen coordinates */
 void perspective_xform(float near, float far)
 {
-    for(int i = 0; i < num_vertices; i++)
+    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
     {
         float x, y, z;
         x = vertex_list[i].world[X];
@@ -316,7 +360,7 @@ void perspective_xform(float near, float far)
  *  (for perspective proj) */
 void viewport_xform(float scale)
 {
-    for(int i = 0; i < num_vertices; i++)
+    for(int i = 0; i < num_vertices + 2 * num_normals; i++)
     {
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
@@ -330,7 +374,8 @@ void viewport_xform(float scale)
 /* draw wire-frame or filled in model */
 void draw_model(int mode)
 {
-    for(int i = num_triangles - 1; i >= 0; i--)
+    printf("num_triangles: %i\n", num_triangles);
+    for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
         /* get indices from face object */
@@ -369,19 +414,40 @@ void draw_model(int mode)
             vertex_list[v2].tex[T] *= vertex_list[v2].position[Z];
         }
         
-        
-        // FRAME = 0, FILL = 1
+
+//        // FRAME = 0, FILL = 1
+//        if(i == 0)
+//        {
+//            printf("(%f)\n", vertex_list[num_vertices + 2 * i].world[Z]);
+//            printf("(%f)\n", vertex_list[num_vertices + 2 * i + 1].world[Z]);
+//
+//        }
+
+
         if(mode == FRAME)
         {
+//            draw_line(&vertex_list[num_triangles + 2 * i], &vertex_list[num_triangles + 2 * i + 1], DRAW);
+
             draw_line(&vertex_list[v0], &vertex_list[v1], DRAW);
             draw_line(&vertex_list[v1], &vertex_list[v2], DRAW);
             draw_line(&vertex_list[v0], &vertex_list[v2], DRAW);
+            
+            //draw triangle's normal
+            
         }
         else if(mode == FILL)
         {
+
+//            draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
+
             draw_triangle_barycentric (&vertex_list[v0], &vertex_list[v1],
                                        &vertex_list[v2]);
         }
+       
+        draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
+
+        //draw normals
+
     }
 }
 
