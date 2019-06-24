@@ -43,12 +43,13 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 5
+#define N_MODELS 6
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
 #define CYLINDER 3
 #define CONE 4
+#define SPHERE 5
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -301,6 +302,7 @@ void display(void)
             case QUAD:  init_quad();                    break;
             case CYLINDER: init_cylinder(0.5, 2, center); break;
             case CONE: init_cone (0.5, 2, center);      break;
+            case SPHERE: init_sphere (0.5, center);      break;
 
         }
         
