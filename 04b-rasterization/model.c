@@ -340,8 +340,8 @@ void init_sphere (float radius, float center[4])
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
                      (float) r / (float) n, 0, 0);
-            //            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-            //                     (float) r / (float) n, 0, 1);
+            //set_vec4(color_list[(r * n) + c], (float) c / (float) n,
+            //  (float) r / (float) n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
@@ -356,11 +356,11 @@ void init_sphere (float radius, float center[4])
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                     //r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                     //r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }
@@ -389,14 +389,13 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             p->world[X] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
                             cos(v * 2 * PI) + center[X];
             p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y];
-            p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) * sin(v * 2 * PI) + center[Z];
+            p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
+                            sin(v * 2 * PI) + center[Z];
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
                      (float) r / (float) n, 0, 0);
-            //            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-            //                     (float) r / (float) n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
         count += 0.05;
@@ -412,11 +411,11 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                     // r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                     // r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }
@@ -425,12 +424,13 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
 
 
 //call after calculate_face_normals()
-//insert normals into vertex_list for a specific 3d model (2 * num_normals extra points added by this function)
+//insert normals into vertex_list for a specific 3d model
+    //(2 * num_normals extra points added by this function)
 //call before 3D transformations; actually draw the normals in draw_model
 void insert_normal_coords(void)
 {
     num_normals = 0;
-    float tmp[4], normal_color[4];
+    float tmp[4], color[4];
     POINT center, end;
     for(int i = 0; i < num_triangles; i++)
     {
@@ -444,18 +444,18 @@ void insert_normal_coords(void)
                       vertex_list[t2].world, center.world);
         
         //draw red normals
-        set_vec4(normal_color, 1, 0, 0, 1);
+        set_vec4(color, 1, 0, 0, 1);
 
         //store centroid
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals].world, center.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, normal_color);
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, color);
         
         //calculate endpoint
         scalar_divide(6, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
         //store endpoint
         cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].world, end.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].color, normal_color);
+        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].color, color);
 
 
         //increment num_normals
@@ -476,7 +476,7 @@ void xform_model(float scale)
         
         vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
         vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z] * -1;
+        vertex_list[i].position[Z] = vertex_list[i].world[Z] * 1;
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -602,6 +602,7 @@ void perspective_xform(float near, float far)
         
         vertex_list[i].position[X] = near * x / z;
         vertex_list[i].position[Y] = near * y / z;
+
         if(perspective_correct && texturing)
         {
             vertex_list[i].position[Z] = 1.0 / (z / (far - near));
@@ -688,7 +689,7 @@ void draw_model(int mode)
 //            set_vec4(p1.color, brightness, brightness, brightness, 1);
 //            set_vec4(p2.color, brightness, brightness, brightness, 1);
 
-            draw_triangle_barycentric (&p0, &p1, &p2);
+            draw_triangle_barycentric (&p0, &p2, &p1);
         }
 
 

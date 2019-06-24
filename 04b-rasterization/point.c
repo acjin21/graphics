@@ -27,7 +27,12 @@ void draw_point (POINT *p)
     int c = (int) (p->position[X] + 400);
     if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
     float blend_weight = 0.50;
-    
+
+    if(depth_test && p->position[Z] > depth_buffer[r][c] && !(perspective_correct && texturing))
+    {
+        return;
+    }
+
     if(texturing)
     {
         float s, t;
@@ -35,6 +40,7 @@ void draw_point (POINT *p)
         
         if( perspective_correct )
         {
+//            printf("foo\n");
             s = p->tex[S];
             t = p->tex[T];
             
@@ -75,64 +81,49 @@ void draw_point (POINT *p)
             color_buffer[r][c][B] *= p->color[B];
             color_buffer[r][c][A] *= p->color[A];
         }
-//        if(phong_shading)
-//        {
-//            float brightness = vector_dot(p->v_normal, light);
-//            color_buffer[r][c][R] *= brightness;
-//            color_buffer[r][c][G] *= brightness;
-//            color_buffer[r][c][B] *= brightness;
-//            color_buffer[r][c][A] = p->color[A];
-//            vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
-//        }
+    }
+    else if(alpha_blend)
+    {
+        float new_r, new_g, new_b, new_a;
+        
+        new_r = (1 - blend_weight) * color_buffer[r][c][R] +
+        blend_weight * p->color[R];
+        new_g = (1 - blend_weight) * color_buffer[r][c][G] +
+        blend_weight * p->color[G];
+        new_b = (1 - blend_weight) * color_buffer[r][c][B] +
+        blend_weight * p->color[B];
+        new_a = (1 - blend_weight) * color_buffer[r][c][A] +
+        blend_weight * p->color[A];
+        
+        /* write blended color to color_buffer */
+        color_buffer[r][c][R] = new_r;
+        color_buffer[r][c][G] = new_g;
+        color_buffer[r][c][B] = new_b;
+        color_buffer[r][c][A] = new_a;
     }
     else
     {
-        if((depth_test && p->position[Z] < depth_buffer[r][c]) || !depth_test)
-        {
-            if(alpha_blend)
-            {
-                float new_r, new_g, new_b, new_a;
-                
-                new_r = (1 - blend_weight) * color_buffer[r][c][R] +
-                blend_weight * p->color[R];
-                new_g = (1 - blend_weight) * color_buffer[r][c][G] +
-                blend_weight * p->color[G];
-                new_b = (1 - blend_weight) * color_buffer[r][c][B] +
-                blend_weight * p->color[B];
-                new_a = (1 - blend_weight) * color_buffer[r][c][A] +
-                blend_weight * p->color[A];
-                
-                /* write blended color to color_buffer */
-                color_buffer[r][c][R] = new_r;
-                color_buffer[r][c][G] = new_g;
-                color_buffer[r][c][B] = new_b;
-                color_buffer[r][c][A] = new_a;
-            }
-            else if(phong_shading)
-            {
-                float brightness = vector_dot(p->v_normal, light);
-                color_buffer[r][c][R] = brightness * p->color[R];
-                color_buffer[r][c][G] = brightness * p->color[G];
-                color_buffer[r][c][B] = brightness * p->color[B];
-                color_buffer[r][c][A] = p->color[A];
-                vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
-            }
-            else
-            {
-                /* write p.color to color_buffer */
-                color_buffer[r][c][R] = p->color[R];
-                color_buffer[r][c][G] = p->color[G];
-                color_buffer[r][c][B] = p->color[B];
-                color_buffer[r][c][A] = p->color[A];
-                vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
-
-            }
-            if(depth_test)
-            {
-                depth_buffer[r][c] = p->position[Z];
-            }
-        }
+        /* write p.color to color_buffer */
+        color_buffer[r][c][R] = p->color[R];
+        color_buffer[r][c][G] = p->color[G];
+        color_buffer[r][c][B] = p->color[B];
+        color_buffer[r][c][A] = p->color[A];
+//            vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
     }
+    if(depth_test)
+    {
+        depth_buffer[r][c] = p->position[Z];
+    }
+    if(phong_shading)
+    {
+        float brightness = vector_dot(p->v_normal, light);
+        color_buffer[r][c][R] *= brightness;
+        color_buffer[r][c][G] *= brightness;
+        color_buffer[r][c][B] *= brightness;
+        color_buffer[r][c][A] = p->color[A];
+        vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
+    }
+  
 }
 
 /*
