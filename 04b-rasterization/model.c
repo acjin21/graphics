@@ -206,6 +206,60 @@ void init_mesh (float scale, float center[4], float mesh_da)
 
 }
 
+/* init a n x n wavy mesh that starts at angle mesh_da */
+void init_cylinder (float radius, float scale, float center[4])
+{
+    int n = 32;
+    int width = n;
+    int height = n;
+    /* add vertices */
+    num_vertices = n * n;
+    for(int r = 0; r < n; r++)
+    {
+        for(int c = 0; c < n; c++)
+        {
+            float u = (float) c / (width - 1);
+            float v = (float) r / (height - 1);
+            
+            POINT *p = &vertex_list[(r * n) + c];
+            
+            /* world coordinates */
+            p->world[X] = radius * cos(u * 2 * PI) + center[X];
+            p->world[Y] = radius * sin(u * 2 * PI) + center[Y];
+            p->world[Z] = scale * v + center[Z];
+            p->world[W] = 1.0;
+            
+            /* set colors and textures for each vertex */
+            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
+                     (float) r / (float) n, 0, 0);
+//            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
+//                     (float) r / (float) n, 0, 1);
+            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+
+        }
+    }
+    reset_num_tris(num_vertices);
+    
+    /* add triangles/faces */
+    num_triangles = 0;
+    
+    for(int r = 0; r < n - 1; r++)
+    {
+        for(int c = 0; c < n - 1; c++)
+        {
+            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                     0, 0, 0,
+//                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                     0, 0, 0,
+//                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+        }
+    }
+    
+}
+
 //call after calculate_face_normals()
 //insert normals into vertex_list for a specific 3d model (2 * num_normals extra points added by this function)
 //call before 3D transformations; actually draw the normals in draw_model

@@ -43,10 +43,11 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 3
-#define CUBE 0
-#define MESH 1
-#define QUAD 2
+#define N_MODELS 4
+#define QUAD 0
+#define CUBE 1
+#define MESH 2
+#define CYLINDER 3
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -291,12 +292,13 @@ void display(void)
     /*******************************************************/
     if(main_mode == MODEL)
     {
-        float center[4] = {1, 0, 0, 0};
+        float center[4] = {0, 0, 0, 0};
         switch (model)
         {
-            case CUBE:  init_cube(1, center);   break;
-            case MESH:  init_mesh(1, center, mesh_da); break;
-            case QUAD:  init_quad();            break;
+            case CUBE:  init_cube(1, center);           break;
+            case MESH:  init_mesh(1, center, mesh_da);  break;
+            case QUAD:  init_quad();                    break;
+            case CYLINDER: init_cylinder(0.5, 2, center); break;
         }
         
         rotate_model(center, dx_angle, dy_angle, dz_angle);
