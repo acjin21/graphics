@@ -117,6 +117,7 @@ void init_cube (float scale, float center[4])
     {
         scalar_multiply(scale, vertex_list[i].world, vertex_list[i].world);
         vector_add(vertex_list[i].world, center, vertex_list[i].world);
+        vertex_list[i].world[W] = 1;
     }
     
     /* set tex coordinates to four corners of texture */
@@ -155,21 +156,27 @@ void init_cube (float scale, float center[4])
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
-void init_mesh (int n, float mesh_da)
+void init_mesh (float scale, float center[4], float mesh_da)
 {
+    int n = 32;
+    int width = n;
+    int height = n;
     /* add vertices */
     num_vertices = n * n;
     for(int r = 0; r < n; r++)
     {
         for(int c = 0; c < n; c++)
         {
+            float u = (float) c / (width - 1);
+            float v = (float) r / (height - 1);
+            
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = (float) c / (float) n ;
-            p->world[Z] = (float) r / (float) n;
-            p->world[Y] = cos(mesh_da + (float) r / (float) n * 2 * PI) *
-                          sin(mesh_da + (float) c / (float) n * 2 * PI);
+            p->world[X] = scale * u + center[X];
+            p->world[Y] = scale * v + center[Y];
+            p->world[Z] = cos(mesh_da + v * 2 * PI) * sin(mesh_da + u * 2 * PI)
+                            + center[Z];
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */

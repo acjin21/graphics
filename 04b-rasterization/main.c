@@ -295,7 +295,7 @@ void display(void)
         switch (model)
         {
             case CUBE:  init_cube(1, center);   break;
-            case MESH:  init_mesh(32, mesh_da); break;
+            case MESH:  init_mesh(1, center, mesh_da); break;
             case QUAD:  init_quad();            break;
         }
         

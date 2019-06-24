@@ -11,7 +11,7 @@
 
 void init_quad (void);
 void init_cube (float scale, float center[4]);
-void init_mesh (int n, float mesh_dx);
+void init_mesh (float scale, float center[4], float mesh_da);
 
 void insert_normal_coords(void);
 
