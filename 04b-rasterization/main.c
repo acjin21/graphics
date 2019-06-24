@@ -43,13 +43,14 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 6
+#define N_MODELS 7
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
 #define CYLINDER 3
 #define CONE 4
 #define SPHERE 5
+#define TORUS 6
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -297,12 +298,13 @@ void display(void)
         float center[4] = {0, 0, 0, 0};
         switch (model)
         {
-            case CUBE:  init_cube(1, center);           break;
-            case MESH:  init_mesh(1, center, mesh_da);  break;
-            case QUAD:  init_quad();                    break;
-            case CYLINDER: init_cylinder(0.5, 2, center); break;
-            case CONE: init_cone (0.5, 2, center);      break;
-            case SPHERE: init_sphere (0.5, center);      break;
+            case CUBE:  init_cube(1, center);               break;
+            case MESH:  init_mesh(1, center, mesh_da);      break;
+            case QUAD:  init_quad();                        break;
+            case CYLINDER: init_cylinder(0.5, 2, center);   break;
+            case CONE: init_cone (0.5, 2, center);          break;
+            case SPHERE: init_sphere (0.5, center);         break;
+            case TORUS: init_torus(0.5, 1, center);         break;
 
         }
         

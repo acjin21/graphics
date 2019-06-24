@@ -15,7 +15,7 @@ void init_mesh (float scale, float center[4], float mesh_da);
 void init_cylinder (float radius, float scale, float center[4]);
 void init_cone (float radius, float scale, float center[4]);
 void init_sphere (float radius, float center[4]);
-
+void init_torus (float tube_radius, float hole_radius, float center[4]);
 
 void insert_normal_coords(void);
 
