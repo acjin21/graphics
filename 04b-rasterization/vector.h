@@ -41,6 +41,8 @@ void normalize (float v[4]);
  */
 void vector_cross (float v1[4], float v2[4], float res[4]);
 
+float vector_dot (float v1[4], float v2[4]);
+
 void avg_of_3_vecs (float v1[4], float v2[4], float v3[4], float res[4]);
 
 void set_vec4 (float vec[4], float x, float y, float z, float w);

@@ -70,6 +70,11 @@ void avg_of_3_vecs (float v1[4], float v2[4], float v3[4], float res[4])
     scalar_divide(3, res, res);
 }
 
+float vector_dot (float v1[4], float v2[4])
+{
+    return v1[X] * v2[X] + v1[Y] * v2[Y] + v1[Z] * v2[Z];
+}
+
 /* set vec4 */
 void set_vec4 (float vec[4], float x, float y, float z, float w)
 {

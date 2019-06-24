@@ -30,6 +30,7 @@ extern int normals; //whether drawing normals or not
 FACE face_list[10000];
 int num_triangles = 0;
 
+extern float light[4];
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -102,6 +103,7 @@ void init_cube (void)
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
+    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
 
     /* reset num_tris for each vertex */
     reset_num_tris(num_vertices);
@@ -109,18 +111,18 @@ void init_cube (void)
     /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
-    add_face(0, 2, 1,    0, 0, 0,    0, 3, 1);
-    add_face(0, 3, 2,    1, 1, 1,    0, 2, 3);
-    add_face(1, 6, 5,    0, 1, 2,    0, 3, 1);
-    add_face(1, 2, 6,    0, 1, 2,    0, 2, 3);
-    add_face(5, 7, 4,    0, 1, 2,    0, 3, 1);
-    add_face(5, 6, 7,    0, 1, 2,    0, 2, 3);
-    add_face(4, 3, 0,    0, 1, 2,    0, 3, 1);
-    add_face(4, 7, 3,    0, 1, 2,    0, 2, 3);
-    add_face(0, 5, 4,    0, 1, 2,    0, 3, 1);
-    add_face(0, 1, 5,    0, 1, 2,    0, 2, 3);
-    add_face(7, 2, 3,    0, 1, 2,    0, 3, 1);
-    add_face(7, 6, 2,    0, 1, 2,    0, 2, 3);
+    add_face(0, 2, 1,    3, 3, 3,    0, 3, 1);
+    add_face(0, 3, 2,    3, 3, 3,    0, 2, 3);
+    add_face(1, 6, 5,    3, 3, 3,    0, 3, 1);
+    add_face(1, 2, 6,    3, 3, 3,    0, 2, 3);
+    add_face(5, 7, 4,    3, 3, 3,    0, 3, 1);
+    add_face(5, 6, 7,    3, 3, 3,    0, 2, 3);
+    add_face(4, 3, 0,    3, 3, 3,    0, 3, 1);
+    add_face(4, 7, 3,    3, 3, 3,    0, 2, 3);
+    add_face(0, 5, 4,    3, 3, 3,    0, 3, 1);
+    add_face(0, 1, 5,    3, 3, 3,    0, 2, 3);
+    add_face(7, 2, 3,    3, 3, 3,    0, 3, 1);
+    add_face(7, 6, 2,    3, 3, 3,    0, 2, 3);
     /* should now have 12 triangles */
     
 }
@@ -395,60 +397,60 @@ void draw_model(int mode)
         int t1 = f.tex[1];
         int t2 = f.tex[2];
         
+        POINT p0 = vertex_list[v0];
+        POINT p1 = vertex_list[v1];
+        POINT p2 = vertex_list[v2];
         /* fix the colors and textures of each point in vertex_list to the
          color and tex coords specified by FACE object */
-        cpy_vec4(vertex_list[v0].color, color_list[c0]);
-        cpy_vec4(vertex_list[v0].tex, tex_list[t0]);
+        cpy_vec4(p0.color, color_list[c0]);
+        cpy_vec4(p0.tex, tex_list[t0]);
         
-        cpy_vec4(vertex_list[v1].color, color_list[c1]);
-        cpy_vec4(vertex_list[v1].tex, tex_list[t1]);
+        cpy_vec4(p1.color, color_list[c1]);
+        cpy_vec4(p1.tex, tex_list[t1]);
         
-        cpy_vec4(vertex_list[v2].color, color_list[c2]);
-        cpy_vec4(vertex_list[v2].tex, tex_list[t2]);
+        cpy_vec4(p2.color, color_list[c2]);
+        cpy_vec4(p2.tex, tex_list[t2]);
         
         if(perspective_correct)
         {
-            vertex_list[v0].tex[S] *= vertex_list[v0].position[Z];
-            vertex_list[v0].tex[T] *= vertex_list[v0].position[Z];
+            p0.tex[S] *= p0.position[Z];
+            p0.tex[T] *= p0.position[Z];
             
-            vertex_list[v1].tex[S] *= vertex_list[v1].position[Z];
-            vertex_list[v1].tex[T] *= vertex_list[v1].position[Z];
+            p1.tex[S] *= p1.position[Z];
+            p1.tex[T] *= p1.position[Z];
             
-            vertex_list[v2].tex[S] *= vertex_list[v2].position[Z];
-            vertex_list[v2].tex[T] *= vertex_list[v2].position[Z];
+            p2.tex[S] *= p2.position[Z];
+            p2.tex[T] *= p2.position[Z];
         }
         
 
 //        // FRAME = 0, FILL = 1
         if(mode == FRAME)
         {
-//            draw_line(&vertex_list[num_triangles + 2 * i], &vertex_list[num_triangles + 2 * i + 1], DRAW);
-
-            draw_line(&vertex_list[v0], &vertex_list[v1], DRAW);
-            draw_line(&vertex_list[v1], &vertex_list[v2], DRAW);
-            draw_line(&vertex_list[v0], &vertex_list[v2], DRAW);
-            
-            //draw triangle's normal
-            
+            draw_line(&p0, &p1, DRAW);
+            draw_line(&p1, &p2, DRAW);
+            draw_line(&p0, &p2, DRAW);
         }
         else if(mode == FILL)
         {
+            float brightness = vector_dot(face_list[i].f_normal, light);
+            printf("brightness: %f\n", brightness);
+            scalar_multiply(brightness, p0.color, p0.color);
+            scalar_multiply(brightness, p1.color, p1.color);
+            scalar_multiply(brightness, p2.color, p2.color);
 
-//            draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
-
-            draw_triangle_barycentric (&vertex_list[v0], &vertex_list[v1],
-                                       &vertex_list[v2]);
+            draw_triangle_barycentric (&p0, &p1, &p2);
         }
 
 
-        if(normals)
+        if(normals == ON)
         {
+            //draw normals
             set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
             set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
-            draw_line(&vertex_list[num_vertices + 2 * i], &vertex_list[num_vertices + 2 * i + 1], DRAW);
+            draw_line(&vertex_list[num_vertices + 2 * i],
+                      &vertex_list[num_vertices + 2 * i + 1], DRAW);
         }
-
-        //draw normals
 
     }
 }
