@@ -78,7 +78,7 @@ void reset_num_tris (int num_verts)
 /****************************************************************/
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
-void init_cube (void)
+void init_cube (float scale, float center[4])
 {
     /* add vertices */
     num_vertices = 8;
@@ -91,6 +91,12 @@ void init_cube (void)
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
+    
+    for(int i = 0; i < num_vertices; i++)
+    {
+        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].world);
+        vector_add(vertex_list[i].world, center, vertex_list[i].world);
+    }
     
     /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
@@ -229,7 +235,7 @@ void xform_model(float scale)
 
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
-void rotate_model(float x_angle, float y_angle, float z_angle)
+void rotate_model(float center[4], float x_angle, float y_angle, float z_angle)
 {
     z_angle *= (PI / 180.0);
     y_angle *= (PI / 180.0);
@@ -241,22 +247,22 @@ void rotate_model(float x_angle, float y_angle, float z_angle)
         POINT *p = &vertex_list[i];
 
         /* about z axis */
-        nx = p->world[X] * cos(z_angle) - p->world[Y] * sin(z_angle);
-        ny = p->world[X] * sin(z_angle) + p->world[Y] * cos(z_angle);
-        vertex_list[i].world[X] = nx;
-        vertex_list[i].world[Y] = ny;
+        nx = (p->world[X] - center[X]) * cos(z_angle) - (p->world[Y] - center[Y]) * sin(z_angle);
+        ny = (p->world[X] - center[X]) * sin(z_angle) + (p->world[Y] - center[Y])* cos(z_angle);
+        vertex_list[i].world[X] = nx + center[X];
+        vertex_list[i].world[Y] = ny + center[Y];
 
         /* about y axis */
-        nx = p->world[X] * cos(y_angle) - p->world[Z] * sin(y_angle);
-        nz = p->world[X] * sin(y_angle) + p->world[Z] * cos(y_angle);
-        vertex_list[i].world[X] = nx;
-        vertex_list[i].world[Z] = nz;
+        nx = (p->world[X] - center[X]) * cos(y_angle) - (p->world[Z] - center[Z]) * sin(y_angle);
+        nz = (p->world[X] - center[X]) * sin(y_angle) + (p->world[Z] - center[Z]) * cos(y_angle);
+        vertex_list[i].world[X] = nx + center[X];
+        vertex_list[i].world[Z] = nz + center[Z];
 
         /* about x axis */
-        ny = p->world[Y] * cos(x_angle) - p->world[Z] * sin(x_angle);
-        nz = p->world[Y] * sin(x_angle) + p->world[Z] * cos(x_angle);
-        vertex_list[i].world[Y] = ny;
-        vertex_list[i].world[Z] = nz;
+        ny = (p->world[Y] - center[Y]) * cos(x_angle) - (p->world[Z] - center[Z]) * sin(x_angle);
+        nz = (p->world[Y] - center[Y]) * sin(x_angle) + (p->world[Z] - center[Z]) * cos(x_angle);
+        vertex_list[i].world[Y] = ny + center[Y];
+        vertex_list[i].world[Z] = nz + center[Z];
     }
 }
 

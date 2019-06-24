@@ -10,14 +10,14 @@
 
 
 
-void init_cube(void);
+void init_cube (float scale, float center[4]);
 void init_mesh (int n, float mesh_dx);
 
 void insert_normal_coords(void);
 
 void xform_model(float scale);
 void draw_model(int mode);
-void rotate_model(float x_angle, float y_angle, float z_angle);
+void rotate_model(float center[4], float x_angle, float y_angle, float z_angle);
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 

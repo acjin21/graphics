@@ -289,15 +289,16 @@ void display(void)
     /*******************************************************/
     if(main_mode == MODEL)
     {
+        float center[4] = {1, 0, 0, 0};
         if(model == CUBE)
         {
-            init_cube();
+            init_cube(1, center);
         }
         else
         {
             init_mesh(32, mesh_da);
         }
-        rotate_model(dx_angle, dy_angle, dz_angle);
+        rotate_model(center, dx_angle, dy_angle, dz_angle);
         calculate_face_normals(); //calculate normals of all the model faces
         calculate_vertex_normals();
         if(normals) insert_normal_coords();
