@@ -30,6 +30,7 @@ int num_textures = 0;
 extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normals; // mode: whether drawing normals or not
+extern int phong_shading;
 extern float light[4]; // light vector from light.c
 /****************************************************************/
 /* helper functions */
@@ -373,7 +374,7 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
     int width = n;
     int height = n;
     tube_radius *= 0.5;
-    int count = 0;
+    float count = 0;
     /* add vertices */
     num_vertices = n * n;
     for(int r = 0; r < height; r++)
@@ -387,7 +388,7 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             /* world coordinates */
             p->world[X] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
                             cos(v * 2 * PI) + center[X];
-            p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y] + (count * (2 * tube_radius + 0.5));
+            p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y];
             p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) * sin(v * 2 * PI) + center[Z];
             p->world[W] = 1.0;
             
@@ -398,7 +399,7 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             //                     (float) r / (float) n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
-        count += 0.03;
+        count += 0.05;
     }
     reset_num_tris(num_vertices);
     
@@ -674,11 +675,15 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            float brightness = vector_dot(face_list[i].f_normal, light);
-            scalar_multiply(brightness, p0.color, p0.color);
-            scalar_multiply(brightness, p1.color, p1.color);
-            scalar_multiply(brightness, p2.color, p2.color);
-            
+            if(!phong_shading)
+            {
+                float brightness = vector_dot(face_list[i].f_normal, light);
+                scalar_multiply(brightness, p0.color, p0.color);
+                scalar_multiply(brightness, p1.color, p1.color);
+                scalar_multiply(brightness, p2.color, p2.color);
+                
+            }
+
 //            set_vec4(p0.color, brightness, brightness, brightness, 1);
 //            set_vec4(p1.color, brightness, brightness, brightness, 1);
 //            set_vec4(p2.color, brightness, brightness, brightness, 1);
