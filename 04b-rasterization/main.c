@@ -377,7 +377,10 @@ static void Key(unsigned char key, int x, int y)
         case 'x':       dx_angle += 10;                                 break;
         case 'y':       dy_angle += 10;                                 break;
         case 'z':       dz_angle += 10;                                 break;
-            
+        case 'X':       dx_angle -= 10;                                 break;
+        case 'Y':       dy_angle -= 10;                                 break;
+        case 'Z':       dz_angle -= 10;                                 break;
+
         /* 'tumble' around */
         case 'u':       dx_angle += 10;
                         dy_angle += 10;

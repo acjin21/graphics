@@ -88,6 +88,12 @@ void init_quad (void)
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
     set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
     
+    set_vec4(color_list[0], 1, 0, 0, 1);
+    set_vec4(color_list[1], 0, 1, 0, 1);
+    set_vec4(color_list[2], 0, 0, 1, 1);
+    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
+    set_vec4(color_list[4], 0, 0, 0, 1);
+    
     reset_num_tris(num_vertices);
     num_triangles = 0;
     set_vec4(tex_list[0], 0, 0, 0, 0);
@@ -95,8 +101,8 @@ void init_quad (void)
     set_vec4(tex_list[2], 1, 1, 0, 0);
     set_vec4(tex_list[3], 0, 1, 0, 0);
     
-    add_face(0, 2, 1,    0, 0, 0,    0, 2, 1);
-    add_face(0, 3, 2,    0, 0, 0,    0, 3, 2);
+    add_face(0, 1, 2,    0, 1, 2,    0, 2, 1);
+    add_face(0, 2, 3,    0, 1, 2,    0, 3, 2);
 }
 
 /* set vertices of a unit cube with world space coordinates and
@@ -135,6 +141,8 @@ void init_cube (float scale, float cx, float cy, float cz)
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
     set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
+    set_vec4(color_list[4], 0, 0, 0, 1);
+
 
     /* reset num_tris for each vertex */
     reset_num_tris(num_vertices);
@@ -142,18 +150,18 @@ void init_cube (float scale, float cx, float cy, float cz)
     /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
-    add_face(0, 2, 1,    0, 1, 2,    0, 3, 1);
-    add_face(0, 3, 2,    0, 1, 2,    0, 2, 3);
-    add_face(1, 6, 5,    0, 1, 2,    0, 3, 1);
-    add_face(1, 2, 6,    0, 1, 2,    0, 2, 3);
-    add_face(5, 7, 4,    0, 1, 2,    0, 3, 1);
-    add_face(5, 6, 7,    0, 1, 2,    0, 2, 3);
-    add_face(4, 3, 0,    0, 1, 2,    0, 3, 1);
-    add_face(4, 7, 3,    0, 1, 2,    0, 2, 3);
-    add_face(0, 5, 4,    0, 1, 2,    0, 3, 1);
-    add_face(0, 1, 5,    0, 1, 2,    0, 2, 3);
-    add_face(7, 2, 3,    0, 1, 2,    0, 3, 1);
-    add_face(7, 6, 2,    0, 1, 2,    0, 2, 3);
+    add_face(0, 1, 2,    0, 1, 2,    0, 3, 1);
+    add_face(0, 2, 3,    1, 1, 1,    0, 2, 3);
+    add_face(1, 5, 6,    0, 1, 2,    0, 3, 1);
+    add_face(1, 6, 2,    2, 2, 2,    0, 2, 3);
+    add_face(5, 4, 7,    0, 1, 2,    0, 3, 1);
+    add_face(5, 7, 6,    0, 1, 2,    0, 2, 3);
+    add_face(4, 0, 3,    0, 0, 0,    0, 3, 1);
+    add_face(4, 3, 7,    0, 1, 2,    0, 2, 3);
+    add_face(0, 4, 5,    0, 1, 2,    0, 3, 1);
+    add_face(0, 5, 1,    0, 1, 2,    0, 2, 3);
+    add_face(7, 3, 2,    0, 1, 2,    0, 3, 1);
+    add_face(7, 2, 6,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
     
 }
@@ -198,7 +206,7 @@ void read_obj_file (char *file_name)
         while(fscanf(fp, "f %d %d %d\n", &i, &j, &k) == 3)
         {
             //       vertices       colors      texture coords
-            add_face(i-1, j-1, k-1,    0, 1, 2,    0, 3, 1);
+            add_face(i-1, j-1, k-1,    3, 3, 3,    0, 3, 1);
         }
         printf("%i faces read\n", num_triangles);
         
@@ -243,12 +251,12 @@ void init_mesh (float scale, float cx, float cy, float cz, float da)
     {
         for(int c = 0; c < n - 2; c++)
         {
-            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
-            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c );
+            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }
 
@@ -292,14 +300,14 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
     {
         for(int c = 0; c < n - 1; c++)
         {
-            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-//                     0, 0, 0,
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
-            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-//                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     //                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
+            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     //                     0, 0, 0,
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }
     
@@ -344,14 +352,14 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
     {
         for(int c = 0; c < n - 1; c++)
         {
-            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-//                     0, 0, 0,
-                  r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
-            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-//                     0, 0, 0,
-                  r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     //                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
+            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     //                     0, 0, 0,
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }
     
@@ -395,14 +403,14 @@ void init_sphere (float radius, float cx, float cy, float cz)
     {
         for(int c = 0; c < n - 1; c++)
         {
-            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-//                     0, 0, 0,
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
-            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-//                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     //                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
+            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     //                     0, 0, 0,
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }
     
@@ -450,14 +458,14 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
     {
         for(int c = 0; c < n - 1; c++)
         {
-            add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-//                     0, 0, 0,
-                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
-            add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-//                     0, 0, 0,
-                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
+            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     //                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
+            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     //                     0, 0, 0,
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }
     
@@ -576,7 +584,7 @@ void calculate_face_normals (void)
         vector_subtract(p2->world, p0->world, v2);
         
         //cross v1, v2 = n
-        vector_cross(v2, v1, f_normal);
+        vector_cross(v1, v2, f_normal);
         //normalize(n)
         normalize(f_normal);
         //store normal in face_list's normal property
@@ -731,15 +739,18 @@ void draw_model(int mode)
                 float scale = 1 - p0.position[Z];
                 if(p0.position[Z] < 0) scale = fabsf(p0.position[Z]);
 
+//                p0.color[R] = 1;    p0.color[G] = 0;    p0.color[B] = 0;
+//                p1.color[R] = 1;    p1.color[G] = 0;    p1.color[B] = 0;
+//                p2.color[R] = 1;    p2.color[G] = 0;    p2.color[B] = 0;
                 scalar_multiply(0.1, p0.color, p0.color);
                 scalar_multiply(0.1, p1.color, p1.color);
                 scalar_multiply(0.1, p2.color, p2.color);
-                draw_triangle_barycentric (&p0, &p1, &p2);
-            }
-            else {
                 draw_triangle_barycentric (&p0, &p2, &p1);
             }
-//            draw_triangle_barycentric (&p0, &p2, &p1);
+            else {
+                draw_triangle_barycentric (&p0, &p1, &p2);
+            }
+//            draw_triangle_barycentric (&p0, &p1, &p2);
 
         }
 
