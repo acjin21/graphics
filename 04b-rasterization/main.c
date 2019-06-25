@@ -51,6 +51,8 @@
 #define CONE 4
 #define SPHERE 5
 #define TORUS 6
+
+#define N_SHAPES 5
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -89,6 +91,8 @@ float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
+float shape_centers[N_SHAPES][3];
+float shape_scales[N_SHAPES];
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -96,6 +100,44 @@ extern void draw_tri_test(void);
 int counter = 0;
 int file_index = 0; // for image processing
 
+void init_shapes_random (void)
+{
+    for(int i = 0; i < N_SHAPES; i++)
+    {
+        shape_scales[i] = random_float(1, 5);
+        shape_centers[i][X] = random_float(-2, 0);
+        shape_centers[i][Y] = random_float(-3, 3);
+        shape_centers[i][Z] = random_float(0, 3);
+    }
+}
+
+void init_shapes(void)
+{
+    shape_scales[0] = 2;
+    shape_centers[0][X] = -3;
+    shape_centers[0][Y] = 3;
+    shape_centers[0][Z] = 0;
+    
+    shape_scales[1] = 2;
+    shape_centers[1][X] = 0;
+    shape_centers[1][Y] = 3;
+    shape_centers[1][Z] = 0;
+    
+    shape_scales[2] = 2;
+    shape_centers[2][X] = 3;
+    shape_centers[2][Y] = 3;
+    shape_centers[2][Z] = 0;
+    
+    shape_scales[3] = 2;
+    shape_centers[3][X] = -3;
+    shape_centers[3][Y] = -3;
+    shape_centers[3][Z] = 0;
+    
+    shape_scales[4] = 2;
+    shape_centers[4][X] = 0;
+    shape_centers[4][Y] = -3;
+    shape_centers[4][Z] = 0;
+}
 /*
  * display routine
  */
@@ -297,35 +339,59 @@ void display(void)
     if(main_mode == MODEL)
     {
         float center[4] = {0, 0, 0, 0};
-        switch (model)
+        int cx, cy, cz;
+        cx = 0;
+        cy = 0;
+        cz = 0;
+//        switch (model)
+//        {
+//            case CUBE:  init_cube(1, cx, cy, cz);               break;
+//            case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
+//            case QUAD:  init_quad();                        break;
+//            case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
+//            case CONE: init_cone (0.5, 2, cx, cy, cz);          break;
+//            case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
+//            case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
+//        }
+        for(int i = 0; i < N_SHAPES; i++)
         {
-            case CUBE:  init_cube(1, center);               break;
-            case MESH:  init_mesh(1, center, mesh_da);      break;
-            case QUAD:  init_quad();                        break;
-            case CYLINDER: init_cylinder(0.5, 2, center);   break;
-            case CONE: init_cone (0.5, 2, center);          break;
-            case SPHERE: init_sphere (0.5, center);         break;
-            case TORUS: init_torus(0.5, 1, center);         break;
+            switch(i)
+            {
+                case 0:
+                    init_cube(shape_scales[i], shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z]);
+                    break;
+                case 1:
+                    init_sphere(shape_scales[i] / 2, shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z]);
+                    break;
+                case 2:
+                    init_torus(shape_scales[i] / 2, shape_scales[i], shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z]);
+                    break;
+                case 3:
+                    init_cone(shape_scales[i] / 2, shape_scales[i], shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z]);
+                    break;
+                case 4:
+                    init_cylinder(shape_scales[i] / 2, shape_scales[i], shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z]);
+                    break;
+            }
 
+            rotate_model(shape_centers[i][X], shape_centers[i][Y], shape_centers[i][Z], dx_angle, dy_angle, dz_angle);
+            calculate_face_normals();
+            calculate_vertex_normals();
+            if(normals) insert_normal_coords();
+            
+            switch(proj_mode)
+            {
+                case ORTHO:
+                    xform_model(50);
+                    break;
+                case PERSPECT:
+                    translate_model(dz);
+                    perspective_xform(3.0, 40.0);
+                    viewport_xform(30);
+                    break;
+            }
+            draw_model(draw_mode);
         }
-        
-        rotate_model(center, dx_angle, dy_angle, dz_angle);
-        calculate_face_normals(); //calculate normals of all the model faces
-        calculate_vertex_normals();
-        if(normals) insert_normal_coords();
-        switch(proj_mode)
-        {
-            case ORTHO:
-                xform_model(300);
-                break;
-            case PERSPECT:
-                translate_model(dz);
-                perspective_xform(3.0, 40.0);
-                viewport_xform(300);
-                break;
-        }
-        draw_model(draw_mode);
-        
         if(buffer == COLOR)
         {
             draw_color_buffer();
@@ -452,7 +518,7 @@ int main(int argc, char **argv)
     glClearColor(0.7, 0.7, 0.7, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 //    glPointSize(1.0);
-
+    init_shapes();
     
     /*
      * start loop that calls display() and Key() routines

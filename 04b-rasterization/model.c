@@ -100,7 +100,7 @@ void init_quad (void)
 
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
-void init_cube (float scale, float center[4])
+void init_cube (float scale, float cx, float cy, float cz)
 {
     /* add vertices */
     num_vertices = 8;
@@ -113,7 +113,7 @@ void init_cube (float scale, float center[4])
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
-    
+    float center[4] = {cx, cy, cz, 0};
     for(int i = 0; i < num_vertices; i++)
     {
         scalar_multiply(scale, vertex_list[i].world, vertex_list[i].world);
@@ -140,24 +140,24 @@ void init_cube (float scale, float center[4])
     /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
-    add_face(0, 2, 1,    3, 3, 3,    0, 3, 1);
-    add_face(0, 3, 2,    3, 3, 3,    0, 2, 3);
-    add_face(1, 6, 5,    3, 3, 3,    0, 3, 1);
-    add_face(1, 2, 6,    3, 3, 3,    0, 2, 3);
-    add_face(5, 7, 4,    3, 3, 3,    0, 3, 1);
-    add_face(5, 6, 7,    3, 3, 3,    0, 2, 3);
-    add_face(4, 3, 0,    3, 3, 3,    0, 3, 1);
-    add_face(4, 7, 3,    3, 3, 3,    0, 2, 3);
-    add_face(0, 5, 4,    3, 3, 3,    0, 3, 1);
-    add_face(0, 1, 5,    3, 3, 3,    0, 2, 3);
-    add_face(7, 2, 3,    3, 3, 3,    0, 3, 1);
-    add_face(7, 6, 2,    3, 3, 3,    0, 2, 3);
+    add_face(0, 2, 1,    0, 1, 2,    0, 3, 1);
+    add_face(0, 3, 2,    0, 1, 2,    0, 2, 3);
+    add_face(1, 6, 5,    0, 1, 2,    0, 3, 1);
+    add_face(1, 2, 6,    0, 1, 2,    0, 2, 3);
+    add_face(5, 7, 4,    0, 1, 2,    0, 3, 1);
+    add_face(5, 6, 7,    0, 1, 2,    0, 2, 3);
+    add_face(4, 3, 0,    0, 1, 2,    0, 3, 1);
+    add_face(4, 7, 3,    0, 1, 2,    0, 2, 3);
+    add_face(0, 5, 4,    0, 1, 2,    0, 3, 1);
+    add_face(0, 1, 5,    0, 1, 2,    0, 2, 3);
+    add_face(7, 2, 3,    0, 1, 2,    0, 3, 1);
+    add_face(7, 6, 2,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
     
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
-void init_mesh (float scale, float center[4], float mesh_da)
+void init_mesh (float scale, float cx, float cy, float cz, float mesh_da)
 {
     int n = 32;
     int width = n;
@@ -174,10 +174,10 @@ void init_mesh (float scale, float center[4], float mesh_da)
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = scale * u + center[X];
-            p->world[Y] = scale * v + center[Y];
+            p->world[X] = scale * u + cx;
+            p->world[Y] = scale * v + cy;
             p->world[Z] = cos(mesh_da + v * 2 * PI) * sin(mesh_da + u * 2 * PI)
-                            + center[Z];
+                            + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -208,7 +208,7 @@ void init_mesh (float scale, float center[4], float mesh_da)
 }
 
 /* init a cylinder */
-void init_cylinder (float radius, float scale, float center[4])
+void init_cylinder (float radius, float scale, float cx, float cy, float cz)
 {
     int n = 32;
     int width = n;
@@ -225,17 +225,19 @@ void init_cylinder (float radius, float scale, float center[4])
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = radius * cos(u * 2 * PI) + center[X];
-            p->world[Y] = radius * sin(u * 2 * PI) + center[Y];
-            p->world[Z] = scale * v + center[Z];
+            p->world[X] = radius * cos(u * 2 * PI) + cx;
+            p->world[Y] = radius * sin(u * 2 * PI) + cy;
+            p->world[Z] = scale * v + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
                      (float) r / (float) n, 0, 0);
-//            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-//                     (float) r / (float) n, 0, 1);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(color_list[(r * n) + c],
+                     (float) c / (float) n,
+                     (float) r / (float) n,
+                     0, 1);
+//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
     reset_num_tris(num_vertices);
@@ -248,12 +250,12 @@ void init_cylinder (float radius, float scale, float center[4])
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     0, 0, 0,
-//                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+//                     0, 0, 0,
+                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     0, 0, 0,
-//                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+//                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }
@@ -261,7 +263,7 @@ void init_cylinder (float radius, float scale, float center[4])
 }
 
 /* init a cone */
-void init_cone (float radius, float scale, float center[4])
+void init_cone (float radius, float scale, float cx, float cy, float cz)
 {
     int n = 32;
     int width = n;
@@ -279,17 +281,17 @@ void init_cone (float radius, float scale, float center[4])
             
             /* world coordinates */
             float new_rad = radius * ((float)height - 1 - r) / (height - 1);
-            p->world[X] = new_rad * cos(u * 2 * PI) + center[X];
-            p->world[Y] = new_rad * sin(u * 2 * PI) + center[Y];
-            p->world[Z] = scale * v + center[Z];
+            p->world[X] = new_rad * cos(u * 2 * PI) + cx;
+            p->world[Y] = new_rad * sin(u * 2 * PI) + cy;
+            p->world[Z] = scale * v + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
                      (float) r / (float) n, 0, 0);
-            //            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-            //                     (float) r / (float) n, 0, 1);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
+                     (float) r / (float) n, 0, 1);
+//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
     reset_num_tris(num_vertices);
@@ -302,12 +304,12 @@ void init_cone (float radius, float scale, float center[4])
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+//                     0, 0, 0,
+                  r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     0, 0, 0,
-                     //                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+//                     0, 0, 0,
+                  r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }
@@ -315,7 +317,7 @@ void init_cone (float radius, float scale, float center[4])
 }
 
 /* init a sphere */
-void init_sphere (float radius, float center[4])
+void init_sphere (float radius, float cx, float cy, float cz)
 {
     int n = 32;
     int width = n;
@@ -332,9 +334,9 @@ void init_sphere (float radius, float center[4])
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = radius * cos(u * 1 * PI) + center[X];
-            p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI) + center[Y];
-            p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI) + center[Z];
+            p->world[X] = radius * cos(u * 1 * PI) + cx;
+            p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI) + cy;
+            p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI) + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -368,7 +370,7 @@ void init_sphere (float radius, float center[4])
 }
 
 /* init a torus */
-void init_torus (float tube_radius, float hole_radius, float center[4])
+void init_torus (float tube_radius, float hole_radius,  float cx, float cy, float cz)
 {
     int n = 32;
     int width = n;
@@ -387,10 +389,10 @@ void init_torus (float tube_radius, float hole_radius, float center[4])
             POINT *p = &vertex_list[(r * n) + c];
             /* world coordinates */
             p->world[X] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
-                            cos(v * 2 * PI) + center[X];
-            p->world[Y] = tube_radius * sin(u * 2 * PI) + center[Y];
+                            cos(v * 2 * PI) + cx;
+            p->world[Y] = tube_radius * sin(u * 2 * PI) + cy;
             p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
-                            sin(v * 2 * PI) + center[Z];
+                            sin(v * 2 * PI) + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -483,7 +485,7 @@ void xform_model(float scale)
 
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
-void rotate_model(float center[4], float x_angle, float y_angle, float z_angle)
+void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, float z_angle)
 {
     z_angle *= (PI / 180.0);
     y_angle *= (PI / 180.0);
@@ -495,22 +497,22 @@ void rotate_model(float center[4], float x_angle, float y_angle, float z_angle)
         POINT *p = &vertex_list[i];
 
         /* about z axis */
-        nx = (p->world[X] - center[X]) * cos(z_angle) - (p->world[Y] - center[Y]) * sin(z_angle);
-        ny = (p->world[X] - center[X]) * sin(z_angle) + (p->world[Y] - center[Y])* cos(z_angle);
-        vertex_list[i].world[X] = nx + center[X];
-        vertex_list[i].world[Y] = ny + center[Y];
+        nx = (p->world[X] - cx) * cos(z_angle) - (p->world[Y] - cy) * sin(z_angle);
+        ny = (p->world[X] - cx) * sin(z_angle) + (p->world[Y] - cy)* cos(z_angle);
+        vertex_list[i].world[X] = nx + cx;
+        vertex_list[i].world[Y] = ny + cy;
 
         /* about y axis */
-        nx = (p->world[X] - center[X]) * cos(y_angle) - (p->world[Z] - center[Z]) * sin(y_angle);
-        nz = (p->world[X] - center[X]) * sin(y_angle) + (p->world[Z] - center[Z]) * cos(y_angle);
-        vertex_list[i].world[X] = nx + center[X];
-        vertex_list[i].world[Z] = nz + center[Z];
+        nx = (p->world[X] - cx) * cos(y_angle) - (p->world[Z] - cz) * sin(y_angle);
+        nz = (p->world[X] - cx) * sin(y_angle) + (p->world[Z] - cz) * cos(y_angle);
+        vertex_list[i].world[X] = nx + cx;
+        vertex_list[i].world[Z] = nz + cz;
 
         /* about x axis */
-        ny = (p->world[Y] - center[Y]) * cos(x_angle) - (p->world[Z] - center[Z]) * sin(x_angle);
-        nz = (p->world[Y] - center[Y]) * sin(x_angle) + (p->world[Z] - center[Z]) * cos(x_angle);
-        vertex_list[i].world[Y] = ny + center[Y];
-        vertex_list[i].world[Z] = nz + center[Z];
+        ny = (p->world[Y] - cy) * cos(x_angle) - (p->world[Z] - cz) * sin(x_angle);
+        nz = (p->world[Y] - cy) * sin(x_angle) + (p->world[Z] - cz) * cos(x_angle);
+        vertex_list[i].world[Y] = ny + cy;
+        vertex_list[i].world[Z] = nz + cz;
     }
 }
 
@@ -678,6 +680,7 @@ void draw_model(int mode)
         {
             if(!phong_shading)
             {
+                normalize(light);
                 float brightness = vector_dot(face_list[i].f_normal, light);
                 scalar_multiply(brightness, p0.color, p0.color);
                 scalar_multiply(brightness, p1.color, p1.color);

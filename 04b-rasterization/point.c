@@ -108,7 +108,7 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] = p->color[G];
         color_buffer[r][c][B] = p->color[B];
         color_buffer[r][c][A] = p->color[A];
-//            vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
+        vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
     }
     if(depth_test)
     {
