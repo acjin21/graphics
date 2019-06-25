@@ -70,6 +70,7 @@ extern int perspective_correct;
 int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
 int normals = 0;
+float ortho_scale = 50;
 
 /* offset vars */
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
@@ -103,27 +104,27 @@ void init_shapes_random (void)
 /* non-overlapping shapes */
 void init_shapes(void)
 {
-    shape_scales[0] = 2;
+    shape_scales[0] = 1;
     shape_centers[0][X] = -3;
     shape_centers[0][Y] = 3;
     shape_centers[0][Z] = 0;
     
-    shape_scales[1] = 2;
+    shape_scales[1] = 1;
     shape_centers[1][X] = 0;
     shape_centers[1][Y] = 3;
     shape_centers[1][Z] = 0;
     
-    shape_scales[2] = 2;
+    shape_scales[2] = 1;
     shape_centers[2][X] = 3;
     shape_centers[2][Y] = 3;
     shape_centers[2][Z] = 0;
     
-    shape_scales[3] = 2;
+    shape_scales[3] = 1;
     shape_centers[3][X] = -3;
     shape_centers[3][Y] = -3;
     shape_centers[3][Z] = 0;
     
-    shape_scales[4] = 2;
+    shape_scales[4] = 1;
     shape_centers[4][X] = 0;
     shape_centers[4][Y] = -3;
     shape_centers[4][Z] = 0;
@@ -232,41 +233,44 @@ void display(void)
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-//        switch (model)
-//        {
-//            case CUBE:  init_cube(1, cx, cy, cz);               break;
-//            case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
-//            case QUAD:  init_quad();                        break;
-//            case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
-//            case CONE: init_cone (0.5, 2, cx, cy, cz);          break;
-//            case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
-//            case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-//        }
     float cx, cy, cz, scale;
-    for(int i = 0; i < N_SHAPES; i++)
+    cx = 0;
+    cy = 0;
+    cz = 0;
+    switch (model)
     {
-        cx = shape_centers[i][X];
-        cy = shape_centers[i][Y];
-        cz = shape_centers[i][Z];
-        scale = shape_scales[i];
-        switch(i)
-        {
-            case 0:
-                init_cube(scale, cx, cy, cz);
-                break;
-            case 1:
-                init_sphere(scale / 2, cx, cy, cz);
-                break;
-            case 2:
-                init_torus(scale / 2, scale, cx, cy, cz);
-                break;
-            case 3:
-                init_cone(scale / 2, scale, cx, cy, cz);
-                break;
-            case 4:
-                init_cylinder(scale / 2, scale, cx, cy, cz);
-                break;
-        }
+        case CUBE:  init_cube(1, cx, cy, cz);               break;
+        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
+        case QUAD:  init_quad();                        break;
+        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
+        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
+        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
+        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
+    }
+//    for(int i = 0; i < N_SHAPES; i++)
+//    {
+//        cx = shape_centers[i][X];
+//        cy = shape_centers[i][Y];
+//        cz = shape_centers[i][Z];
+//        scale = shape_scales[i];
+//        switch(i)
+//        {
+//            case 0:
+//                init_cube(scale, cx, cy, cz);
+//                break;
+//            case 1:
+//                init_sphere(scale / 2, cx, cy, cz);
+//                break;
+//            case 2:
+//                init_torus(scale / 2, scale, cx, cy, cz);
+//                break;
+//            case 3:
+//                init_cone(scale / 2, scale, cx, cy, cz);
+//                break;
+//            case 4:
+//                init_cylinder(scale / 2, scale, cx, cy, cz);
+//                break;
+//        }
 
         rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
         calculate_face_normals();
@@ -276,7 +280,7 @@ void display(void)
         switch(proj_mode)
         {
             case ORTHO:
-                xform_model(50);
+                xform_model(ortho_scale);
                 break;
             case PERSPECT:
                 translate_model(dz);
@@ -285,7 +289,7 @@ void display(void)
                 break;
         }
         draw_model(draw_mode);
-    }
+//    }
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -330,8 +334,12 @@ static void Key(unsigned char key, int x, int y)
                         mesh_da = 0;                                    break;
         
         /* Z translation */
-        case '+':       if(PERSPECT) dz += 0.20;                        break;
-        case '-':       if(PERSPECT) dz -= 0.20;                        break;
+        case '+':       if(proj_mode == PERSPECT) dz -= 0.20;
+                        if(proj_mode == ORTHO) ortho_scale += 10;
+                        break;
+        case '-':       if(proj_mode == PERSPECT) dz += 0.20;
+                        if(proj_mode == ORTHO) ortho_scale -= 10;
+                        break;
         
         /* point drawing modes */
         case 't':       texturing = 1 - texturing;                      break;

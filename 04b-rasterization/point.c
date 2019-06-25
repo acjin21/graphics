@@ -45,6 +45,7 @@ void draw_point (POINT *p)
             t = p->tex[T];
             
             float z = 1.0 / p->position[Z];
+            p->position[Z] = 1.0 / p->position[Z];
             s *= z;
             t *= z;
             

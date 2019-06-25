@@ -456,8 +456,6 @@ void insert_normal_coords(void)
     }
 }
 
-
-
 /****************************************************************/
 /* model transformations */
 /****************************************************************/
@@ -619,6 +617,7 @@ void viewport_xform(float scale)
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
         vertex_list[i].position[Z] *= 1;
+        vertex_list[i].position[W] = 1.0;
     }
 }
 
@@ -676,14 +675,28 @@ void draw_model(int mode)
                 scalar_multiply(brightness, p0.color, p0.color);
                 scalar_multiply(brightness, p1.color, p1.color);
                 scalar_multiply(brightness, p2.color, p2.color);
-                
+
             }
 
 //            set_vec4(p0.color, brightness, brightness, brightness, 1);
 //            set_vec4(p1.color, brightness, brightness, brightness, 1);
 //            set_vec4(p2.color, brightness, brightness, brightness, 1);
+            
+            if(f.f_normal[Z] >= 0 ) //pointing away from us
+            {
+                float scale = 1 - p0.position[Z];
+                if(p0.position[Z] < 0) scale = fabsf(p0.position[Z]);
 
-            draw_triangle_barycentric (&p0, &p2, &p1);
+                scalar_multiply(0.1, p0.color, p0.color);
+                scalar_multiply(0.1, p1.color, p1.color);
+                scalar_multiply(0.1, p2.color, p2.color);
+                draw_triangle_barycentric (&p0, &p1, &p2);
+            }
+            else {
+                draw_triangle_barycentric (&p0, &p2, &p1);
+            }
+//            draw_triangle_barycentric (&p0, &p2, &p1);
+
         }
 
 
