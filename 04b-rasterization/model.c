@@ -163,8 +163,8 @@ void init_cube (float scale, float cx, float cy, float cz)
     add_face(7, 3, 2,    0, 1, 2,    0, 3, 1);
     add_face(7, 2, 6,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
-    
 }
+
 void read_obj_file (char *file_name)
 {
     /* set tex coordinates to four corners of texture */

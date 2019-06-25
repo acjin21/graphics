@@ -48,6 +48,9 @@
 
 #define NA 0
 #define N_OBJECTS 6
+
+#define GLOBAL 0
+#define LOCAL 1
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -78,7 +81,7 @@ float ortho_scale = 50;
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
 float dy_angle = 0;     /* init 3D rotation angle about the y axis */
 float dz_angle = 0;     /* init 3D rotation angle about the z axis */
-
+int rot_mode = LOCAL;
 float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
@@ -138,8 +141,8 @@ void init_objects(void)
     set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
     set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
     set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
-
 }
+
 /* write object metadata out to a scene file */
 void write_scene (char *file_name)
 {
@@ -285,51 +288,56 @@ void display(void)
     cx = 0;
     cy = 0;
     cz = 0;
-    switch (model)
-    {
-        case CUBE:  init_cube(1, cx, cy, cz);               break;
-        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
-        case QUAD:  init_quad();                            break;
-        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
-        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
-        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
-        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-        case OBJ: read_obj_file("obj/teapot.obj");          break;
-    }
-//    for(int i = 0; i < N_OBJECTS; i++)
+//    switch (model)
 //    {
-//        OBJECT *o = &objects[i];
-//        cx = o->center[X];
-//        cy = o->center[Y];
-//        cz = o->center[Z];
-//        scale = o->scale;
-//        r0 = o->radii[0];
-//        r1 = o->radii[1];
-//
-//        switch(o->type)
-//        {
-//            case CUBE:
-//                init_cube(scale, cx, cy, cz);
-//                break;
-//            case SPHERE:
-//                init_sphere(r0, cx, cy, cz);
-//                break;
-//            case TORUS:
-//                init_torus(r0, r1, cx, cy, cz);
-//                break;
-//            case CONE:
-//                init_cone(r0, scale, cx, cy, cz);
-//                break;
-//            case CYLINDER:
-//                init_cylinder(r0, scale, cx, cy, cz);
-//                break;
-//            case MESH:
-//                init_mesh(scale, cx, cy, cz, mesh_da);
-//                break;
-//        }
+//        case CUBE:  init_cube(1, cx, cy, cz);               break;
+//        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
+//        case QUAD:  init_quad();                            break;
+//        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
+//        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
+//        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
+//        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
+//        case OBJ: read_obj_file("obj/teapot.obj");          break;
+//    }
+    for(int i = 0; i < N_OBJECTS; i++)
+    {
+        OBJECT *o = &objects[i];
+        cx = o->center[X];
+        cy = o->center[Y];
+        cz = o->center[Z];
+        scale = o->scale;
+        r0 = o->radii[0];
+        r1 = o->radii[1];
 
-        rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
-
+        switch(o->type)
+        {
+            case CUBE:
+                init_cube(scale, cx, cy, cz);
+                break;
+            case SPHERE:
+                init_sphere(r0, cx, cy, cz);
+                break;
+            case TORUS:
+                init_torus(r0, r1, cx, cy, cz);
+                break;
+            case CONE:
+                init_cone(r0, scale, cx, cy, cz);
+                break;
+            case CYLINDER:
+                init_cylinder(r0, scale, cx, cy, cz);
+                break;
+            case MESH:
+                init_mesh(scale, cx, cy, cz, mesh_da);
+                break;
+        }
+        if(rot_mode == LOCAL)
+        {
+            rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+        }
+        else
+        {
+            rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
+        }
         calculate_face_normals();
         calculate_vertex_normals();
 
@@ -346,7 +354,7 @@ void display(void)
                 break;
         }
         draw_model(draw_mode);
-//    }
+    }
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -380,7 +388,7 @@ static void Key(unsigned char key, int x, int y)
         case 'X':       dx_angle -= 10;                                 break;
         case 'Y':       dy_angle -= 10;                                 break;
         case 'Z':       dz_angle -= 10;                                 break;
-
+        case 'R':       rot_mode = 1 - rot_mode;                        break;
         /* 'tumble' around */
         case 'u':       dx_angle += 10;
                         dy_angle += 10;
