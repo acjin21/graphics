@@ -627,7 +627,7 @@ void viewport_xform(float scale)
 /* draw wire-frame or filled in model */
 void draw_model(int mode)
 {
-    printf("num_triangles: %i\n", num_triangles);
+//    printf("num_triangles: %i\n", num_triangles);
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
@@ -677,10 +677,6 @@ void draw_model(int mode)
                 scalar_multiply(brightness, p2.color, p2.color);
 
             }
-
-//            set_vec4(p0.color, brightness, brightness, brightness, 1);
-//            set_vec4(p1.color, brightness, brightness, brightness, 1);
-//            set_vec4(p2.color, brightness, brightness, brightness, 1);
             
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {

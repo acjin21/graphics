@@ -45,7 +45,8 @@
 #define SPHERE 5
 #define TORUS 6
 
-#define N_SHAPES 5
+#define NA 0
+#define N_OBJECTS 6
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -81,54 +82,86 @@ float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
-/* for drawing multiple 3d shapes on screen */
-float shape_centers[N_SHAPES][3];
-float shape_scales[N_SHAPES];
+typedef struct object {
+    int type;
+    float center[3];
+    float scale;
+    float radii[2];
+} OBJECT;
+
+/* for drawing multiple 3d objects on screen */
+//float object_centers[N_OBJECTS][3];
+//float object_scales[N_OBJECTS];
+OBJECT objects[N_OBJECTS];
+
+
+
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
 int counter = 0;
 
-/* randomly drawn shapes */
-void init_shapes_random (void)
+void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
+                    float scale, float r0, float r1)
 {
-    for(int i = 0; i < N_SHAPES; i++)
+    o_ptr->type = type;
+    o_ptr->center[X] = cx;
+    o_ptr->center[Y] = cy;
+    o_ptr->center[Z] = cz;
+    o_ptr->scale = scale;
+    o_ptr->radii[0] = r0;
+    o_ptr->radii[1] = r1;
+}
+
+/* randomly drawn 3d objects */
+void init_objects_random (void)
+{
+    for(int i = 0; i < N_OBJECTS; i++)
     {
-        shape_scales[i] = random_float(1, 5);
-        shape_centers[i][X] = random_float(-2, 0);
-        shape_centers[i][Y] = random_float(-3, 3);
-        shape_centers[i][Z] = random_float(0, 3);
+        float rand_x, rand_y, rand_z, rand_scale;
+        rand_x = random_float(-2, 0);
+        rand_y = random_float(-3, 3);
+        rand_z = random_float(0, 3);
+        rand_scale = random_float(1, 5);
+        
+        set_object(&objects[i], CUBE, rand_x, rand_y, rand_z, rand_scale, NA, NA);
     }
 }
 
-/* non-overlapping shapes */
-void init_shapes(void)
-{
-    shape_scales[0] = 1;
-    shape_centers[0][X] = -3;
-    shape_centers[0][Y] = 3;
-    shape_centers[0][Z] = 0;
-    
-    shape_scales[1] = 1;
-    shape_centers[1][X] = 0;
-    shape_centers[1][Y] = 3;
-    shape_centers[1][Z] = 0;
-    
-    shape_scales[2] = 1;
-    shape_centers[2][X] = 3;
-    shape_centers[2][Y] = 3;
-    shape_centers[2][Z] = 0;
-    
-    shape_scales[3] = 1;
-    shape_centers[3][X] = -3;
-    shape_centers[3][Y] = -3;
-    shape_centers[3][Z] = 0;
-    
-    shape_scales[4] = 1;
-    shape_centers[4][X] = 0;
-    shape_centers[4][Y] = -3;
-    shape_centers[4][Z] = 0;
+/* non-overlapping objects */
+void init_objects(void)
+{                                     //cx, cy, cz, scale, r0, r1
+    set_object(&objects[0], CUBE,       -3, 3,  0, 1,   NA,     NA);
+    set_object(&objects[1], CYLINDER,   0,  3,  0, 1,   0.5,    NA);
+    set_object(&objects[2], CONE,       3,  3,  0, 1,   0.5,    NA);
+    set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
+    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,     1);
+    set_object(&objects[5], MESH,       3,  -3, 0, 1,   NA,     NA);
+
 }
+
+//void write_scene (char *file_name)
+//{
+//    FILE *fp;
+//    fp = fopen(file_name, "w");
+//
+//    if(fp == NULL)
+//    {
+//        printf("Unable to open file %s\n", file_name);
+//    }
+//    else
+//    {
+//        printf("%s has been opened and its contents overwritten.\n", file_name);
+//        fprintf(fp, "SCENE FILE: %s\n", file_name);
+//        for(int i = 0 ; i < N_OBJECTS; i++)
+//        {
+//            //iterate through objects list
+//            //write each object out into file
+//        }
+//        printf("Done writing scene file to %s\n", file_name);
+//        fclose(fp);
+//    }
+//}
 
 /*
  * display routine
@@ -233,44 +266,51 @@ void display(void)
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-    float cx, cy, cz, scale;
+    float cx, cy, cz, scale, r0, r1;
     cx = 0;
     cy = 0;
     cz = 0;
-    switch (model)
-    {
-        case CUBE:  init_cube(1, cx, cy, cz);               break;
-        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
-        case QUAD:  init_quad();                        break;
-        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
-        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
-        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
-        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-    }
-//    for(int i = 0; i < N_SHAPES; i++)
+//    switch (model)
 //    {
-//        cx = shape_centers[i][X];
-//        cy = shape_centers[i][Y];
-//        cz = shape_centers[i][Z];
-//        scale = shape_scales[i];
-//        switch(i)
-//        {
-//            case 0:
-//                init_cube(scale, cx, cy, cz);
-//                break;
-//            case 1:
-//                init_sphere(scale / 2, cx, cy, cz);
-//                break;
-//            case 2:
-//                init_torus(scale / 2, scale, cx, cy, cz);
-//                break;
-//            case 3:
-//                init_cone(scale / 2, scale, cx, cy, cz);
-//                break;
-//            case 4:
-//                init_cylinder(scale / 2, scale, cx, cy, cz);
-//                break;
-//        }
+//        case CUBE:  init_cube(1, cx, cy, cz);               break;
+//        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
+//        case QUAD:  init_quad();                        break;
+//        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
+//        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
+//        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
+//        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
+//    }
+    for(int i = 0; i < N_OBJECTS; i++)
+    {
+        OBJECT *o = &objects[i];
+        cx = o->center[X];
+        cy = o->center[Y];
+        cz = o->center[Z];
+        scale = o->scale;
+        r0 = o->radii[0];
+        r1 = o->radii[1];
+
+        switch(o->type)
+        {
+            case CUBE:
+                init_cube(scale, cx, cy, cz);
+                break;
+            case SPHERE:
+                init_sphere(r0, cx, cy, cz);
+                break;
+            case TORUS:
+                init_torus(r0, r1, cx, cy, cz);
+                break;
+            case CONE:
+                init_cone(r0, scale, cx, cy, cz);
+                break;
+            case CYLINDER:
+                init_cylinder(r0, scale, cx, cy, cz);
+                break;
+            case MESH:
+                init_mesh(scale, cx, cy, cz, mesh_da);
+                break;
+        }
 
         rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
         calculate_face_normals();
@@ -289,7 +329,7 @@ void display(void)
                 break;
         }
         draw_model(draw_mode);
-//    }
+    }
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -400,7 +440,7 @@ int main(int argc, char **argv)
     /*
      * Initialize centers and scales of 3D models
      */
-    init_shapes();
+    init_objects();
     
     /*
      * start loop that calls display() and Key() routines
