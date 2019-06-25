@@ -12,7 +12,7 @@ typedef struct face
     float f_normal[4]; //face normal in world coordinates
 } FACE;
 
-#define NUM_VERTS 5000
+#define NUM_VERTS 1000000
 
 /****************************************************************/
 /* global variables */
@@ -156,6 +156,54 @@ void init_cube (float scale, float cx, float cy, float cz)
     add_face(7, 6, 2,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
     
+}
+void read_obj_file (char *file_name)
+{
+    /* set tex coordinates to four corners of texture */
+    set_vec4(tex_list[0], 0, 0, 0, 0);
+    set_vec4(tex_list[1], 1, 0, 0, 0);
+    set_vec4(tex_list[2], 0, 1, 0, 0);
+    set_vec4(tex_list[3], 1, 1, 0, 0);
+    num_textures = 4;
+    
+    /* r, g, b color options */
+    set_vec4(color_list[0], 1, 0, 0, 1);
+    set_vec4(color_list[1], 0, 1, 0, 1);
+    set_vec4(color_list[2], 0, 0, 1, 1);
+    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
+    
+    FILE *fp;
+    fp = fopen(file_name, "r");
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        num_vertices = 0;
+        float x, y, z;
+        int i, j, k;
+        while(fscanf(fp, "v %f %f %f\n", &x, &y, &z) == 3)
+        {
+            set_vec4(vertex_list[num_vertices].world, x, y, z, 1.0);
+            num_vertices++;
+        }
+        printf("%i vertices read\n", num_vertices);
+        /* reset num_tris for each vertex */
+        reset_num_tris(num_vertices);
+        
+        /* add faces/triangles */
+        num_triangles = 0; // reset num of triangles
+        fscanf(fp, "\n");
+        while(fscanf(fp, "f %d %d %d\n", &i, &j, &k) == 3)
+        {
+            //       vertices       colors      texture coords
+            add_face(i-1, j-1, k-1,    0, 1, 2,    0, 3, 1);
+        }
+        printf("%i faces read\n", num_triangles);
+        
+        fclose(fp);
+    }
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */

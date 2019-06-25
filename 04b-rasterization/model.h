@@ -16,6 +16,7 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz);
 void init_cone (float radius, float scale, float cx, float cy, float cz);
 void init_sphere (float radius, float cx, float cy, float cz);
 void init_torus (float tube_radius, float hole_radius, float cx, float cy, float cz);
+void read_obj_file (char *name);
 
 void insert_normal_coords(void);
 

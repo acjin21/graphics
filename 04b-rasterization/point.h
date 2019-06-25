@@ -22,7 +22,7 @@ typedef struct point {
     float color[4];
     float tex[4];
     
-    int tri_list[8];
+    int tri_list[100];
     int num_tris;
     float v_normal[4];
 } POINT;

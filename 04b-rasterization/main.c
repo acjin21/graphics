@@ -36,7 +36,7 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 7
+#define N_MODELS 8
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -44,6 +44,7 @@
 #define CONE 4
 #define SPHERE 5
 #define TORUS 6
+#define OBJ 7
 
 #define NA 0
 #define N_OBJECTS 6
@@ -135,33 +136,47 @@ void init_objects(void)
     set_object(&objects[1], CYLINDER,   0,  3,  0, 1,   0.5,    NA);
     set_object(&objects[2], CONE,       3,  3,  0, 1,   0.5,    NA);
     set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
-    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,     1);
-    set_object(&objects[5], MESH,       3,  -3, 0, 1,   NA,     NA);
+    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
+    set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
 
 }
+/* write object metadata out to a scene file */
+void write_scene (char *file_name)
+{
+    FILE *fp;
+    fp = fopen(file_name, "w");
 
-//void write_scene (char *file_name)
-//{
-//    FILE *fp;
-//    fp = fopen(file_name, "w");
-//
-//    if(fp == NULL)
-//    {
-//        printf("Unable to open file %s\n", file_name);
-//    }
-//    else
-//    {
-//        printf("%s has been opened and its contents overwritten.\n", file_name);
-//        fprintf(fp, "SCENE FILE: %s\n", file_name);
-//        for(int i = 0 ; i < N_OBJECTS; i++)
-//        {
-//            //iterate through objects list
-//            //write each object out into file
-//        }
-//        printf("Done writing scene file to %s\n", file_name);
-//        fclose(fp);
-//    }
-//}
+    if(fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents overwritten.\n", file_name);
+        fprintf(fp, "SCENE FILE: %s\n", file_name);
+        int type;
+        float cx, cy, cz, scale, r0, r1;
+        for(int i = 0 ; i < N_OBJECTS; i++)
+        {
+            OBJECT *o = &objects[i];
+            type = o->type;
+            cx = o->center[X];
+            cy = o->center[Y];
+            cz = o->center[Z];
+            scale = o->scale;
+            r0 = o->radii[0];
+            r1 = o->radii[1];
+            
+            //iterate through objects list
+            fprintf(fp,
+                    "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f, r0: %.2f, r1: %.2f\n",
+                    type, cx, cy, cz, scale, r0, r1);
+            //write each object out into file
+        }
+        printf("Done writing scene file to %s\n", file_name);
+        fclose(fp);
+    }
+}
 
 /*
  * display routine
@@ -270,53 +285,55 @@ void display(void)
     cx = 0;
     cy = 0;
     cz = 0;
-//    switch (model)
-//    {
-//        case CUBE:  init_cube(1, cx, cy, cz);               break;
-//        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
-//        case QUAD:  init_quad();                        break;
-//        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
-//        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
-//        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
-//        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-//    }
-    for(int i = 0; i < N_OBJECTS; i++)
+    switch (model)
     {
-        OBJECT *o = &objects[i];
-        cx = o->center[X];
-        cy = o->center[Y];
-        cz = o->center[Z];
-        scale = o->scale;
-        r0 = o->radii[0];
-        r1 = o->radii[1];
-
-        switch(o->type)
-        {
-            case CUBE:
-                init_cube(scale, cx, cy, cz);
-                break;
-            case SPHERE:
-                init_sphere(r0, cx, cy, cz);
-                break;
-            case TORUS:
-                init_torus(r0, r1, cx, cy, cz);
-                break;
-            case CONE:
-                init_cone(r0, scale, cx, cy, cz);
-                break;
-            case CYLINDER:
-                init_cylinder(r0, scale, cx, cy, cz);
-                break;
-            case MESH:
-                init_mesh(scale, cx, cy, cz, mesh_da);
-                break;
-        }
+        case CUBE:  init_cube(1, cx, cy, cz);               break;
+        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
+        case QUAD:  init_quad();                            break;
+        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
+        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
+        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
+        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
+        case OBJ: read_obj_file("obj/teapot.obj");          break;
+    }
+//    for(int i = 0; i < N_OBJECTS; i++)
+//    {
+//        OBJECT *o = &objects[i];
+//        cx = o->center[X];
+//        cy = o->center[Y];
+//        cz = o->center[Z];
+//        scale = o->scale;
+//        r0 = o->radii[0];
+//        r1 = o->radii[1];
+//
+//        switch(o->type)
+//        {
+//            case CUBE:
+//                init_cube(scale, cx, cy, cz);
+//                break;
+//            case SPHERE:
+//                init_sphere(r0, cx, cy, cz);
+//                break;
+//            case TORUS:
+//                init_torus(r0, r1, cx, cy, cz);
+//                break;
+//            case CONE:
+//                init_cone(r0, scale, cx, cy, cz);
+//                break;
+//            case CYLINDER:
+//                init_cylinder(r0, scale, cx, cy, cz);
+//                break;
+//            case MESH:
+//                init_mesh(scale, cx, cy, cz, mesh_da);
+//                break;
+//        }
 
         rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+
         calculate_face_normals();
         calculate_vertex_normals();
+
         if(normals) insert_normal_coords();
-        
         switch(proj_mode)
         {
             case ORTHO:
@@ -329,7 +346,7 @@ void display(void)
                 break;
         }
         draw_model(draw_mode);
-    }
+//    }
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -441,6 +458,7 @@ int main(int argc, char **argv)
      * Initialize centers and scales of 3D models
      */
     init_objects();
+    write_scene("scene1.txt");
     
     /*
      * start loop that calls display() and Key() routines
