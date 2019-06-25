@@ -113,6 +113,7 @@ void init_cube (float scale, float cx, float cy, float cz)
     set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
+    
     float center[4] = {cx, cy, cz, 0};
     for(int i = 0; i < num_vertices; i++)
     {
