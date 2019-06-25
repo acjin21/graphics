@@ -165,7 +165,7 @@ void init_cube (float scale, float cx, float cy, float cz)
     /* should now have 12 triangles */
 }
 
-void read_obj_file (char *file_name)
+void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
     /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
@@ -193,7 +193,10 @@ void read_obj_file (char *file_name)
         int i, j, k;
         while(fscanf(fp, "v %f %f %f\n", &x, &y, &z) == 3)
         {
-            set_vec4(vertex_list[num_vertices].world, x, y, z, 1.0);
+            set_vec4(vertex_list[num_vertices].world,
+                     cx + scale * x,
+                     cy + scale * y,
+                     cz + scale * z, 1.0);
             num_vertices++;
         }
         printf("%i vertices read\n", num_vertices);

@@ -44,10 +44,10 @@
 #define CONE 4
 #define SPHERE 5
 #define TORUS 6
-#define OBJ 7
+#define TEAPOT 7
 
 #define NA 0
-#define N_OBJECTS 6
+#define MAX_N_OBJECTS 10
 
 #define GLOBAL 0
 #define LOCAL 1
@@ -76,6 +76,7 @@ int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
 int normals = 0;
 float ortho_scale = 50;
+int num_objects = 0;
 
 /* offset vars */
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
@@ -94,9 +95,7 @@ typedef struct object {
 } OBJECT;
 
 /* for drawing multiple 3d objects on screen */
-//float object_centers[N_OBJECTS][3];
-//float object_scales[N_OBJECTS];
-OBJECT objects[N_OBJECTS];
+OBJECT objects[MAX_N_OBJECTS];
 
 
 
@@ -120,7 +119,7 @@ void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
 /* randomly drawn 3d objects */
 void init_objects_random (void)
 {
-    for(int i = 0; i < N_OBJECTS; i++)
+    for(int i = 0; i < MAX_N_OBJECTS; i++)
     {
         float rand_x, rand_y, rand_z, rand_scale;
         rand_x = random_float(-2, 0);
@@ -130,6 +129,7 @@ void init_objects_random (void)
         
         set_object(&objects[i], CUBE, rand_x, rand_y, rand_z, rand_scale, NA, NA);
     }
+    num_objects = MAX_N_OBJECTS;
 }
 
 /* non-overlapping objects */
@@ -141,7 +141,11 @@ void init_objects(void)
     set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
     set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
     set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
+    set_object(&objects[6], TEAPOT,     0,  0,  0, 0.5,  NA,     NA);
+    num_objects = 7;
 }
+
+
 
 /* write object metadata out to a scene file */
 void write_scene (char *file_name)
@@ -157,9 +161,11 @@ void write_scene (char *file_name)
     {
         printf("%s has been opened and its contents overwritten.\n", file_name);
         fprintf(fp, "SCENE FILE: %s\n", file_name);
+        fprintf(fp, "%i\n", num_objects);
+
         int type;
         float cx, cy, cz, scale, r0, r1;
-        for(int i = 0 ; i < N_OBJECTS; i++)
+        for(int i = 0 ; i < num_objects; i++)
         {
             OBJECT *o = &objects[i];
             type = o->type;
@@ -179,6 +185,51 @@ void write_scene (char *file_name)
         printf("Done writing scene file to %s\n", file_name);
         fclose(fp);
     }
+}
+
+void read_scene (char *file_name)
+{
+    num_objects = 0;
+    FILE *fp;
+    fp = fopen(file_name, "r");
+    char name[100];
+    
+    if(fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents read.\n", file_name);
+        fscanf(fp, "SCENE FILE: %s\n", name);
+        printf("SCENE FILE: %s\n", name);
+        fscanf(fp, "%i\n", &num_objects);
+
+        int type;
+        float cx, cy, cz, scale, r0, r1;
+        for(int i = 0 ; i < num_objects; i++)
+        {
+            //iterate through lines in file
+            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f, r0: %f, r1: %f\n",
+                             &type, &cx, &cy, &cz, &scale, &r0, &r1);
+            if(ret != 7)
+            {
+                printf("Error while reading %s\n", file_name);
+                return;
+            }
+            OBJECT *o = &objects[i];
+            o->type = type;
+            o->center[X] = cx;
+            o->center[Y] = cy;
+            o->center[Z] = cz;
+            o->scale = scale;
+            o->radii[0] = r0;
+            o->radii[1] = r1;
+        }
+        printf("Done reading scene file from %s\n", file_name);
+        fclose(fp);
+    }
+    
 }
 
 /*
@@ -297,9 +348,9 @@ void display(void)
 //        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
 //        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
 //        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-//        case OBJ: read_obj_file("obj/teapot.obj");          break;
+//        case TEAPOT: read_obj_file("obj/teapot.obj");       break;
 //    }
-    for(int i = 0; i < N_OBJECTS; i++)
+    for(int i = 0; i < num_objects; i++)
     {
         OBJECT *o = &objects[i];
         cx = o->center[X];
@@ -328,6 +379,9 @@ void display(void)
                 break;
             case MESH:
                 init_mesh(scale, cx, cy, cz, mesh_da);
+                break;
+            case TEAPOT:
+                read_obj_file("obj/teapot.obj", scale, cx, cy, cz);
                 break;
         }
         if(rot_mode == LOCAL)
@@ -468,8 +522,15 @@ int main(int argc, char **argv)
     /*
      * Initialize centers and scales of 3D models
      */
-    init_objects();
-    write_scene("scene1.txt");
+    
+    //to create new scenes
+//    init_objects();
+//    write_scene("scene_files/all_models.txt");
+    
+    //reading in scenes
+    read_scene("scene_files/all_teapots.txt");
+//    write_scene("scene_files/testing.txt");
+    
     
     /*
      * start loop that calls display() and Key() routines
