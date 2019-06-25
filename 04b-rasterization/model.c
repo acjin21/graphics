@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 
-extern float depth_buffer[800][800];
+extern float depth_buffer[WIN_H][WIN_W];
 
 typedef struct face
 {
@@ -31,6 +31,7 @@ extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normals; // mode: whether drawing normals or not
 extern int phong_shading;
+
 extern float light[4]; // light vector from light.c
 /****************************************************************/
 /* helper functions */
@@ -158,7 +159,7 @@ void init_cube (float scale, float cx, float cy, float cz)
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
-void init_mesh (float scale, float cx, float cy, float cz, float mesh_da)
+void init_mesh (float scale, float cx, float cy, float cz, float da)
 {
     int n = 32;
     int width = n;
@@ -177,15 +178,12 @@ void init_mesh (float scale, float cx, float cy, float cz, float mesh_da)
             /* world coordinates */
             p->world[X] = scale * u + cx;
             p->world[Y] = scale * v + cy;
-            p->world[Z] = cos(mesh_da + v * 2 * PI) * sin(mesh_da + u * 2 * PI)
-                            + cz;
+            p->world[Z] = cos(da + v * 2 * PI) * sin(da + u * 2 * PI) + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
-                                            (float) r / (float) n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-                                              (float) r / (float) n, 0, 1);
+            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
         }
     }
     reset_num_tris(num_vertices);
@@ -232,12 +230,8 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
-                     (float) r / (float) n, 0, 0);
-            set_vec4(color_list[(r * n) + c],
-                     (float) c / (float) n,
-                     (float) r / (float) n,
-                     0, 1);
+            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
 //            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
@@ -288,10 +282,8 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
-                     (float) r / (float) n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-                     (float) r / (float) n, 0, 1);
+            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
 //            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
@@ -341,11 +333,9 @@ void init_sphere (float radius, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
-                     (float) r / (float) n, 0, 0);
-            //set_vec4(color_list[(r * n) + c], (float) c / (float) n,
-            //  (float) r / (float) n, 0, 1);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
+//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
     reset_num_tris(num_vertices);
@@ -358,12 +348,12 @@ void init_sphere (float radius, float cx, float cy, float cz)
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     0, 0, 0,
-                     //r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+//                     0, 0, 0,
+                     r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     0, 0, 0,
-                     //r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+//                     0, 0, 0,
+                     r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }
@@ -397,9 +387,9 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / (float) n,
-                     (float) r / (float) n, 0, 0);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
+            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
+//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
         count += 0.05;
     }
@@ -413,12 +403,12 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
-                     0, 0, 0,
-                     // r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
+//                     0, 0, 0,
+                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1),
                      r * n + c, (r + 1) * n + c, (r + 1) * n + (c + 1));
             add_face(r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
-                     0, 0, 0,
-                     // r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
+//                     0, 0, 0,
+                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1),
                      r * n + c, (r + 1) * n + (c + 1), r * n + (c + 1));
         }
     }

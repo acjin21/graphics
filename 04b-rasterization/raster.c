@@ -1,10 +1,9 @@
 #include "raster.h"
-
 #include <stdio.h>
 
 /* for rasterization */
-POINT span[800][2];
-int edge_counts[800];
+POINT span[WIN_H][2];
+int edge_counts[WIN_H];
 
 void store_point (POINT *p);
 void reset_edge_counts (void);
@@ -78,7 +77,7 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* store point in span */
 void store_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + 400);
+    int r = (int) (p->position[Y] + WIN_H / 2);
     int count = edge_counts[r];
     
     /* sanity check */
@@ -94,7 +93,7 @@ void store_point (POINT *p)
 /* draw horizontal scan lines of triangle */
 void draw_spans(void)
 {
-    for(int r = 0; r < 800; r++)
+    for(int r = 0; r < WIN_H; r++)
     {
         POINT start_p = span[r][0];
         int count = edge_counts[r];
@@ -112,7 +111,7 @@ void draw_spans(void)
 /* reset all edge counts to 0 */
 void reset_edge_counts (void)
 {
-    for(int i = 0; i < 800; i++)
+    for(int i = 0; i < WIN_H; i++)
     {
         edge_counts[i] = 0;
     }
@@ -174,9 +173,9 @@ void sprint_point (char *s, POINT *p)
  */
 void print_edge_counts (void)
 {
-    for(int i = 0; i < 800; i++)
+    for(int i = 0; i < WIN_H; i++)
     {
-        printf("row %i, y = %i, count = %i\n", i, i - 400, edge_counts[i]);
+        printf("row %i, y = %i, count = %i\n", i, i - WIN_H / 2, edge_counts[i]);
     }
 }
 

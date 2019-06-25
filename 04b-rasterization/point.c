@@ -2,8 +2,8 @@
 #include "point.h"
 #include <stdio.h>
 extern IMAGE texture;
-extern float color_buffer[800][800][4];
-extern float depth_buffer[800][800];
+extern float color_buffer[WIN_H][WIN_W][4];
+extern float depth_buffer[WIN_H][WIN_W];
 
 /*************************************************************************/
 /* defines                                                               */
@@ -23,9 +23,9 @@ float ambient[4] = {0.3, 0.3, 0.3, 0};
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + 400);
-    int c = (int) (p->position[X] + 400);
-    if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
+    int r = (int) (p->position[Y] + WIN_H / 2);
+    int c = (int) (p->position[X] + WIN_W / 2);
+    if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     float blend_weight = 0.50;
 
     if(depth_test && p->position[Z] > depth_buffer[r][c] && !(perspective_correct && texturing))

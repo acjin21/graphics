@@ -1,6 +1,9 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+#define WIN_W 800
+#define WIN_H 800
+
 #define R 0
 #define G 1
 #define B 2

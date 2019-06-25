@@ -4,7 +4,7 @@
 #ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION
 #endif
-
+#include "macros.h"
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
