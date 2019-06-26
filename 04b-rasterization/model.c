@@ -14,6 +14,8 @@ typedef struct face
 
 #define NUM_VERTS 1000000
 
+int modulate_type = MOD_COLOR;
+
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -31,7 +33,7 @@ extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normals; // mode: whether drawing normals or not
 extern int phong_shading;
-
+extern int gouraud_shading;
 extern float light[4]; // light vector from light.c
 /****************************************************************/
 /* helper functions */
@@ -763,24 +765,43 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            if(!phong_shading)
+            
+            if(gouraud_shading && !phong_shading)
             {
+
                 normalize(light);
                 float brightness = vector_dot(face_list[i].f_normal, light);
-                scalar_multiply(brightness, p0.color, p0.color);
-                scalar_multiply(brightness, p1.color, p1.color);
-                scalar_multiply(brightness, p2.color, p2.color);
+                
+                //modulate interpolated color * texture
+                if(modulate_type == MOD_COLOR)
+                {
+                    scalar_multiply(brightness, p0.color, p0.color);
+                    scalar_multiply(brightness, p1.color, p1.color);
+                    scalar_multiply(brightness, p2.color, p2.color);
+                }
+                //modulate texture and intensity i.e. lighting
+                else if(modulate_type == MOD_LIGHT)
+                {
+                    set_vec4(p0.color, brightness, brightness, brightness, brightness);
+                    set_vec4(p1.color, brightness, brightness, brightness, brightness);
+                    set_vec4(p2.color, brightness, brightness, brightness, brightness);
+
+                }
+            }
+            if(gouraud_shading || phong_shading)
+            {
+                float ambient[4] = {0.3, 0.3, 0.3, 0};
+
+                vector_add(p0.color, ambient, p0.color);
+                vector_add(p1.color, ambient, p0.color);
+                vector_add(p2.color, ambient, p0.color);
 
             }
-            
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {
-                float scale = 1 - p0.position[Z];
-                if(p0.position[Z] < 0) scale = fabsf(p0.position[Z]);
-
-//                p0.color[R] = 1;    p0.color[G] = 0;    p0.color[B] = 0;
-//                p1.color[R] = 1;    p1.color[G] = 0;    p1.color[B] = 0;
-//                p2.color[R] = 1;    p2.color[G] = 0;    p2.color[B] = 0;
+                //                p0.color[R] = 1;    p0.color[G] = 0;    p0.color[B] = 0;
+                //                p1.color[R] = 1;    p1.color[G] = 0;    p1.color[B] = 0;
+                //                p2.color[R] = 1;    p2.color[G] = 0;    p2.color[B] = 0;
                 scalar_multiply(0.1, p0.color, p0.color);
                 scalar_multiply(0.1, p1.color, p1.color);
                 scalar_multiply(0.1, p2.color, p2.color);
@@ -789,11 +810,8 @@ void draw_model(int mode)
             else {
                 draw_triangle_barycentric (&p0, &p1, &p2);
             }
-//            draw_triangle_barycentric (&p0, &p1, &p2);
-
         }
-
-
+        
         if(normals == ON)
         {
             //draw normals

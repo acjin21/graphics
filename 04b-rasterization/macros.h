@@ -21,4 +21,7 @@
 #define EPSILON 0.0001
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
 
+#define MOD_COLOR 0
+#define MOD_LIGHT 1
+
 #endif

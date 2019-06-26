@@ -8,6 +8,8 @@ extern float depth_buffer[WIN_H][WIN_W];
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
+
+
 /* modes */
 int alpha_blend = OFF;
 int depth_test = OFF;
@@ -15,8 +17,8 @@ int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
 int phong_shading = OFF;
+int gouraud_shading = OFF;
 extern float light[4];
-float ambient[4] = {0.3, 0.3, 0.3, 0};
 
 /*************************************************************************/
 /* draw a point into color_buffer */
@@ -109,7 +111,6 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] = p->color[G];
         color_buffer[r][c][B] = p->color[B];
         color_buffer[r][c][A] = p->color[A];
-        vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
     }
     if(depth_test)
     {
@@ -122,8 +123,8 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] *= brightness;
         color_buffer[r][c][B] *= brightness;
         color_buffer[r][c][A] = p->color[A];
-        vector_add(color_buffer[r][c], ambient, color_buffer[r][c]);
     }
+
   
 }
 

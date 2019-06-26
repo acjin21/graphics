@@ -56,6 +56,7 @@
 #define MAX_FILE_NAME 100
 #define OBJ 0
 #define SCENE 1
+#define BASIC 2
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -78,7 +79,9 @@ extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
 extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 extern int phong_shading;
+extern int gouraud_shading;
 extern int perspective_correct;
+extern int modulate_type;
 
 int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
@@ -267,6 +270,11 @@ void display(void)
     /* if modulating, turn on texturing and fill the model. */
     if(modulate == ON)
     {
+        if(modulate_type == MOD_LIGHT)
+        {
+            gouraud_shading = ON;
+            clear_color_buffer(0, 0, 0, 0);
+        }
         texturing = ON;
         draw_mode = FILL;
     }
@@ -336,6 +344,7 @@ void display(void)
     printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
     printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
     printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
+    printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
     printf(".....................\n");
 
     counter++;
@@ -347,20 +356,46 @@ void display(void)
     cx = 0;
     cy = 0;
     cz = 0;
-    
-//    switch (model)
-//    {
-//        case CUBE:  init_cube(1, cx, cy, cz);               break;
-//        case MESH:  init_mesh(1, cx, cy, cz, mesh_da);      break;
-//        case QUAD:  init_quad();                            break;
-//        case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);   break;
-//        case CONE: init_cone (0.5, 1, cx, cy, cz);          break;
-//        case SPHERE: init_sphere (0.5, cx, cy, cz);         break;
-//        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
-//        case TEAPOT: read_obj_file("obj/teapot.obj");       break;
-//    }
-    
-    if(input_type == SCENE)
+
+    if(input_type == BASIC)
+    {
+        switch (model)
+        {
+            case CUBE:  init_cube(1, cx, cy, cz);                       break;
+            case MESH:  init_mesh(1, cx, cy, cz, mesh_da);              break;
+            case QUAD:  init_quad();                                    break;
+            case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);           break;
+            case CONE: init_cone (0.5, 1, cx, cy, cz);                  break;
+            case SPHERE: init_sphere (0.5, cx, cy, cz);                 break;
+            case TORUS: init_torus(0.5, 1, cx, cy, cz);                 break;
+            case TEAPOT: read_obj_file("obj/teapot.obj", 1, 0, 0, 0);   break;
+        }
+        if(rot_mode == LOCAL)
+        {
+            rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+        }
+        else
+        {
+            rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
+        }
+        calculate_face_normals();
+        calculate_vertex_normals();
+        
+        if(normals) insert_normal_coords();
+        switch(proj_mode)
+        {
+            case ORTHO:
+                xform_model(ortho_scale);
+                break;
+            case PERSPECT:
+                translate_model(dz);
+                perspective_xform(3.0, 40.0);
+                viewport_xform(30);
+                break;
+        }
+        draw_model(draw_mode);
+    }
+    else if(input_type == SCENE)
     {
         for(int i = 0; i < num_objects; i++)
         {
@@ -512,8 +547,9 @@ static void Key(unsigned char key, int x, int y)
         case 'm':       modulate = 1 - modulate;                        break;
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
         case 'h':       phong_shading = 1 - phong_shading;              break;
+        case 'g':       gouraud_shading = 1 - gouraud_shading;          break;
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
-
+        case 'M':       modulate_type = 1 - modulate_type;              break;
             
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                      break;
@@ -548,7 +584,11 @@ static void Key(unsigned char key, int x, int y)
  */
 int main(int argc, char **argv)
 {
-    if(argc < 3)
+    if(argc == 2 && !strcmp("BASIC", argv[1]))
+    {
+        input_type = BASIC;
+    }
+    else if(argc < 3)
     {
         printf("Too few arguments.\n");
         return -1;
@@ -579,23 +619,27 @@ int main(int argc, char **argv)
     //reading in scenes from command line argument
     
     //get type of file we're reading from (obj vs scene file)
-    if(!strcmp("OBJ", argv[1]))
+    if(input_type != BASIC)
     {
-        strcat(obj_file, argv[2]); //get .obj file name
-        read_obj_file(obj_file, 1, 0, 0, 0);
-        input_type = OBJ;
+        if(!strcmp("OBJ", argv[1]))
+        {
+            strcat(obj_file, argv[2]); //get .obj file name
+            read_obj_file(obj_file, 1, 0, 0, 0);
+            input_type = OBJ;
+        }
+        else if(!strcmp("SCENE", argv[1]))
+        {
+            strcat(scene_file, argv[2]);
+            read_scene(scene_file);
+            input_type = SCENE;
+        }
+        else
+        {
+            printf("Invalid input file type. Should be either \"OBJ\" or \"SCENE\"\n");
+            return -1;
+        }
     }
-    else if(!strcmp("SCENE", argv[1]))
-    {
-        strcat(scene_file, argv[2]);
-        read_scene(scene_file);
-        input_type = SCENE;
-    }
-    else
-    {
-        printf("Invalid input file type. Should be either \"OBJ\" or \"SCENE\"\n");
-        return -1;
-    }
+    
     /*
      * start loop that calls display() and Key() routines
      */
