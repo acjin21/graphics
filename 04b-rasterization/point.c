@@ -16,10 +16,9 @@ int depth_test = OFF;
 int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
-int phong_shading = OFF;
-int gouraud_shading = OFF;
+int shading_mode = FLAT;
 extern float light[4];
-
+extern int modulate_type;
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -34,7 +33,30 @@ void draw_point (POINT *p)
     {
         return;
     }
-
+    
+    if(shading_mode == PHONG)
+    {
+        normalize(light);
+        float brightness = vector_dot(p->v_normal, light);
+        if(modulate_type == MOD_COLOR) //modulate texture with color and brightness
+        {
+            p->color[R] *= brightness;
+            p->color[G] *= brightness;
+            p->color[B] *= brightness;
+            p->color[A] = p->color[A];
+        }
+        else if(modulate) //don't incorporate point's interpolated color
+        {
+            p->color[R] = brightness;
+            p->color[G] = brightness;
+            p->color[B] = brightness;
+            p->color[A] = p->color[A];
+        }
+        
+        float ambient[4] = {0.3, 0.3, 0.3, 0};
+        vector_add(p->color, ambient, p->color);
+    }
+    
     if(texturing)
     {
         float s, t;
@@ -42,7 +64,6 @@ void draw_point (POINT *p)
         
         if( perspective_correct )
         {
-//            printf("foo\n");
             s = p->tex[S];
             t = p->tex[T];
             
@@ -76,7 +97,6 @@ void draw_point (POINT *p)
             color_buffer[r][c][A] = texture.data[(int) t][(int) s][A] / 255.0;
             
         }
-        
         if(modulate)
         {
             color_buffer[r][c][R] *= p->color[R];
@@ -116,14 +136,8 @@ void draw_point (POINT *p)
     {
         depth_buffer[r][c] = p->position[Z];
     }
-    if(phong_shading)
-    {
-        float brightness = vector_dot(p->v_normal, light);
-        color_buffer[r][c][R] *= brightness;
-        color_buffer[r][c][G] *= brightness;
-        color_buffer[r][c][B] *= brightness;
-        color_buffer[r][c][A] = p->color[A];
-    }
+    
+    
 
   
 }

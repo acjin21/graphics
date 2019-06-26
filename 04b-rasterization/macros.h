@@ -24,4 +24,7 @@
 #define MOD_COLOR 0
 #define MOD_LIGHT 1
 
+#define FLAT 0
+#define PHONG 1
+
 #endif

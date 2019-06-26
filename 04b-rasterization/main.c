@@ -78,8 +78,7 @@ extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
 extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
-extern int phong_shading;
-extern int gouraud_shading;
+extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
 
@@ -272,7 +271,6 @@ void display(void)
     {
         if(modulate_type == MOD_LIGHT)
         {
-            gouraud_shading = ON;
             clear_color_buffer(0, 0, 0, 0);
         }
         texturing = ON;
@@ -289,6 +287,7 @@ void display(void)
     {
         perspective_correct = OFF;
     }
+
     /*******************************************************/
     /* Reading in texture files */
     /*******************************************************/
@@ -546,8 +545,8 @@ static void Key(unsigned char key, int x, int y)
         case 'd':       depth_test = 1 - depth_test;                    break;
         case 'm':       modulate = 1 - modulate;                        break;
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 'h':       phong_shading = 1 - phong_shading;              break;
-        case 'g':       gouraud_shading = 1 - gouraud_shading;          break;
+        case 's':       shading_mode = 1 - shading_mode;                break;
+            
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
         case 'M':       modulate_type = 1 - modulate_type;              break;
             

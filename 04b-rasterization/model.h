@@ -4,6 +4,7 @@
 #include "raster.h"
 #include "vector.h"
 #include "macros.h"
+#include "point.h"
 
 #define FRAME 0
 #define FILL 1

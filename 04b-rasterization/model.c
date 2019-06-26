@@ -32,8 +32,7 @@ int num_textures = 0;
 extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normals; // mode: whether drawing normals or not
-extern int phong_shading;
-extern int gouraud_shading;
+extern int shading_mode;
 extern float light[4]; // light vector from light.c
 /****************************************************************/
 /* helper functions */
@@ -766,12 +765,10 @@ void draw_model(int mode)
         else if(mode == FILL)
         {
             
-            if(gouraud_shading && !phong_shading)
+            if(shading_mode == FLAT)
             {
-
                 normalize(light);
-                float brightness = vector_dot(face_list[i].f_normal, light);
-                
+                float brightness = vector_dot(f.f_normal, light);
                 //modulate interpolated color * texture
                 if(modulate_type == MOD_COLOR)
                 {
@@ -785,18 +782,15 @@ void draw_model(int mode)
                     set_vec4(p0.color, brightness, brightness, brightness, brightness);
                     set_vec4(p1.color, brightness, brightness, brightness, brightness);
                     set_vec4(p2.color, brightness, brightness, brightness, brightness);
-
                 }
-            }
-            if(gouraud_shading || phong_shading)
-            {
                 float ambient[4] = {0.3, 0.3, 0.3, 0};
-
+                
                 vector_add(p0.color, ambient, p0.color);
-                vector_add(p1.color, ambient, p0.color);
-                vector_add(p2.color, ambient, p0.color);
-
+                vector_add(p1.color, ambient, p1.color);
+                vector_add(p2.color, ambient, p2.color);
             }
+
+        
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {
                 //                p0.color[R] = 1;    p0.color[G] = 0;    p0.color[B] = 0;
