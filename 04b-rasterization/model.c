@@ -217,6 +217,42 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
     }
 }
 
+void write_obj_file (char *file_name)
+{
+    FILE *fp;
+    fp = fopen(file_name, "w");
+    
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents overwritten.\n", file_name);
+        float x, y, z;
+        int i, j, k;
+        printf("num_vertices = %i\n", num_vertices);
+        for(int v = 0; v < num_vertices; v++)
+        {
+            x = vertex_list[v].world[X];
+            y = vertex_list[v].world[Y];
+            z = vertex_list[v].world[Z];
+            fprintf(fp, "v %f %f %f\n", x, y, z);
+        }
+        for(int f = 0; f < num_triangles; f++)
+        {
+            i = face_list[f].vertices[0];
+            j = face_list[f].vertices[1];
+            k = face_list[f].vertices[2];
+
+            fprintf(fp, "f %d %d %d\n", i+1, j+1, k+1);
+        }
+
+        printf("Done writing obj file to %s\n", file_name);
+        fclose(fp);
+    }
+}
+
 /* init a n x n wavy mesh that starts at angle mesh_da */
 void init_mesh (float scale, float cx, float cy, float cz, float da)
 {

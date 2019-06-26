@@ -121,7 +121,6 @@ void write_ppm (char *file_name, IMAGE *img)
     FILE *fp;
     fp = fopen(file_name, "w");
 
-    
     if (fp == NULL)
     {
         printf("Unable to open file %s\n", file_name);

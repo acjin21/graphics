@@ -14,6 +14,7 @@
 #include <time.h>
 #include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "macros.h"
 #include "vector.h"
@@ -51,6 +52,10 @@
 
 #define GLOBAL 0
 #define LOCAL 1
+
+#define MAX_FILE_NAME 100
+#define OBJ 0
+#define SCENE 1
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -58,6 +63,9 @@ int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 int draw_prog = 1;
+char scene_file[MAX_FILE_NAME];
+char obj_file[MAX_FILE_NAME];
+int input_type = 0;
 
 IMAGE texture;          /* final display texture */
 
@@ -339,6 +347,7 @@ void display(void)
     cx = 0;
     cy = 0;
     cz = 0;
+    
 //    switch (model)
 //    {
 //        case CUBE:  init_cube(1, cx, cy, cz);               break;
@@ -350,40 +359,72 @@ void display(void)
 //        case TORUS: init_torus(0.5, 1, cx, cy, cz);         break;
 //        case TEAPOT: read_obj_file("obj/teapot.obj");       break;
 //    }
-    for(int i = 0; i < num_objects; i++)
+    
+    if(input_type == SCENE)
     {
-        OBJECT *o = &objects[i];
-        cx = o->center[X];
-        cy = o->center[Y];
-        cz = o->center[Z];
-        scale = o->scale;
-        r0 = o->radii[0];
-        r1 = o->radii[1];
-
-        switch(o->type)
+        for(int i = 0; i < num_objects; i++)
         {
-            case CUBE:
-                init_cube(scale, cx, cy, cz);
-                break;
-            case SPHERE:
-                init_sphere(r0, cx, cy, cz);
-                break;
-            case TORUS:
-                init_torus(r0, r1, cx, cy, cz);
-                break;
-            case CONE:
-                init_cone(r0, scale, cx, cy, cz);
-                break;
-            case CYLINDER:
-                init_cylinder(r0, scale, cx, cy, cz);
-                break;
-            case MESH:
-                init_mesh(scale, cx, cy, cz, mesh_da);
-                break;
-            case TEAPOT:
-                read_obj_file("obj/teapot.obj", scale, cx, cy, cz);
-                break;
+            OBJECT *o = &objects[i];
+            cx = o->center[X];
+            cy = o->center[Y];
+            cz = o->center[Z];
+            scale = o->scale;
+            r0 = o->radii[0];
+            r1 = o->radii[1];
+    
+            switch(o->type)
+            {
+                case CUBE:
+                    init_cube(scale, cx, cy, cz);
+                    break;
+                case SPHERE:
+                    init_sphere(r0, cx, cy, cz);
+                    break;
+                case TORUS:
+                    init_torus(r0, r1, cx, cy, cz);
+                    break;
+                case CONE:
+                    init_cone(r0, scale, cx, cy, cz);
+                    break;
+                case CYLINDER:
+                    init_cylinder(r0, scale, cx, cy, cz);
+                    break;
+                case MESH:
+                    init_mesh(scale, cx, cy, cz, mesh_da);
+                    break;
+                case TEAPOT:
+                    read_obj_file("obj/teapot.obj", scale, cx, cy, cz);
+                    break;
+            }
+            if(rot_mode == LOCAL)
+            {
+                rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+            }
+            else
+            {
+                rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
+            }
+            calculate_face_normals();
+            calculate_vertex_normals();
+            
+            if(normals) insert_normal_coords();
+            switch(proj_mode)
+            {
+                case ORTHO:
+                    xform_model(ortho_scale);
+                    break;
+                case PERSPECT:
+                    translate_model(dz);
+                    perspective_xform(3.0, 40.0);
+                    viewport_xform(30);
+                    break;
+            }
+            draw_model(draw_mode);
         }
+    }
+    else
+    {
+        read_obj_file(obj_file, 1, 0, 0, 0);
         if(rot_mode == LOCAL)
         {
             rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
@@ -394,7 +435,7 @@ void display(void)
         }
         calculate_face_normals();
         calculate_vertex_normals();
-
+        
         if(normals) insert_normal_coords();
         switch(proj_mode)
         {
@@ -409,6 +450,7 @@ void display(void)
         }
         draw_model(draw_mode);
     }
+
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -425,6 +467,7 @@ void display(void)
  */
 static void Key(unsigned char key, int x, int y)
 {
+    char scene_name[MAX_FILE_NAME - 4] = "";
     switch (key)
     {
         /* rotate between diff PPM files */
@@ -482,7 +525,15 @@ static void Key(unsigned char key, int x, int y)
             
         /* flowing mesh animation */
         case 'w':       mesh_da += 0.5;                                 break;
+        /* write out the normals */
         case 'n':       normals = 1 - normals;                          break;
+        /* write out scene objects with initial orientation to a scene file */
+        case 'W':
+            strcat(scene_name, strtok(scene_file, "."));
+            write_scene(strcat(scene_name,"_out.txt"));                 break;
+            
+        case 'O':
+            write_obj_file("obj/out.obj");                              break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
@@ -497,7 +548,13 @@ static void Key(unsigned char key, int x, int y)
  */
 int main(int argc, char **argv)
 {
+    if(argc < 3)
+    {
+        printf("Too few arguments.\n");
+        return -1;
+    }
     glutInit(&argc, argv);
+    
     srand(time(NULL));
 
     /*
@@ -519,23 +576,31 @@ int main(int argc, char **argv)
     glClearColor(0.7, 0.7, 0.7, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     
-    /*
-     * Initialize centers and scales of 3D models
-     */
+    //reading in scenes from command line argument
     
-    //to create new scenes
-//    init_objects();
-//    write_scene("scene_files/all_models.txt");
-    
-    //reading in scenes
-    read_scene("scene_files/all_teapots.txt");
-//    write_scene("scene_files/testing.txt");
-    
-    
+    //get type of file we're reading from (obj vs scene file)
+    if(!strcmp("OBJ", argv[1]))
+    {
+        strcat(obj_file, argv[2]); //get .obj file name
+        read_obj_file(obj_file, 1, 0, 0, 0);
+        input_type = OBJ;
+    }
+    else if(!strcmp("SCENE", argv[1]))
+    {
+        strcat(scene_file, argv[2]);
+        read_scene(scene_file);
+        input_type = SCENE;
+    }
+    else
+    {
+        printf("Invalid input file type. Should be either \"OBJ\" or \"SCENE\"\n");
+        return -1;
+    }
     /*
      * start loop that calls display() and Key() routines
      */
     glutMainLoop();
+
 
     return 0;
 }
