@@ -56,6 +56,10 @@ void draw_point (POINT *p)
         }
         else if(modulate) //don't incorporate point's interpolated color
         {
+//            p->color[R] = brightness;
+//            p->color[G] = brightness;
+//            p->color[B] = brightness;
+//            p->color[A] = p->color[A];
             cpy_vec4(p->color, tmp);
         }
         
