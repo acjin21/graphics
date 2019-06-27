@@ -38,7 +38,7 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_MODELS 8
+#define N_TYPES 8
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -48,7 +48,7 @@
 #define TORUS 6
 #define TEAPOT 7
 
-//#define NA 0
+#define NA -1
 
 #define GLOBAL 0
 #define LOCAL 1
@@ -67,6 +67,7 @@ int draw_prog = 1;
 char scene_file[MAX_FILE_NAME];
 char obj_file[MAX_FILE_NAME];
 int input_type = 0;
+float init_scale = 1.0;
 
 IMAGE texture;          /* final display texture */
 
@@ -85,7 +86,7 @@ extern int modulate_type;
 extern OBJECT objects[MAX_N_OBJECTS];
 extern int num_objects;
 
-int model = QUAD;       /* model shape (CUBE/MESH/QUAD) */
+int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
 int normals = 0;
 float ortho_scale = 50;
@@ -99,14 +100,117 @@ float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
+int counter = 0;
 
+/* console logging for some of the more ambiguous knobs */
+void print_settings(void)
+{
+    printf("\n============================\nNEW DISPLAY: %i\n", counter);
+    printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
+    printf("Perspective Correct:\t%s\n", perspective_correct ? "ON" : "OFF");
+    printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
+    printf(".....................\n");
+    printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
+    printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
+    printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
+    printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
+    printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
+    printf(".....................\n");
+}
+
+/*******************************************************/
+/* Reading in texture files */
+/*******************************************************/
+#define N_PPM_FILES 12
+#define N_TEXTURES (N_PPM_FILES + 2)
+/* to rotate between ppm files */
+char file_names[N_PPM_FILES][100] =
+{
+    "ppm/blackbuck.ascii.ppm",
+    "ppm/out.ppm",
+    "ppm/feep.ascii.ppm",
+    "ppm/feep2.ascii.ppm",
+    "ppm/pbmlib.ascii.ppm",
+    "ppm/sines.ascii.ppm",
+    "ppm/snail.ascii.ppm",
+    "ppm/star_field.ascii.ppm",
+    "ppm/apollonian_gasket.ascii.pgm",
+    "ppm/mona_lisa.ascii.pgm",
+    "ppm/stop01.ppm",
+    "ppm/me_square.ppm"
+};
+
+void set_texture (void)
+{
+    texture_idx %= N_TEXTURES;
+    if (texture_idx < N_PPM_FILES)
+    {
+        char *ppm_file = file_names[texture_idx];
+        /* to rotate between ppm files */
+        read_ppm(ppm_file, &texture);
+    }
+    else if (texture_idx == N_PPM_FILES)
+    {
+        random_texture(&texture);
+    }
+    else if (texture_idx == N_PPM_FILES + 1)
+    {
+        checkerboard_texture(&texture);
+    }
+}
+/*******************************************************/
+/* Render object using 3d graphics pipeline */
+/*******************************************************/
+void render_object(OBJECT *o)
+{
+    float cx, cy, cz, scale, r0, r1;
+    cx = o->center[X];
+    cy = o->center[Y];
+    cz = o->center[Z];
+    scale = o->scale;
+    r0 = o->radii[0];
+    r1 = o->radii[1];
+    
+    switch (o->type)
+    {
+        case CUBE:      init_cube(scale, cx, cy, cz);                       break;
+        case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
+        case QUAD:      init_quad();                                        break;
+        case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
+        case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
+        case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
+        case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
+        case TEAPOT:    read_obj_file("obj/teapot.obj", scale, 0, 0, 0);    break;
+    }
+    if(rot_mode == LOCAL)
+    {
+        rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+    }
+    else
+    {
+        rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
+    }
+    calculate_face_normals();
+    calculate_vertex_normals();
+    
+    if(normals) insert_normal_coords();
+    switch(proj_mode)
+    {
+        case ORTHO:
+            xform_model(ortho_scale);
+            break;
+        case PERSPECT:
+            translate_model(dz);
+            perspective_xform(3.0, 40.0);
+            viewport_xform(30);
+            break;
+    }
+    draw_model(draw_mode);
+}
 
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
-int counter = 0;
-
-
 /*
  * display routine
  */
@@ -152,204 +256,47 @@ void display(void)
     {
         perspective_correct = OFF;
     }
-
-    /*******************************************************/
-    /* Reading in texture files */
-    /*******************************************************/
-    #define N_PPM_FILES 12
-    #define N_TEXTURES (N_PPM_FILES + 2)
-    /* to rotate between ppm files */
-    char file_names[N_PPM_FILES][100] =
-    {
-        "ppm/blackbuck.ascii.ppm",
-        "ppm/out.ppm",
-        "ppm/feep.ascii.ppm",
-        "ppm/feep2.ascii.ppm",
-        "ppm/pbmlib.ascii.ppm",
-        "ppm/sines.ascii.ppm",
-        "ppm/snail.ascii.ppm",
-        "ppm/star_field.ascii.ppm",
-        "ppm/apollonian_gasket.ascii.pgm",
-        "ppm/mona_lisa.ascii.pgm",
-        "ppm/stop01.ppm",
-        "ppm/me_square.ppm"
-    };
-
-    texture_idx %= N_TEXTURES;
-    if (texture_idx < N_PPM_FILES)
-    {
-        char *ppm_file = file_names[texture_idx];
-        /* to rotate between ppm files */
-        read_ppm(ppm_file, &texture);
-    }
-    else if (texture_idx == N_PPM_FILES)
-    {
-        random_texture(&texture);
-    }
-    else if (texture_idx == N_PPM_FILES + 1)
-    {
-        checkerboard_texture(&texture);
-    }
-
+    set_texture();
+    
     /*
      * clear color and depth buffers
      */
     clear_color_buffer(1, 1, 1, 1);
     clear_depth_buffer(1.0);
     glPointSize(2.0);
-    
-    /* console logging for some of the more ambiguous knobs */
-    printf("\n============================\nNEW DISPLAY: %i\n", counter);
-    printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    printf("Perspective Correct:\t%s\n", perspective_correct ? "ON" : "OFF");
-    printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
-    printf(".....................\n");
-    printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
-    printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
-    printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
-    printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
-    printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
-    printf(".....................\n");
-
     counter++;
-    
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-    float cx, cy, cz, scale, r0, r1;
-    cx = 0;
-    cy = 0;
-    cz = 0;
 
     if(input_type == BASIC)
     {
-        switch (model)
-        {
-            case CUBE:  init_cube(1, cx, cy, cz);                       break;
-            case MESH:  init_mesh(1, cx, cy, cz, mesh_da);              break;
-            case QUAD:  init_quad();                                    break;
-            case CYLINDER: init_cylinder(0.5, 2, cx, cy, cz);           break;
-            case CONE: init_cone (0.5, 1, cx, cy, cz);                  break;
-            case SPHERE: init_sphere (0.5, cx, cy, cz);                 break;
-            case TORUS: init_torus(0.5, 1, cx, cy, cz);                 break;
-            case TEAPOT: read_obj_file("obj/teapot.obj", 1, 0, 0, 0);   break;
-        }
-        if(rot_mode == LOCAL)
-        {
-            rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
-        }
-        else
-        {
-            rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
-        }
-        calculate_face_normals();
-        calculate_vertex_normals();
-        
-        if(normals) insert_normal_coords();
-        switch(proj_mode)
-        {
-            case ORTHO:
-                xform_model(ortho_scale);
-                break;
-            case PERSPECT:
-                translate_model(dz);
-                perspective_xform(3.0, 40.0);
-                viewport_xform(30);
-                break;
-        }
-        draw_model(draw_mode);
+        printf("BASIC MODE\n");
+
+        OBJECT *o = &objects[0];
+        o->type = object_type;
+        o->scale = 1;
+        o->radii[0] = 0.5;
+        o->radii[1] = 1;
+        render_object(o);
     }
+    
     else if(input_type == SCENE)
     {
         for(int i = 0; i < num_objects; i++)
         {
-            OBJECT *o = &objects[i];
-            cx = o->center[X];
-            cy = o->center[Y];
-            cz = o->center[Z];
-            scale = o->scale;
-            r0 = o->radii[0];
-            r1 = o->radii[1];
-    
-            switch(o->type)
-            {
-                case CUBE:
-                    init_cube(scale, cx, cy, cz);
-                    break;
-                case SPHERE:
-                    init_sphere(r0, cx, cy, cz);
-                    break;
-                case TORUS:
-                    init_torus(r0, r1, cx, cy, cz);
-                    break;
-                case CONE:
-                    init_cone(r0, scale, cx, cy, cz);
-                    break;
-                case CYLINDER:
-                    init_cylinder(r0, scale, cx, cy, cz);
-                    break;
-                case MESH:
-                    init_mesh(scale, cx, cy, cz, mesh_da);
-                    break;
-                case TEAPOT:
-                    read_obj_file("obj/teapot.obj", scale, cx, cy, cz);
-                    break;
-            }
-            if(rot_mode == LOCAL)
-            {
-                rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
-            }
-            else
-            {
-                rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
-            }
-            calculate_face_normals();
-            calculate_vertex_normals();
-            
-            if(normals) insert_normal_coords();
-            switch(proj_mode)
-            {
-                case ORTHO:
-                    xform_model(ortho_scale);
-                    break;
-                case PERSPECT:
-                    translate_model(dz);
-                    perspective_xform(3.0, 40.0);
-                    viewport_xform(30);
-                    break;
-            }
-            draw_model(draw_mode);
+            render_object(&objects[i]);
         }
     }
-    else
+    else //OBJ
     {
-        read_obj_file(obj_file, 0.01, 0, 0, 0);
-        if(rot_mode == LOCAL)
-        {
-            rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
-        }
-        else
-        {
-            rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
-        }
-        calculate_face_normals();
-        calculate_vertex_normals();
-        
-        if(normals) insert_normal_coords();
-        switch(proj_mode)
-        {
-            case ORTHO:
-                xform_model(ortho_scale);
-                break;
-            case PERSPECT:
-                translate_model(dz);
-                perspective_xform(3.0, 40.0);
-                viewport_xform(30);
-                break;
-        }
-        draw_model(draw_mode);
+        printf("FROM OBJ\n");
+        OBJECT *o = &objects[0];
+        o->type = NA;
+        read_obj_file(obj_file, init_scale, 0, 0, 0);
+        render_object(o);
     }
-
+    
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -374,8 +321,8 @@ static void Key(unsigned char key, int x, int y)
             
         /* draw wire frame or fill */
         case 'f':       draw_mode = 1 - draw_mode;                      break;
-        /* toggle model shape between cube and mesh */
-        case ' ':       model = (model + 1) % N_MODELS;                 break;
+        /* toggle object_type between cube and mesh */
+        case ' ':       object_type = (object_type + 1) % N_TYPES;      break;
             
         /* rotations */
         case 'x':       dx_angle += 10;                                 break;
@@ -487,9 +434,14 @@ int main(int argc, char **argv)
     {
         if(!strcmp("OBJ", argv[1]))
         {
+            if(argc < 4)
+            {
+                printf("Please specify scale for OBJ file.\n");
+                return -1;
+            }
             strcat(obj_file, argv[2]); //get .obj file name
-//            read_obj_file(obj_file, 0.01, 0, 0, 0);
             input_type = OBJ;
+            init_scale = atof(argv[3]);
         }
         else if(!strcmp("SCENE", argv[1]))
         {

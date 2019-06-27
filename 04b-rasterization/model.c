@@ -13,7 +13,7 @@ typedef struct face
     float f_normal[4]; //face normal in world coordinates
 } FACE;
 
-#define NUM_VERTS 100000
+#define NUM_VERTS 1000000
 
 int modulate_type = MOD_COLOR;
 
@@ -25,7 +25,7 @@ float tex_list[NUM_VERTS][4];
 float color_list[NUM_VERTS][4];
 float normal_list[NUM_VERTS][4];
 
-FACE face_list[10000];
+FACE face_list[1000000];
 int num_triangles = 0;
 int num_vertices = 0;
 int num_normals = 0; //for finding centroids + endpoints in vertex_list
@@ -171,7 +171,7 @@ void init_cube (float scale, float cx, float cy, float cz)
 
 void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
-    printf("%f\n", scale);
+//    printf("%f\n", scale);
     /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
     set_vec4(tex_list[1], 1, 0, 0, 0);
@@ -202,8 +202,8 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         /* handle any possible comments */
         int next_ch;
         char comment[500];
-        char group[500];
-        char material[500];
+//        char group[500];
+//        char material[500];
         char next_line[500];
         
         next_ch = getc(fp);
@@ -212,7 +212,8 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         
         while(fgets(next_line, 500, fp)[0] != 'v')
         {
-            printf("%s\n", next_line);
+            ;
+//            printf("%s\n", next_line);
         }
         fputs(next_line, fp);
         
@@ -229,12 +230,11 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             num_vertices++;
         } while(fgets(next_line, 500, fp)[0] == 'v' && next_line[1] != 't');
 
-        printf("%i vertices read\n", num_vertices);
+//        printf("%i vertices read\n", num_vertices);
         /* reset num_tris for each vertex */
         reset_num_tris(num_vertices);
         
-        printf("NEXT: %s\n", next_line);
-//        while(strncmp(next_line, "vt", 2))
+//        printf("NEXT: %s\n", next_line);
         while(next_line[0] == '\n')
         {
 
@@ -255,8 +255,8 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 
         }
         fputs(next_line, fp);
-        printf("%i textures read\n", num_textures);
-        printf("NEXT: %s\n", next_line);
+//        printf("%i textures read\n", num_textures);
+//        printf("NEXT: %s\n", next_line);
 
         while(next_line[0] == '\n')
         {
@@ -277,8 +277,8 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             
         }
         fputs(next_line, fp);
-        printf("%i normals read\n", num_textures);
-        printf("NEXT: %s\n", next_line);
+//        printf("%i normals read\n", num_textures);
+//        printf("NEXT: %s\n", next_line);
         
         while(next_line[0] != 'f')
         {
@@ -327,7 +327,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                  }
             }
         }
-        printf("%i faces read\n", num_triangles);
+//        printf("%i faces read\n", num_triangles);
         
         fclose(fp);
     }

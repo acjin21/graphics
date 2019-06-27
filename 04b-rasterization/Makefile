@@ -3,8 +3,5 @@ OBJECTS = vector.c util.c texture.c image.c color.c depth.c test.c raster.c poin
 build: 
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o model 
 
-run: 
-	make build && ./triangle
-
 debug:
-	gcc -g $(OBJECTS) -o tri-debug && lldb tri-debug
+	gcc -g $(OBJECTS) -o run-debug && lldb run-debug
