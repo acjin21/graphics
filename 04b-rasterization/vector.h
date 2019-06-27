@@ -35,7 +35,7 @@ void scalar_divide (float s, float v[4], float res[4]);
 /*
  * calculate the reflection vector of light and store in refl
  */
-void vector_reflect (float light[4], float normal[4], float refl[4])
+void vector_reflect (float light[4], float normal[4], float refl[4]);
 
 
 /*

@@ -12,8 +12,6 @@ float material_ambient[4]   = {0.24725,     0.1995,     0.0745,     1};
 float material_diffuse[4]   = {0.75164,     0.60648,    0.22648,    1};
 float material_specular[4]  = {0.628281,    0.555802,   0.366065,   1};
 
-float eye[4] = { 0, 0, -1, 1 };
-extern float light[4];
 int num_material = GOLD;
 
 MATERIAL material_list[] = {
@@ -54,6 +52,7 @@ void set_material(int mat_type)
     cpy_vec4(material_ambient, material_list[mat_type].ambient);
     cpy_vec4(material_diffuse, material_list[mat_type].diffuse);
     cpy_vec4(material_specular, material_list[mat_type].specular);
+    shinyness = shinyness_list[mat_type] * 128;
 }
 
 
