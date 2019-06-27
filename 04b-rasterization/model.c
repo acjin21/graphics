@@ -23,12 +23,14 @@ int modulate_type = MOD_COLOR;
 POINT vertex_list[NUM_VERTS];
 float tex_list[NUM_VERTS][4];
 float color_list[NUM_VERTS][4];
+float normal_list[NUM_VERTS][4];
 
 FACE face_list[10000];
 int num_triangles = 0;
 int num_vertices = 0;
 int num_normals = 0; //for finding centroids + endpoints in vertex_list
 int num_textures = 0;
+int normals_provided = 0;
 
 extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
@@ -192,9 +194,11 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
     else
     {
         num_vertices = 0;
-        float x, y, z, s, t, r;
-        int i, j, k, vt1, vt2, vt3;
-        
+        float x, y, z, s, t, r, nx, ny, nz;
+        int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
+        vt1 = 0;
+        vt2 = 0;
+        vt3 = 0;
         /* handle any possible comments */
         int next_ch;
         char comment[500];
@@ -203,21 +207,18 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         char next_line[500];
         
         next_ch = getc(fp);
-        if(next_ch == '#')
-        {
-            fgets(comment, 500, fp);
-        }
-        else
-        {
-            ungetc(next_ch, fp);
-        }
+        if(next_ch == '#') fgets(comment, 500, fp);
+        else ungetc(next_ch, fp);
         
         while(fgets(next_line, 500, fp)[0] != 'v')
         {
             printf("%s\n", next_line);
         }
-        printf("put this back %s\n", next_line);
         fputs(next_line, fp);
+        
+        /******************/
+        /* vertices */
+        /******************/
         do
         {
             sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
@@ -226,15 +227,17 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                      cy + scale * y,
                      cz + scale * z, 1.0);
             num_vertices++;
-        } while(fgets(next_line, 500, fp)[0] == 'v');
+        } while(fgets(next_line, 500, fp)[0] == 'v' && next_line[1] != 't');
 
         printf("%i vertices read\n", num_vertices);
         /* reset num_tris for each vertex */
         reset_num_tris(num_vertices);
         
         printf("NEXT: %s\n", next_line);
+//        while(strncmp(next_line, "vt", 2))
         while(next_line[0] == '\n')
         {
+
             fgets(next_line, 500, fp);
         }
         fputs(next_line, fp);
@@ -260,26 +263,70 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             fgets(next_line, 500, fp);
         }
         fputs(next_line, fp);
+        
+        /******************/
+        /* normals */
+        /******************/
+        num_normals = 0;
+        while (!strncmp(next_line, "vn", 2))
+        {
+            sscanf(next_line, "vn %f %f %f\n", &nx, &ny, &nz);
+            set_vec4(normal_list[num_normals], nx, ny, nz, 0.0);
+            num_normals++;
+            fgets(next_line, 500, fp);
+            
+        }
+        fputs(next_line, fp);
+        printf("%i normals read\n", num_textures);
+        printf("NEXT: %s\n", next_line);
+        
+        while(next_line[0] != 'f')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+
 
         /******************/
         /* add faces/triangles */
         /******************/
         num_triangles = 0; // reset num of triangles
-//        printf("NEXT: %s\n", next_line);
-//        return;
         while(!strncmp(next_line, "f", 1))
         {
-//            printf("F: %s", next_line);
+            if(num_textures > 0 && num_normals > 0) // obj file has vt, vn
+            {
+                sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
+                       &i, &vt1, &vn1,
+                       &j, &vt2, &vn2,
+                       &k, &vt3, &vn3);
 
-//            printf("faces with only vertices\n");
-            //       vertices       colors      texture coords
-//            sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
-            sscanf(next_line, "f %d/%d %d/%d %d/%d\n", &i, &vt1, &j, &vt2, &k, &vt3);
-//            printf("%d %d %d\n", i, j, k);
-            add_face(i-1, j-1, k-1,    3, 3, 3,    0, 0, 0);
-            if(fgets(next_line, 500, fp) == NULL) return;
+            }
+            else if (num_textures > 0) // obj file has vt, vn
+            {
+                sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
+                       &i, &vt1, &j, &vt2, &k, &vt3);
+            }
+            else if (num_normals > 0)
+            {
+                sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
+                       &i, &vn1, &j, &vn2, &k, &vn3);
+            }
+            else {
+                sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+            }
+            add_face(i-1, j-1, k-1,    3, 3, 3,    vt1, vt2, vt3);
+            
+            if(fgets(next_line, 500, fp) == NULL) {
+                break; // reach end of file
+            }
+            while(next_line[0] != 'f')
+            {
+                 if(fgets(next_line, 500, fp) == NULL)
+                 {
+                     break;
+                 }
+            }
         }
-        
         printf("%i faces read\n", num_triangles);
         
         fclose(fp);
