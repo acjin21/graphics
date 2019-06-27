@@ -26,6 +26,7 @@
 #include "point.h"
 #include "model.h"
 #include "scene.h"
+#include "material.h"
 
 /*************************************************************************/
 /* defines                                                               */
@@ -100,6 +101,7 @@ float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
+int material_type = EMERALD;
 int counter = 0;
 
 /* console logging for some of the more ambiguous knobs */
@@ -256,6 +258,7 @@ void display(void)
     {
         perspective_correct = OFF;
     }
+    print_settings();
     set_texture();
     
     /*
@@ -271,7 +274,7 @@ void display(void)
 
     if(input_type == BASIC)
     {
-        printf("BASIC MODE\n");
+//        printf("BASIC MODE\n");
 
         OBJECT *o = &objects[0];
         o->type = object_type;
@@ -290,7 +293,7 @@ void display(void)
     }
     else //OBJ
     {
-        printf("FROM OBJ\n");
+//        printf("FROM OBJ\n");
         OBJECT *o = &objects[0];
         o->type = NA;
         read_obj_file(obj_file, init_scale, 0, 0, 0);
@@ -381,6 +384,10 @@ static void Key(unsigned char key, int x, int y)
             
         case 'O':
             write_obj_file("obj/out.obj");                              break;
+        
+        case '1':
+            material_type = (material_type + 1) % NUM_MATERIALS;
+            set_material(material_type);                                break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;

@@ -17,6 +17,12 @@ void vector_add (float v1[4], float v2[4], float res[4]);
 void vector_subtract (float v1[4], float v2[4], float res[4]);
 
 /*
+ * compute element-wise multiplication v1 * v2, storing difference in res
+ */
+void vector_multiply (float v1[4], float v2[4], float res[4]);
+
+
+/*
  * compute scalar multiplication s * v, storing product vector in res
  */
 void scalar_multiply (float s, float v[4], float res[4]);

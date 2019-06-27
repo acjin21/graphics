@@ -545,8 +545,8 @@ void init_sphere (float radius, float cx, float cy, float cz)
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+//            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
+            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
     }
     reset_num_tris(num_vertices);
@@ -559,12 +559,12 @@ void init_sphere (float radius, float cx, float cy, float cz)
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     //                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                                          0, 0, 0,
+//                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
             add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     //                     0, 0, 0,
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                                          0, 0, 0,
+//                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
     }

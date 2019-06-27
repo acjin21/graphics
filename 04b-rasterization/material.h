@@ -26,10 +26,13 @@
 #define WHITE_RUBBER        22
 #define YELLOW_RUBBER       23
 
+#define NUM_MATERIALS 24
+
 typedef struct material {
     float   ambient[4];
     float   diffuse[4];
     float   specular[4];
 } MATERIAL;
 
+void set_material(int mat_type);
 #endif

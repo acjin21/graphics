@@ -18,6 +18,10 @@ int perspective_correct = OFF;
 int shading_mode = FLAT;
 extern float light[4];
 extern int modulate_type;
+
+extern float material_diffuse[4];
+extern float light_diffuse[4];
+extern int material_type;
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -35,21 +39,24 @@ void draw_point (POINT *p)
     
     if(shading_mode == PHONG)
     {
+        float diffuse, tmp[4];
+        
         normalize(light);
-        float brightness = vector_dot(p->v_normal, light);
+        diffuse = vector_dot(p->v_normal, light);
+        scalar_multiply(diffuse, material_diffuse, tmp);
+        vector_multiply(tmp, light_diffuse, tmp);
+        
         if(modulate_type == MOD_COLOR) //modulate texture with color and brightness
         {
-            p->color[R] *= brightness;
-            p->color[G] *= brightness;
-            p->color[B] *= brightness;
-            p->color[A] = p->color[A];
+//            p->color[R] *= brightness;
+//            p->color[G] *= brightness;
+//            p->color[B] *= brightness;
+//            p->color[A] = p->color[A];
+            vector_multiply(p->color, tmp, p->color);
         }
         else if(modulate) //don't incorporate point's interpolated color
         {
-            p->color[R] = brightness;
-            p->color[G] = brightness;
-            p->color[B] = brightness;
-            p->color[A] = p->color[A];
+            cpy_vec4(p->color, tmp);
         }
         
         float ambient[4] = {0.3, 0.3, 0.3, 0};

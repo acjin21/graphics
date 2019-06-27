@@ -19,6 +19,13 @@ void vector_subtract (float v1[4], float v2[4], float res[4])
     }
 }
 
+void vector_multiply (float v1[4], float v2[4], float res[4])
+{
+    for(int i = 0; i < 4; i++)
+    {
+        res[i] = v1[i] * v2[i];
+    }
+}
 void scalar_multiply (float s, float v[4], float res[4])
 {
     for(int i = 0; i < 4; i++)
