@@ -44,6 +44,14 @@ void scalar_divide (float s, float v[4], float res[4])
     scalar_multiply(1.0 / s, v, res);
 }
 
+void vector_reflect (float light[4], float normal[4], float refl[4])
+{
+    float tmp[4];
+    float dot = vector_dot (normal, light);
+    scalar_multiply(2 * dot, normal, tmp);
+    vector_subtract(light, tmp, refl);
+}
+
 /* calculate length of vector v */
 float vector_length (float v[4])
 {

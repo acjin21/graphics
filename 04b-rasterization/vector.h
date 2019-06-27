@@ -33,6 +33,12 @@ void scalar_multiply (float s, float v[4], float res[4]);
 void scalar_divide (float s, float v[4], float res[4]);
 
 /*
+ * calculate the reflection vector of light and store in refl
+ */
+void vector_reflect (float light[4], float normal[4], float refl[4])
+
+
+/*
  * compute length of v
  */
 float vector_length (float v[4]);
