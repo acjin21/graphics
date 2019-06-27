@@ -1,6 +1,7 @@
 #include "model.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 extern float depth_buffer[WIN_H][WIN_W];
 
@@ -12,7 +13,7 @@ typedef struct face
     float f_normal[4]; //face normal in world coordinates
 } FACE;
 
-#define NUM_VERTS 1000000
+#define NUM_VERTS 100000
 
 int modulate_type = MOD_COLOR;
 
@@ -168,6 +169,7 @@ void init_cube (float scale, float cx, float cy, float cz)
 
 void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
+    printf("%f\n", scale);
     /* set tex coordinates to four corners of texture */
     set_vec4(tex_list[0], 0, 0, 0, 0);
     set_vec4(tex_list[1], 1, 0, 0, 0);
@@ -190,28 +192,94 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
     else
     {
         num_vertices = 0;
-        float x, y, z;
-        int i, j, k;
-        while(fscanf(fp, "v %f %f %f\n", &x, &y, &z) == 3)
+        float x, y, z, s, t, r;
+        int i, j, k, vt1, vt2, vt3;
+        
+        /* handle any possible comments */
+        int next_ch;
+        char comment[500];
+        char group[500];
+        char material[500];
+        char next_line[500];
+        
+        next_ch = getc(fp);
+        if(next_ch == '#')
         {
+            fgets(comment, 500, fp);
+        }
+        else
+        {
+            ungetc(next_ch, fp);
+        }
+        
+        while(fgets(next_line, 500, fp)[0] != 'v')
+        {
+            printf("%s\n", next_line);
+        }
+        printf("put this back %s\n", next_line);
+        fputs(next_line, fp);
+        do
+        {
+            sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
             set_vec4(vertex_list[num_vertices].world,
                      cx + scale * x,
                      cy + scale * y,
                      cz + scale * z, 1.0);
             num_vertices++;
-        }
+        } while(fgets(next_line, 500, fp)[0] == 'v');
+
         printf("%i vertices read\n", num_vertices);
         /* reset num_tris for each vertex */
         reset_num_tris(num_vertices);
         
-        /* add faces/triangles */
-        num_triangles = 0; // reset num of triangles
-        fscanf(fp, "\n");
-        while(fscanf(fp, "f %d %d %d\n", &i, &j, &k) == 3)
+        printf("NEXT: %s\n", next_line);
+        while(next_line[0] == '\n')
         {
-            //       vertices       colors      texture coords
-            add_face(i-1, j-1, k-1,    3, 3, 3,    0, 3, 1);
+            fgets(next_line, 500, fp);
         }
+        fputs(next_line, fp);
+        /******************/
+        /* textures */
+        /******************/
+        num_textures = 0;
+        while (!strncmp(next_line, "vt", 2))
+        {
+
+            sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
+            set_vec4(tex_list[num_textures], s, t, r, 0.0);
+            num_textures++;
+            fgets(next_line, 500, fp);
+
+        }
+        fputs(next_line, fp);
+        printf("%i textures read\n", num_textures);
+        printf("NEXT: %s\n", next_line);
+
+        while(next_line[0] == '\n')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+
+        /******************/
+        /* add faces/triangles */
+        /******************/
+        num_triangles = 0; // reset num of triangles
+//        printf("NEXT: %s\n", next_line);
+//        return;
+        while(!strncmp(next_line, "f", 1))
+        {
+//            printf("F: %s", next_line);
+
+//            printf("faces with only vertices\n");
+            //       vertices       colors      texture coords
+//            sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+            sscanf(next_line, "f %d/%d %d/%d %d/%d\n", &i, &vt1, &j, &vt2, &k, &vt3);
+//            printf("%d %d %d\n", i, j, k);
+            add_face(i-1, j-1, k-1,    3, 3, 3,    0, 0, 0);
+            if(fgets(next_line, 500, fp) == NULL) return;
+        }
+        
         printf("%i faces read\n", num_triangles);
         
         fclose(fp);
@@ -793,9 +861,6 @@ void draw_model(int mode)
         
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {
-                //                p0.color[R] = 1;    p0.color[G] = 0;    p0.color[B] = 0;
-                //                p1.color[R] = 1;    p1.color[G] = 0;    p1.color[B] = 0;
-                //                p2.color[R] = 1;    p2.color[G] = 0;    p2.color[B] = 0;
                 scalar_multiply(0.1, p0.color, p0.color);
                 scalar_multiply(0.1, p1.color, p1.color);
                 scalar_multiply(0.1, p2.color, p2.color);

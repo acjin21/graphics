@@ -458,7 +458,7 @@ void display(void)
     }
     else
     {
-        read_obj_file(obj_file, 1, 0, 0, 0);
+        read_obj_file(obj_file, 0.01, 0, 0, 0);
         if(rot_mode == LOCAL)
         {
             rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
@@ -623,7 +623,7 @@ int main(int argc, char **argv)
         if(!strcmp("OBJ", argv[1]))
         {
             strcat(obj_file, argv[2]); //get .obj file name
-            read_obj_file(obj_file, 1, 0, 0, 0);
+//            read_obj_file(obj_file, 0.01, 0, 0, 0);
             input_type = OBJ;
         }
         else if(!strcmp("SCENE", argv[1]))
