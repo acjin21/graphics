@@ -9,7 +9,6 @@ extern float depth_buffer[WIN_H][WIN_W];
 /* defines                                                               */
 /*************************************************************************/
 
-
 /* modes */
 int alpha_blend = OFF;
 int depth_test = OFF;
