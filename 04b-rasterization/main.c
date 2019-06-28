@@ -174,9 +174,6 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
-//    dx_angle = o->rotation[X];
-//    dy_angle = o->rotation[Y];
-//    dz_angle = o->rotation[Z];
 
     switch (o->type)
     {
@@ -195,16 +192,16 @@ void render_object(OBJECT *o)
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
-                     o->rotation[X] + dx_angle,
-                     o->rotation[Y] + dy_angle,
-                     o->rotation[Z] + dz_angle);
+                     o->init_orientation[X] + dx_angle,
+                     o->init_orientation[Y] + dy_angle,
+                     o->init_orientation[Z] + dz_angle);
     }
     else
     {
         rotate_model(0, 0, 0,
-                     o->rotation[X] + dx_angle,
-                     o->rotation[Y] + dy_angle,
-                     o->rotation[Z] + dz_angle);
+                     o->init_orientation[X] + dx_angle,
+                     o->init_orientation[Y] + dy_angle,
+                     o->init_orientation[Z] + dz_angle);
     }
     calculate_face_normals();
     calculate_vertex_normals();
@@ -396,18 +393,19 @@ static void Key(unsigned char key, int x, int y)
             for(int i = 0; i < num_objects; i++)
             {
                 OBJECT *o = &objects[i];
-                o->rotation[X] += dx_angle;
-                o->rotation[Y] += dy_angle;
-                o->rotation[Z] += dz_angle;
+                o->init_orientation[X] += dx_angle;
+                o->init_orientation[Y] += dy_angle;
+                o->init_orientation[Z] += dz_angle;
             }
             strcat(scene_name, strtok(scene_file, "."));
             write_scene(strcat(scene_name,"_out.txt"));
+            //temp fix so that writing object files doesnt cause another rotation
             for(int i = 0; i < num_objects; i++)
             {
                 OBJECT *o = &objects[i];
-                o->rotation[X] -= dx_angle;
-                o->rotation[Y] -= dy_angle;
-                o->rotation[Z] -= dz_angle;
+                o->init_orientation[X] -= dx_angle;
+                o->init_orientation[Y] -= dy_angle;
+                o->init_orientation[Z] -= dz_angle;
             }
             break;
             

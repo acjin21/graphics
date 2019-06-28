@@ -10,7 +10,7 @@ typedef struct object {
     float scale;
     float radii[2];
     
-    float rotation[3]; //dx_angle, dy_angle, dz_angle
+    float init_orientation[3]; //dx_angle, dy_angle, dz_angle
     
 } OBJECT;
 

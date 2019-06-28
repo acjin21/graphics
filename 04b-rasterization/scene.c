@@ -76,13 +76,12 @@ void write_scene (char *file_name)
             scale = o->scale;
             r0 = o->radii[0];
             r1 = o->radii[1];
-            dx_angle = o->rotation[X];
-            dy_angle = o->rotation[Y];
-            dz_angle = o->rotation[Z];
+            dx_angle = o->init_orientation[X];
+            dy_angle = o->init_orientation[Y];
+            dz_angle = o->init_orientation[Z];
             
             //iterate through objects list
-            fprintf(fp,
-                    "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f\tr0: %.2f\tr1: %.2f\trotation: %.2f, %.2f, %.2f\n",
+            fprintf(fp, "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f\tr0: %.2f\tr1: %.2f\trotation: %.2f, %.2f, %.2f\n",
                     type, cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle);
             //write each object out into file
         }
@@ -130,9 +129,9 @@ void read_scene (char *file_name)
             o->scale = scale;
             o->radii[0] = r0;
             o->radii[1] = r1;
-            o->rotation[X] = dx_angle;
-            o->rotation[Y] = dy_angle;
-            o->rotation[Z] = dz_angle;
+            o->init_orientation[X] = dx_angle;
+            o->init_orientation[Y] = dy_angle;
+            o->init_orientation[Z] = dz_angle;
 
         }
         printf("Done reading scene file from %s\n", file_name);
