@@ -31,13 +31,8 @@
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
-#define DEPTH 0
-#define COLOR 1
 
 #define INIT_DZ 5
-
-#define ORTHO 0
-#define PERSPECT 1
 
 #define N_TYPES 10
 #define QUAD 0
@@ -70,14 +65,14 @@ int draw_prog = 1;
 char scene_file[MAX_FILE_NAME];
 char obj_file[MAX_FILE_NAME];
 int input_type = 0;
-float init_scale = 1.0;
+float init_scale = 1.0; //for obj files from the internet
 
 IMAGE texture;          /* final display texture */
 
 /* toggles/knobs */
-int draw_mode = FRAME;  /* draw model as wireframe or filled (FRAME/FILL) */
-int proj_mode = ORTHO;  /* projection type (ORTHO/PERSPECT) */
-int buffer = COLOR;     /* which buffer to draw from (COLOR/DEPTH) */
+extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
+extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
+extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
 extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
@@ -85,6 +80,7 @@ extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
+
 /* for drawing multiple 3d objects on screen */
 extern OBJECT objects[MAX_N_OBJECTS];
 extern int num_objects;
@@ -99,6 +95,7 @@ float dx_angle = 0;     /* init 3D rotation angle about the x axis */
 float dy_angle = 0;     /* init 3D rotation angle about the y axis */
 float dz_angle = 0;     /* init 3D rotation angle about the z axis */
 int rot_mode = LOCAL;
+
 float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */

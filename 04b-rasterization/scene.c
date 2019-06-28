@@ -2,10 +2,22 @@
 
 #include "macros.h"
 #include "util.h"
+#include "model.h"
 #include <stdio.h>
 
 OBJECT objects[MAX_N_OBJECTS];
 int num_objects = 0;
+
+int draw_mode = FRAME;  /* draw model as wireframe or filled (FRAME/FILL) */
+int proj_mode = ORTHO;  /* projection type (ORTHO/PERSPECT) */
+int buffer = COLOR;     /* which buffer to draw from (COLOR/DEPTH) */
+extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
+extern int texturing;   /* whether texturing is turned on (OFF/ON) */
+extern int modulate;    /* whether modulating is turned on (OFF/ON) */
+extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
+extern int shading_mode;
+extern int perspective_correct;
+extern int modulate_type;
 
 void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
                  float scale, float r0, float r1)
@@ -63,6 +75,9 @@ void write_scene (char *file_name)
         printf("%s has been opened and its contents overwritten.\n", file_name);
         fprintf(fp, "SCENE FILE: %s\n", file_name);
         fprintf(fp, "%i\n", num_objects);
+        fprintf(fp, "%i %i %i\n", draw_mode, proj_mode, buffer);
+        fprintf(fp, "%i %i %i %i %i %i %i\n", depth_test, texturing, modulate,
+               alpha_blend, shading_mode, perspective_correct, modulate_type);
         
         int type;
         float cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle;
@@ -107,7 +122,10 @@ void read_scene (char *file_name)
         fscanf(fp, "SCENE FILE: %s\n", name);
         printf("SCENE FILE: %s\n", name);
         fscanf(fp, "%i\n", &num_objects);
-        
+        fscanf(fp, "%i %i %i\n", &draw_mode, &proj_mode, &buffer);
+        fscanf(fp, "%i %i %i %i %i %i %i\n", &depth_test, &texturing, &modulate,
+               &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
+
         int type;
         float cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle;
         for(int i = 0 ; i < num_objects; i++)

@@ -3,6 +3,11 @@
 
 #define MAX_N_OBJECTS 10
 
+#define ORTHO 0
+#define PERSPECT 1
+
+#define DEPTH 0
+#define COLOR 1
 
 typedef struct object {
     int type;
