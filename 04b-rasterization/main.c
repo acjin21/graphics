@@ -184,7 +184,7 @@ void render_object(OBJECT *o)
         case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
         case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
-        case TEAPOT:    read_obj_file("obj/teapot.obj", scale, 0, 0, 0);    break;
+        case TEAPOT:    read_obj_file("obj/teapot.obj", scale, cx, cy, cz); break;
         case CAT:       read_obj_file("obj/cat.obj", 0.01, 0, 0, 0);        break;
         case DEER:      read_obj_file("obj/deer.obj", 0.005, 0, 0, 0);      break;
 
