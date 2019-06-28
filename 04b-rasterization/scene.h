@@ -9,6 +9,9 @@ typedef struct object {
     float center[3];
     float scale;
     float radii[2];
+    
+    float rotation[3]; //dx_angle, dy_angle, dz_angle
+    
 } OBJECT;
 
 void write_scene (char *file_name);

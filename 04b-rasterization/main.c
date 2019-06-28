@@ -174,7 +174,10 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
-    
+//    dx_angle = o->rotation[X];
+//    dy_angle = o->rotation[Y];
+//    dz_angle = o->rotation[Z];
+
     switch (o->type)
     {
         case CUBE:      init_cube(scale, cx, cy, cz);                       break;
@@ -191,11 +194,17 @@ void render_object(OBJECT *o)
     }
     if(rot_mode == LOCAL)
     {
-        rotate_model(cx, cy, cz, dx_angle, dy_angle, dz_angle);
+        rotate_model(cx, cy, cz,
+                     o->rotation[X] + dx_angle,
+                     o->rotation[Y] + dy_angle,
+                     o->rotation[Z] + dz_angle);
     }
     else
     {
-        rotate_model(0, 0, 0, dx_angle, dy_angle, dz_angle);
+        rotate_model(0, 0, 0,
+                     o->rotation[X] + dx_angle,
+                     o->rotation[Y] + dy_angle,
+                     o->rotation[Z] + dz_angle);
     }
     calculate_face_normals();
     calculate_vertex_normals();
@@ -384,8 +393,23 @@ static void Key(unsigned char key, int x, int y)
         case 'n':       normals = 1 - normals;                          break;
         /* write out scene objects with initial orientation to a scene file */
         case 'W':
+            for(int i = 0; i < num_objects; i++)
+            {
+                OBJECT *o = &objects[i];
+                o->rotation[X] += dx_angle;
+                o->rotation[Y] += dy_angle;
+                o->rotation[Z] += dz_angle;
+            }
             strcat(scene_name, strtok(scene_file, "."));
-            write_scene(strcat(scene_name,"_out.txt"));                 break;
+            write_scene(strcat(scene_name,"_out.txt"));
+            for(int i = 0; i < num_objects; i++)
+            {
+                OBJECT *o = &objects[i];
+                o->rotation[X] -= dx_angle;
+                o->rotation[Y] -= dy_angle;
+                o->rotation[Z] -= dz_angle;
+            }
+            break;
             
         case 'O':
             write_obj_file("obj/out.obj");                              break;
