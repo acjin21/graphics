@@ -26,6 +26,9 @@ typedef struct point {
     int num_tris;
     float v_normal[4];
 } POINT;
+void set_diffuse_term (float normal[4], float diffuse_term[4]);
+void set_specular_term (float normal[4], float spec_term[4]);
+void shade_point (float diffuse[4], float spec[4], POINT *p);
 
 void draw_point (POINT *p);
 void set_position (POINT *p, float x, float y, float z, float w);

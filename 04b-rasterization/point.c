@@ -25,6 +25,43 @@ extern int modulate_type;
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
+
+/* calculate diffuse term for current material and light types, and
+ store vector result in diffuse_term */
+void set_diffuse_term (float normal[4], float diffuse_term[4])
+{
+    float diffuse;
+    normalize(light);
+    diffuse = MAX(vector_dot(normal, light), 0);
+    scalar_multiply(diffuse, material_diffuse, diffuse_term);
+    vector_multiply(diffuse_term, light_diffuse, diffuse_term);
+}
+
+/* calculate specular term for current material and light types, and
+ store vector result in specular_term */
+void set_specular_term (float normal[4], float spec_term[4])
+{
+    float specular, refl[4];
+    normalize(light);
+    vector_reflect(light, normal, refl);
+    specular = MAX(vector_dot(eye, refl), 0);
+    specular = pow(specular, shinyness);
+    scalar_multiply(specular, material_specular, spec_term);
+    vector_multiply(spec_term, light_specular, spec_term);
+}
+
+/* shade point p with diffuse, specular, and ambient components using the given
+ diffuse and specular vectors */
+void shade_point (float diffuse[4], float spec[4], POINT *p)
+{
+    vector_multiply(diffuse, p->color, p->color);
+    vector_add(spec, p->color, p->color);
+    
+    float ambient[4] = {0, 0 , 0 , 0};
+    vector_multiply(light_ambient, material_ambient, ambient);
+    vector_add(p->color, ambient, p->color);
+}
+
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -42,35 +79,24 @@ void draw_point (POINT *p)
     
     if(shading_mode == PHONG)
     {
-        float diffuse, tmp[4], specular, refl[4], tmp_spec[4], intensity[4];
+        float tmp_diff[4], tmp_spec[4];
         
-        normalize(light);
-        normalize(p->v_normal);
-        diffuse = MAX(vector_dot(p->v_normal, light), 0);
-        scalar_multiply(diffuse, material_diffuse, tmp);
-        vector_multiply(tmp, light_diffuse, tmp);
-        
-        vector_reflect(light, p->v_normal, refl);
-        specular = MAX(vector_dot(eye, refl), 0);
-        specular = pow(specular, shinyness);
-        scalar_multiply(specular, material_specular, tmp_spec);
-        vector_multiply(tmp_spec, light_specular, tmp_spec);
+        set_diffuse_term(p->v_normal, tmp_diff);
+        set_specular_term(p->v_normal, tmp_spec);
         
         if(modulate_type == MOD_COLOR) //modulate texture with color and brightness
         {
-            vector_multiply(p->color, tmp, p->color);
-            vector_add(p->color, tmp_spec, p->color);
+            shade_point(tmp_diff, tmp_spec, p);
         }
         else if(modulate) //don't incorporate point's interpolated color
         {
-
-            cpy_vec4(p->color, tmp);
+            cpy_vec4(p->color, tmp_diff);
             vector_add(p->color, tmp_spec, p->color);
+            
+            float ambient[4] = {0, 0, 0, 0};
+            vector_multiply(light_ambient, material_ambient, ambient);
+            vector_add(p->color, ambient, p->color);
         }
-        
-        float ambient[4] = {0, 0, 0, 0};
-        vector_multiply(light_ambient, material_ambient, ambient);
-        vector_add(p->color, ambient, p->color);
     }
     
     if(texturing)
