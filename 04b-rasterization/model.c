@@ -677,20 +677,20 @@ void insert_normal_coords(void)
     }
 }
 
-void insert_coord_axes (float cx, float cy, float cz, float scale)
-{
-    if(normals == ON)
-    {
-        axes_start_idx = num_vertices + 2 * num_normals;
-    }
-    else
-    {
-        axes_start_idx = num_vertices;
-    }
-    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 0 );
-    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 1, 0, 0, 0);
-    
-}
+//void insert_coord_axes (float cx, float cy, float cz, float scale)
+//{
+//    if(normals == ON)
+//    {
+//        axes_start_idx = num_vertices + 2 * num_normals;
+//    }
+//    else
+//    {
+//        axes_start_idx = num_vertices;
+//    }
+//    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 0 );
+//    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 1, 0, 0, 0);
+//
+//}
 
 
 
@@ -955,10 +955,10 @@ void draw_model(int mode)
         }
 //        if( 1 )
 //        {
-            set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);
-            set_vec4(vertex_list[axes_start_idx + 1].color, 1, 0, 0, 1);
-            draw_line(&vertex_list[axes_start_idx],
-                      &vertex_list[axes_start_idx + 1], DRAW);
+//            set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);
+//            set_vec4(vertex_list[axes_start_idx + 1].color, 1, 0, 0, 1);
+//            draw_line(&vertex_list[axes_start_idx],
+//                      &vertex_list[axes_start_idx + 1], DRAW);
 //        }
 
     }

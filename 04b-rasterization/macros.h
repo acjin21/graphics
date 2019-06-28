@@ -21,6 +21,14 @@
 #define EPSILON 0.0001
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
 #define MAX(_a,_l) (_a < _l ? _l : _a)
+#define CLAMP(a,l,h) ((a) < (l) ? (l) : ((a) > (h) ? (h) : (a)))
+
+#define CLAMP_IMG(val,min_val,max_val)\
+{                   \
+val = (val >= max_val) ? max_val - 1 : val; \
+val = (val < min_val) ? min_val : val; \
+}
+
 
 #define MOD_COLOR 0
 #define MOD_LIGHT 1

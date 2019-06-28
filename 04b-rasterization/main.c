@@ -27,7 +27,7 @@
 #include "model.h"
 #include "scene.h"
 #include "material.h"
-
+#include "post-processing.h"
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -318,6 +318,7 @@ void display(void)
         render_object(o);
     }
     
+    apply_post_processing();
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    

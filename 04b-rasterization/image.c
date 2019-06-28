@@ -398,12 +398,6 @@ void fisheye (IMAGE *input, IMAGE *output)
     }
 }
 
-#define CLAMP(val,min_val,max_val)\
-{                   \
-val = (val >= max_val) ? max_val - 1 : val; \
-val = (val < min_val) ? min_val : val; \
-}
-
 /* einstein caricature */
 void einstein (IMAGE *input, IMAGE *output)
 {
@@ -428,8 +422,8 @@ void einstein (IMAGE *input, IMAGE *output)
             polar_to_cartesian(new_r, curr_angle, &new_i, &new_j,
                                input->width, input->height);
             
-            CLAMP(new_i, 0, input->width);
-            CLAMP(new_j, 0, input->height);
+            CLAMP_IMG(new_i, 0, input->width);
+            CLAMP_IMG(new_j, 0, input->height);
 
             output->data[j][i][R] = input->data[(int) new_j][(int) new_i][R];
             output->data[j][i][G] = input->data[(int) new_j][(int) new_i][G];
