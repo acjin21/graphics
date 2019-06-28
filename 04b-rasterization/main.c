@@ -102,6 +102,7 @@ float dx_angle = 0;     /* init 3D rotation angle about the x axis */
 float dy_angle = 0;     /* init 3D rotation angle about the y axis */
 float dz_angle = 0;     /* init 3D rotation angle about the z axis */
 
+int post_processing = OFF;
 
 float mesh_da = 0;      /* flowing mesh animation */
 
@@ -224,7 +225,6 @@ void render_object(OBJECT *o)
             break;
     }
 
-
     draw_model(draw_mode);
 }
 
@@ -317,8 +317,10 @@ void display(void)
         read_obj_file(obj_file, init_scale, 0, 0, 0);
         render_object(o);
     }
-    
-    apply_post_processing();
+    if(post_processing == ON)
+    {
+        apply_post_processing();
+    }
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
@@ -422,6 +424,8 @@ static void Key(unsigned char key, int x, int y)
         
         case '1':
             material_type = (material_type + 1) % NUM_MATERIALS;        break;
+        case '2':
+            post_processing = 1 - post_processing;                      break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
