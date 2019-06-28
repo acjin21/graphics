@@ -73,6 +73,11 @@ IMAGE texture;          /* final display texture */
 extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
 extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
 extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
+
+float ortho_scale = 50;
+int rot_mode = LOCAL;
+float dz = INIT_DZ;     /* init dz in world space for perspective projection */
+
 extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */
@@ -82,11 +87,11 @@ extern int perspective_correct;
 extern int modulate_type;
 
 /* more knobs */
-int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) */
-int texture_idx = 0;
-int normals = 0;
-float ortho_scale = 50;
-int material_type = EMERALD;
+int texture_idx = 0;            //todo
+int material_type = EMERALD;    //todo  //have a diff material type for each object
+
+int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) //already recorded in scene files */
+int normals = 0;            //todo or omit-- more of a debugging tool
 
 /* for drawing multiple 3d objects on screen */
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -96,9 +101,7 @@ extern int num_objects;
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
 float dy_angle = 0;     /* init 3D rotation angle about the y axis */
 float dz_angle = 0;     /* init 3D rotation angle about the z axis */
-int rot_mode = LOCAL;
 
-float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
@@ -111,6 +114,7 @@ void print_settings(void)
     printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
     printf("Perspective Correct:\t%s\n", perspective_correct ? "ON" : "OFF");
     printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
+    printf("Rotation Mode:\t%s\n", rot_mode ? "LOCAL" : "GLOBAL");
     printf(".....................\n");
     printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
     printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
@@ -184,8 +188,10 @@ void render_object(OBJECT *o)
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
         case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
         case TEAPOT:    read_obj_file("obj/teapot.obj", scale, cx, cy, cz); break;
-        case CAT:       read_obj_file("obj/cat.obj", 0.01, 0, 0, 0);        break;
-        case DEER:      read_obj_file("obj/deer.obj", 0.005, 0, 0, 0);      break;
+        case CAT:       init_scale = 0.01;
+                        read_obj_file("obj/cat.obj", init_scale, 0, 0, 0);  break;
+        case DEER:      init_scale = 0.005;
+                        read_obj_file("obj/deer.obj", init_scale, 0, 0, 0); break;
     }
     if(rot_mode == LOCAL)
     {
@@ -205,6 +211,7 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     
     if(normals) insert_normal_coords();
+
     switch(proj_mode)
     {
         case ORTHO:
@@ -216,6 +223,8 @@ void render_object(OBJECT *o)
             viewport_xform(30);
             break;
     }
+
+
     draw_model(draw_mode);
 }
 
