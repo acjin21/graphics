@@ -81,14 +81,16 @@ extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
 
-/* for drawing multiple 3d objects on screen */
-extern OBJECT objects[MAX_N_OBJECTS];
-extern int num_objects;
-
+/* more knobs */
 int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) */
 int texture_idx = 0;
 int normals = 0;
 float ortho_scale = 50;
+int material_type = EMERALD;
+
+/* for drawing multiple 3d objects on screen */
+extern OBJECT objects[MAX_N_OBJECTS];
+extern int num_objects;
 
 /* offset vars */
 float dx_angle = 0;     /* init 3D rotation angle about the x axis */
@@ -100,7 +102,6 @@ float dz = INIT_DZ;     /* init dz in world space for perspective projection */
 
 float mesh_da = 0;      /* flowing mesh animation */
 
-int material_type = EMERALD;
 int counter = 0;
 
 /* console logging for some of the more ambiguous knobs */
@@ -116,6 +117,7 @@ void print_settings(void)
     printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
     printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
     printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
+    printf("Material:\t%s\n", material_name(material_type));
     printf(".....................\n");
 }
 
@@ -171,7 +173,7 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
-
+    set_material(material_type);
     switch (o->type)
     {
         case CUBE:      init_cube(scale, cx, cy, cz);                       break;
@@ -184,7 +186,6 @@ void render_object(OBJECT *o)
         case TEAPOT:    read_obj_file("obj/teapot.obj", scale, cx, cy, cz); break;
         case CAT:       read_obj_file("obj/cat.obj", 0.01, 0, 0, 0);        break;
         case DEER:      read_obj_file("obj/deer.obj", 0.005, 0, 0, 0);      break;
-
     }
     if(rot_mode == LOCAL)
     {
@@ -410,8 +411,7 @@ static void Key(unsigned char key, int x, int y)
             write_obj_file("obj/out.obj");                              break;
         
         case '1':
-            material_type = (material_type + 1) % NUM_MATERIALS;
-            set_material(material_type);                                break;
+            material_type = (material_type + 1) % NUM_MATERIALS;        break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;

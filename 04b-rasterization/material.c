@@ -55,5 +55,83 @@ void set_material(int mat_type)
     shinyness = shinyness_list[mat_type] * 128;
 }
 
+char *material_name(int mat_type)
+{
+    switch(mat_type)
+    {
+        case EMERALD:
+            return "EMERALD";
+            break;
+        case JADE:
+            return "JADE";
+            break;
+        case OBSIDIAN:
+            return "OBSIDIAN";
+            break;
+        case PEARL:
+            return "PEARL";
+            break;
+        case RUBY:
+            return "RUBY";
+            break;
+        case TURQUOISE:
+            return "TURQUOISE";
+            break;
+        case BRASS:
+            return "BRASS";
+            break;
+        case BRONZE:
+            return "BRONZE";
+            break;
+        case CHROME:
+            return "CHROME";
+            break;
+        case COPPER:
+            return "COPPER";
+            break;
+        case GOLD:
+            return "GOLD";
+            break;
+        case SILVER:
+            return "SILVER";
+            break;
+        case CYAN_PLASTIC:
+            return "CYAN_PLASTIC";
+            break;
+        case GREEN_PLASTIC:
+            return "GREEN_PLASTIC";
+            break;
+        case RED_PLASTIC:
+            return "RED_PLASTIC";
+            break;
+        case WHITE_PLASTIC:
+            return "WHITE_PLASTIC";
+            break;
+        case YELLOW_PLASTIC:
+            return "YELLOW_PLASTIC";
+            break;
+        case BLACK_RUBBER:
+            return "BLACK_RUBBER";
+            break;
+        case CYAN_RUBBER:
+            return "CYAN_RUBBER";
+            break;
+        case GREEN_RUBBER:
+            return "GREEN_RUBBER";
+            break;
+        case RED_RUBBER:
+            return "RED_RUBBER:";
+            break;
+        case WHITE_RUBBER:
+            return "WHITE_RUBBER";
+            break;
+        case YELLOW_RUBBER:
+            return "YELLOW_RUBBER";
+            break;
+        default:
+            return "NA";
+            break;
+    }
+}
 
 
