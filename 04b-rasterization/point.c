@@ -25,7 +25,6 @@ extern int modulate_type;
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
-extern int material_type;
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
@@ -47,39 +46,31 @@ void draw_point (POINT *p)
         
         normalize(light);
         normalize(p->v_normal);
-        diffuse = CLAMP_LOW(vector_dot(p->v_normal, light), 0);
+        diffuse = MAX(vector_dot(p->v_normal, light), 0);
         scalar_multiply(diffuse, material_diffuse, tmp);
         vector_multiply(tmp, light_diffuse, tmp);
         
         vector_reflect(light, p->v_normal, refl);
-        specular = CLAMP_LOW(vector_dot(eye, refl), 0);
+        specular = MAX(vector_dot(eye, refl), 0);
         specular = pow(specular, shinyness);
         scalar_multiply(specular, material_specular, tmp_spec);
         vector_multiply(tmp_spec, light_specular, tmp_spec);
         
         if(modulate_type == MOD_COLOR) //modulate texture with color and brightness
         {
-            vector_multiply(p->color, tmp, tmp);
+            vector_multiply(p->color, tmp, p->color);
             vector_add(p->color, tmp_spec, p->color);
-            
-//            vector_multiply(p->color, tmp_spec, tmp_spec);
-//            vector_add(tmp, tmp_spec, intensity);
-//            cpy_vec4(p->color, intensity);
         }
         else if(modulate) //don't incorporate point's interpolated color
         {
-//            p->color[R] = brightness;
-//            p->color[G] = brightness;
-//            p->color[B] = brightness;
-//            p->color[A] = p->color[A];
+
             cpy_vec4(p->color, tmp);
             vector_add(p->color, tmp_spec, p->color);
         }
         
         float ambient[4] = {0, 0, 0, 0};
-//        vector_add(ambient, material_ambient, ambient);
-//        vector_add(ambient, light_ambient, ambient);
-//        vector_add(p->color, material_ambient, p->color);
+        vector_multiply(light_ambient, material_ambient, ambient);
+        vector_add(p->color, ambient, p->color);
     }
     
     if(texturing)

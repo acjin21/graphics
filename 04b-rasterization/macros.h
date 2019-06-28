@@ -20,7 +20,7 @@
 #define PI 3.1415926
 #define EPSILON 0.0001
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
-#define CLAMP_LOW(_a,_l) (_a < _l ? _l : _a)
+#define MAX(_a,_l) (_a < _l ? _l : _a)
 
 #define MOD_COLOR 0
 #define MOD_LIGHT 1

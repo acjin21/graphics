@@ -37,6 +37,10 @@ extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normals; // mode: whether drawing normals or not
 extern int shading_mode;
 extern float light[4]; // light vector from light.c
+extern float material_diffuse[4], material_specular[4], material_ambient[4];
+extern float light_diffuse[4], light_specular[4], light_ambient[4];
+extern float eye[4];
+extern float shinyness;
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -547,6 +551,8 @@ void init_sphere (float radius, float cx, float cy, float cz)
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
 //            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(color_list[1], 0, 0, 0, 1);
+
         }
     }
     reset_num_tris(num_vertices);
@@ -559,11 +565,13 @@ void init_sphere (float radius, float cx, float cy, float cz)
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                                          0, 0, 0,
+//                                          0, 0, 0,
+                     1, 1, 1,
 //                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
             add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                                          0, 0, 0,
+//                                          0, 0, 0,
+                     1, 1, 1,
 //                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
@@ -882,24 +890,46 @@ void draw_model(int mode)
             
             if(shading_mode == FLAT)
             {
+//                float diffuse, tmp[4];
+                float diffuse, tmp[4], specular, refl[4], tmp_spec[4], intensity[4];
+
                 normalize(light);
-                float brightness = vector_dot(f.f_normal, light);
+                diffuse = MAX(vector_dot(f.f_normal, light), 0);
+                scalar_multiply(diffuse, material_diffuse, tmp);
+                vector_multiply(tmp, light_diffuse, tmp);
+                
+                vector_reflect(light, f.f_normal, refl);
+                specular = MAX(vector_dot(eye, refl), 0);
+                specular = pow(specular, shinyness);
+                scalar_multiply(specular, material_specular, tmp_spec);
+                vector_multiply(tmp_spec, light_specular, tmp_spec);
+
                 //modulate interpolated color * texture
                 if(modulate_type == MOD_COLOR)
                 {
-                    scalar_multiply(brightness, p0.color, p0.color);
-                    scalar_multiply(brightness, p1.color, p1.color);
-                    scalar_multiply(brightness, p2.color, p2.color);
+//                    scalar_multiply(brightness, p0.color, p0.color);
+//                    scalar_multiply(brightness, p1.color, p1.color);
+//                    scalar_multiply(brightness, p2.color, p2.color);
+                    vector_multiply(tmp, p0.color, p0.color);
+                    vector_multiply(tmp, p1.color, p1.color);
+                    vector_multiply(tmp, p2.color, p2.color);
+                    
+                    vector_add(p0.color, tmp_spec, p0.color);
+                    vector_add(p1.color, tmp_spec, p1.color);
+                    vector_add(p2.color, tmp_spec, p2.color);
+
+
                 }
                 //modulate texture and intensity i.e. lighting
                 else if(modulate_type == MOD_LIGHT)
                 {
-                    set_vec4(p0.color, brightness, brightness, brightness, brightness);
-                    set_vec4(p1.color, brightness, brightness, brightness, brightness);
-                    set_vec4(p2.color, brightness, brightness, brightness, brightness);
+                    cpy_vec4(p0.color, tmp);
+                    cpy_vec4(p1.color, tmp);
+                    cpy_vec4(p2.color, tmp);
                 }
-                float ambient[4] = {0.3, 0.3, 0.3, 0};
-                
+                float ambient[4] = {0, 0 , 0 , 0};
+                vector_multiply(light_ambient, material_ambient, ambient);
+
                 vector_add(p0.color, ambient, p0.color);
                 vector_add(p1.color, ambient, p1.color);
                 vector_add(p2.color, ambient, p2.color);
@@ -908,9 +938,9 @@ void draw_model(int mode)
         
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {
-                scalar_multiply(0.1, p0.color, p0.color);
-                scalar_multiply(0.1, p1.color, p1.color);
-                scalar_multiply(0.1, p2.color, p2.color);
+                scalar_multiply(0.5, p0.color, p0.color);
+                scalar_multiply(0.5, p1.color, p1.color);
+                scalar_multiply(0.5, p2.color, p2.color);
                 draw_triangle_barycentric (&p0, &p2, &p1);
             }
             else {
