@@ -39,7 +39,7 @@
 #define ORTHO 0
 #define PERSPECT 1
 
-#define N_TYPES 8
+#define N_TYPES 10
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -48,6 +48,8 @@
 #define SPHERE 5
 #define TORUS 6
 #define TEAPOT 7
+#define CAT 8
+#define DEER 9
 
 #define NA -1
 
@@ -183,6 +185,9 @@ void render_object(OBJECT *o)
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
         case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
         case TEAPOT:    read_obj_file("obj/teapot.obj", scale, 0, 0, 0);    break;
+        case CAT:       read_obj_file("obj/cat.obj", 0.01, 0, 0, 0);        break;
+        case DEER:      read_obj_file("obj/deer.obj", 0.005, 0, 0, 0);      break;
+
     }
     if(rot_mode == LOCAL)
     {
