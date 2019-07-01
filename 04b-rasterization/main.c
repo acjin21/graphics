@@ -85,6 +85,8 @@ extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
+extern int bump_mapping;
+extern IMAGE bump_map;
 
 /* more knobs */
 int texture_idx = 0;            //todo
@@ -502,6 +504,10 @@ int main(int argc, char **argv)
             printf("Invalid input file type. Should be either \"OBJ\" or \"SCENE\"\n");
             return -1;
         }
+    }
+    if(bump_mapping)
+    {
+        read_ppm("ppm/rocks_bump.ppm", &bump_map);
     }
     
     /*

@@ -21,6 +21,10 @@ void vector_subtract (float v1[4], float v2[4], float res[4]);
  */
 void vector_multiply (float v1[4], float v2[4], float res[4]);
 
+/*
+ * compute scalar addition s + v, storing product vector in res
+ */
+void scalar_add (float s, float v[4], float res[4]);
 
 /*
  * compute scalar multiplication s * v, storing product vector in res

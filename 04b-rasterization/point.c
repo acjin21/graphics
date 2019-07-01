@@ -22,6 +22,9 @@ extern float light[4];
 extern float eye[4];
 extern float shinyness;
 extern int modulate_type;
+IMAGE bump_map;
+int bump_mapping = ON;
+int material = OFF;
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
@@ -33,8 +36,16 @@ void set_diffuse_term (float normal[4], float diffuse_term[4])
     float diffuse;
     normalize(light);
     diffuse = MAX(vector_dot(normal, light), 0);
-    scalar_multiply(diffuse, material_diffuse, diffuse_term);
-    vector_multiply(diffuse_term, light_diffuse, diffuse_term);
+    if(material)
+    {
+        scalar_multiply(diffuse, material_diffuse, diffuse_term);
+        vector_multiply(diffuse_term, light_diffuse, diffuse_term);
+    }
+    else
+    {
+        scalar_multiply(diffuse, light_diffuse, diffuse_term);
+    }
+
 }
 
 /* calculate specular term for current material and light types, and
@@ -46,8 +57,15 @@ void set_specular_term (float normal[4], float spec_term[4])
     vector_reflect(light, normal, refl);
     specular = MAX(vector_dot(eye, refl), 0);
     specular = pow(specular, shinyness);
-    scalar_multiply(specular, material_specular, spec_term);
-    vector_multiply(spec_term, light_specular, spec_term);
+    if(material)
+    {
+        scalar_multiply(specular, material_specular, spec_term);
+        vector_multiply(spec_term, light_specular, spec_term);
+    }
+    else
+    {
+        scalar_multiply(specular, light_specular, spec_term);
+    }
 }
 
 /* shade point p with diffuse, specular, and ambient components using the given
@@ -58,7 +76,14 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
     vector_add(spec, p->color, p->color);
     
     float ambient[4] = {0, 0 , 0 , 0};
-    vector_multiply(light_ambient, material_ambient, ambient);
+    if(material)
+    {
+        vector_multiply(light_ambient, material_ambient, ambient);
+    }
+    else
+    {
+        scalar_add(0.5, ambient, ambient);
+    }
     vector_add(p->color, ambient, p->color);
 }
 
@@ -77,6 +102,31 @@ void draw_point (POINT *p)
         return;
     }
     
+    if(texturing && bump_mapping)
+    {
+        float bump[4], s, t;
+        
+        s = (p->tex[S] * texture.width);
+        t = (p->tex[T] * texture.height);
+        
+        if(p->tex[S] == 1 || p->tex[T] == 1)
+        {
+            s = p->tex[S] == 1 ? texture.width - 1 : s;
+            t = p->tex[T] == 1 ? texture.width - 1 : t;
+        }
+        int u = (int) s;
+        int v = (int) t;
+        
+        bump[X] = bump_map.data[v][u][R] / 255.0;
+        bump[Y] = bump_map.data[v][u][G] / 255.0;
+        bump[Z] = bump_map.data[v][u][B] / 255.0;
+        bump[W] = 1;
+        
+        scalar_add(-0.5, bump, bump);
+        normalize(bump);
+        vector_multiply(bump, p->v_normal, p->v_normal);
+    }
+    
     if(shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
@@ -93,12 +143,22 @@ void draw_point (POINT *p)
             cpy_vec4(p->color, tmp_diff);
             vector_add(p->color, tmp_spec, p->color);
             
-            float ambient[4] = {0, 0, 0, 0};
-            vector_multiply(light_ambient, material_ambient, ambient);
+//            float ambient[4] = {0, 0, 0, 0};
+//            vector_multiply(light_ambient, material_ambient, ambient);
+//            vector_add(p->color, ambient, p->color);
+            
+            float ambient[4] = {0, 0 , 0 , 0};
+            if(material)
+            {
+                vector_multiply(light_ambient, material_ambient, ambient);
+            }
+            else
+            {
+                scalar_add(0.5, ambient, ambient);
+            }
             vector_add(p->color, ambient, p->color);
         }
     }
-    
     if(texturing)
     {
         float s, t;
@@ -133,6 +193,10 @@ void draw_point (POINT *p)
                 s = p->tex[S] == 1 ? texture.width - 1 : s;
                 t = p->tex[T] == 1 ? texture.width - 1 : t;
             }
+            int u = (int) s;
+            int v = (int) t;
+
+
             color_buffer[r][c][R] = texture.data[(int) t][(int) s][R] / 255.0;
             color_buffer[r][c][G] = texture.data[(int) t][(int) s][G] / 255.0;
             color_buffer[r][c][B] = texture.data[(int) t][(int) s][B] / 255.0;
@@ -178,10 +242,6 @@ void draw_point (POINT *p)
     {
         depth_buffer[r][c] = p->position[Z];
     }
-    
-    
-
-  
 }
 
 /*
@@ -207,4 +267,5 @@ void set_tex (POINT *p, float s, float t)
 {
     set_vec4(p->color, s, t, 0, 0);
 }
+
 
