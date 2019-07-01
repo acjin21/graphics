@@ -731,7 +731,7 @@ void xform_model(float scale)
         
         vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
         vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z] * 1;
+        vertex_list[i].position[Z] = vertex_list[i].world[Z];
         vertex_list[i].position[W] = 1.0;
     }
 }
@@ -960,9 +960,9 @@ void draw_model(int mode)
             }
             if(f.f_normal[Z] >= 0 ) //pointing away from us
             {
-                scalar_multiply(0.5, p0.color, p0.color);
-                scalar_multiply(0.5, p1.color, p1.color);
-                scalar_multiply(0.5, p2.color, p2.color);
+                scalar_multiply(0.2, p0.color, p0.color);
+                scalar_multiply(0.2, p1.color, p1.color);
+                scalar_multiply(0.2, p2.color, p2.color);
                 draw_triangle_barycentric (&p0, &p2, &p1);
             }
             else {

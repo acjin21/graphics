@@ -90,6 +90,7 @@ extern int bump_mapping;
 extern int material;
 extern IMAGE bump_map;
 extern int drawing_normal;
+extern int fog;
 
 /* more knobs */
 int texture_idx = 0;            //todo
@@ -142,7 +143,8 @@ void print_settings(void)
            normal_type ? (normal_type == 1 ? "FACE" : "VTX") : "NONE" );
     printf("Shading Type (s):\t%s\n",
            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
-
+    printf("Fog Mode (F):\t%s\n",
+           fog ? "ON" : "OFF");
     printf(".....................\n");
 }
 
@@ -463,7 +465,7 @@ static void Key(unsigned char key, int x, int y)
             bump_mapping = 1 - bump_mapping;                            break;
         case '4':
             material = 1 - material;                                    break;
-            
+        case 'F': fog = 1 - fog;                                        break;
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;

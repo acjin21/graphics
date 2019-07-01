@@ -29,6 +29,9 @@ int drawing_normal = OFF;
 int bump_mapping = OFF; //bump mapping for specular lighting
 int material = OFF; //material properties
 
+float fog_color[4] = {0, 0, 0, 1};
+int fog = OFF;
+
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
 
@@ -238,6 +241,14 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] = p->color[G];
         color_buffer[r][c][B] = p->color[B];
         color_buffer[r][c][A] = p->color[A];
+    }
+    if(fog)
+    {
+        float z = p->position[Z];
+        color_buffer[r][c][R] = z * fog_color[R] + (1 - z) * color_buffer[r][c][R];
+        color_buffer[r][c][G] = z * fog_color[G] + (1 - z) * color_buffer[r][c][G];
+        color_buffer[r][c][B] = z * fog_color[B] + (1 - z) * color_buffer[r][c][B];
+
     }
     if(depth_test)
     {
