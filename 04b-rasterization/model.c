@@ -36,6 +36,7 @@ extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normal_type; // mode: whether drawing normals or not
 extern int shading_mode;
+extern int drawing_normal;
 
 //for flat shading -- shading needs to happen inside draw_model
 extern float material_ambient[4];
@@ -553,7 +554,7 @@ void init_sphere (float radius, float cx, float cy, float cz)
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
 //            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(color_list[0], 1, 1, 1, 1);
             set_vec4(color_list[1], 0, 0, 0, 1);
 
         }
@@ -966,6 +967,36 @@ void draw_model(int mode)
             }
             else {
                 draw_triangle_barycentric (&p0, &p1, &p2);
+                
+                if (normal_type == V_NORMALS && !texturing)
+                {
+                    drawing_normal = ON;
+                    POINT v_norm_endpt, vtx;
+                    float tmp[4];
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
+                    
+                    set_vec4(p0.color, 0, 1, 0, 1);
+                    scalar_multiply(10, p0.v_normal, tmp);
+                    vector_add(p0.position, tmp, v_norm_endpt.position);
+                    v_norm_endpt.position[Z] = vtx.position[Z];
+                    //                bump_mapping = OFF;
+                    draw_line(&p0, &v_norm_endpt, DRAW);
+                    //                bump_mapping = ON;
+                    
+                    set_vec4(p1.color, 0, 1, 0, 1);
+                    scalar_multiply(10, p1.v_normal, tmp);
+                    vector_add(p1.position, tmp, v_norm_endpt.position);
+                    //                scalar_add(100, p1.position, v_norm_endpt.position);
+                    v_norm_endpt.position[Z] = p1.position[Z];
+                    draw_line(&p1, &v_norm_endpt, DRAW);
+                    
+                    set_vec4(p2.color, 0, 1, 0, 1);
+                    scalar_multiply(10, p2.v_normal, tmp);
+                    vector_add(p2.position, tmp, v_norm_endpt.position);
+                    //                scalar_add(100, p2.position, v_norm_endpt.position);
+                    v_norm_endpt.position[Z] = p2.position[Z];
+                    draw_line(&p2, &v_norm_endpt, DRAW);
+                }
             }
             if(normal_type == F_NORMALS)
             {
@@ -975,32 +1006,8 @@ void draw_model(int mode)
                 set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
                 draw_line(&vertex_list[num_vertices + 2 * i],
                           &vertex_list[num_vertices + 2 * i + 1], DRAW);
-
             }
-            if (normal_type == V_NORMALS)
-            {
-                POINT v_norm_endpt;
-                float tmp[4];
-                set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-                
-                set_vec4(p0.color, 0, 1, 0, 1);
-                scalar_multiply(10, p0.v_normal, tmp);
-                vector_add(p0.position, tmp, v_norm_endpt.position);
-                v_norm_endpt.position[Z] = p0.position[Z];
-                draw_line(&p0, &v_norm_endpt, DRAW);
-                
-                set_vec4(p1.color, 0, 1, 0, 1);
-                scalar_multiply(10, p1.v_normal, tmp);
-                vector_add(p1.position, tmp, v_norm_endpt.position);
-                v_norm_endpt.position[Z] = p1.position[Z];
-                draw_line(&p1, &v_norm_endpt, DRAW);
-                
-                set_vec4(p2.color, 0, 1, 0, 1);
-                scalar_multiply(10, p2.v_normal, tmp);
-                vector_add(p2.position, tmp, v_norm_endpt.position);
-                v_norm_endpt.position[Z] = p2.position[Z];
-                draw_line(&p2, &v_norm_endpt, DRAW);
-            }
+            
         }
         
 //        if( 1 )

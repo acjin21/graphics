@@ -23,6 +23,7 @@ extern float eye[4];
 extern float shinyness;
 extern int modulate_type;
 IMAGE bump_map;
+int drawing_normal = OFF;
 
 int bump_mapping = OFF; //bump mapping for specular lighting
 int material = OFF; //material properties
@@ -104,7 +105,7 @@ void draw_point (POINT *p)
         return;
     }
     
-    if(bump_mapping)
+    if(!drawing_normal && bump_mapping)
     {
         float bump[4];
         int u, v;
@@ -127,7 +128,7 @@ void draw_point (POINT *p)
         scalar_add(-0.5, bump, bump);
         normalize(bump);
         vector_multiply(bump, p->v_normal, p->v_normal);
-//        normalize(p->v_normal);
+        
     }
     
     if(shading_mode == PHONG)
@@ -137,26 +138,25 @@ void draw_point (POINT *p)
         set_specular_term(p->v_normal, tmp_spec);
         
         //modulate texture with color and brightness
-        if(!modulate || (modulate && modulate_type == MOD_COLOR))
-        {
+       
             shade_point(tmp_diff, tmp_spec, p);
-        }
-        //don't incorporate point's interpolated color
-        else if(modulate && modulate_type == MOD_LIGHT)
-        {
-            cpy_vec4(p->color, tmp_diff);
-            vector_add(p->color, tmp_spec, p->color);
-            float ambient[4] = {0, 0 , 0 , 0};
-            if(material)
-            {
-                vector_multiply(light_ambient, material_ambient, ambient);
-            }
-            else
-            {
-                scalar_add(0.5, ambient, ambient);
-            }
-            vector_add(p->color, ambient, p->color);
-        }
+        
+//        //don't incorporate point's interpolated color
+//        else if(modulate)
+//        {
+//            cpy_vec4(p->color, tmp_diff);
+//            vector_add(p->color, tmp_spec, p->color);
+//            float ambient[4] = {0, 0 , 0 , 0};
+//            if(material)
+//            {
+//                vector_multiply(light_ambient, material_ambient, ambient);
+//            }
+//            else
+//            {
+//                scalar_add(0.5, ambient, ambient);
+//            }
+//            vector_add(p->color, ambient, p->color);
+//        }
     }
     if(texturing)
     {

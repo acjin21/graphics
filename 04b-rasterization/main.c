@@ -88,6 +88,7 @@ extern int modulate_type;
 extern int bump_mapping;
 extern int material;
 extern IMAGE bump_map;
+extern int drawing_normal;
 
 /* more knobs */
 int texture_idx = 0;            //todo
@@ -219,6 +220,12 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     
     if(normal_type == F_NORMALS) insert_normal_coords();
+    if(normal_type == V_NORMALS) drawing_normal = ON;
+    else
+    {
+        drawing_normal = OFF;
+    }
+
 
     switch(proj_mode)
     {
@@ -283,13 +290,17 @@ void display(void)
     {
         perspective_correct = OFF;
     }
+    if(bump_mapping)
+    {
+        read_ppm("ppm/rocks_bump.ppm", &bump_map);
+    }
     print_settings();
     set_texture();
     
     /*
      * clear color and depth buffers
      */
-    clear_color_buffer(1, 1, 1, 1);
+    clear_color_buffer(0, 0, 0, 1);
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -511,10 +522,7 @@ int main(int argc, char **argv)
             return -1;
         }
     }
-    if(bump_mapping)
-    {
-        read_ppm("ppm/rocks_bump.ppm", &bump_map);
-    }
+
     
     /*
      * start loop that calls display() and Key() routines
