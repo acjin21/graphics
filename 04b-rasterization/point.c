@@ -25,9 +25,10 @@ extern int modulate_type;
 
 IMAGE bump_map; //bump/normal map
 int drawing_normal = OFF;
-
+extern int drawing_backside;
 int bump_mapping = OFF; //bump mapping for specular lighting
 int material = OFF; //material properties
+int specular_highlight = OFF;
 
 float fog_color[4] = {1, 1, 1, 1};
 int fog = OFF;
@@ -79,7 +80,10 @@ void set_specular_term (float normal[4], float spec_term[4])
 void shade_point (float diffuse[4], float spec[4], POINT *p)
 {
     vector_multiply(diffuse, p->color, p->color);
-    vector_add(spec, p->color, p->color);
+    if(specular_highlight)
+    {
+        vector_add(spec, p->color, p->color);
+    }
     
     float ambient[4] = {0, 0 , 0 , 0};
     if(material)
@@ -103,8 +107,8 @@ void draw_point (POINT *p)
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     float blend_weight = 0.50;
 
-    if(depth_test && p->position[Z] > depth_buffer[r][c] &&
-       !(perspective_correct && texturing))
+    if((!(perspective_correct && texturing) && depth_test && p->position[Z] > depth_buffer[r][c]) ||
+       (perspective_correct && texturing &&  depth_test && (1.0/p->position[Z]) > depth_buffer[r][c]))
     {
         return;
     }
@@ -135,7 +139,7 @@ void draw_point (POINT *p)
         
     }
     
-    if(shading_mode == PHONG)
+    if(!drawing_normal && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         set_diffuse_term(p->v_normal, tmp_diff);
@@ -150,7 +154,10 @@ void draw_point (POINT *p)
         if(modulate && modulate_type == MOD_LIGHT)
         {
             cpy_vec4(p->color, tmp_diff);
-            vector_add(p->color, tmp_spec, p->color);
+            if(specular_highlight)
+            {
+                vector_add(p->color, tmp_spec, p->color);
+            }
             float ambient[4] = {0, 0 , 0 , 0};
             if(material)
             {
@@ -163,7 +170,7 @@ void draw_point (POINT *p)
             vector_add(p->color, ambient, p->color);
         }
     }
-    if(texturing)
+    if(!drawing_normal && texturing)
     {
         float s, t;
         int u, v;
@@ -180,13 +187,7 @@ void draw_point (POINT *p)
             
             u = (int) (s * texture.width);
             v = (int) (t * texture.height);
-            
-            color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
-            color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
-            color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
-            color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
         }
-        
         else
         {
             s = (p->tex[S] * texture.width);
@@ -197,15 +198,21 @@ void draw_point (POINT *p)
                 s = p->tex[S] == 1 ? texture.width - 1 : s;
                 t = p->tex[T] == 1 ? texture.width - 1 : t;
             }
-            int u = (int) s;
-            int v = (int) t;
+            u = (int) s;
+            v = (int) t;
+        }
 
 
-            color_buffer[r][c][R] = texture.data[(int) t][(int) s][R] / 255.0;
-            color_buffer[r][c][G] = texture.data[(int) t][(int) s][G] / 255.0;
-            color_buffer[r][c][B] = texture.data[(int) t][(int) s][B] / 255.0;
-            color_buffer[r][c][A] = texture.data[(int) t][(int) s][A] / 255.0;
-            
+        color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
+        color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
+        color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
+        color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
+        if(drawing_backside) //ignore texture, just draw black
+        {
+            color_buffer[r][c][R] = 0;
+            color_buffer[r][c][G] = 0;
+            color_buffer[r][c][B] = 0;
+            color_buffer[r][c][A] = 1;
         }
         if(modulate)
         {

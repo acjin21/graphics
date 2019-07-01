@@ -37,7 +37,8 @@ extern int shading_mode;
 extern int drawing_normal;
 extern int modulate;
 int modulate_type = MOD_COLOR;
-
+int drawing_backside = OFF;
+extern int specular_highlight;
 //for flat shading -- shading needs to happen inside draw_model
 extern float material_ambient[4];
 extern float light_ambient[4];
@@ -112,8 +113,8 @@ void init_quad (void)
     set_vec4(tex_list[2], 1, 1, 0, 0);
     set_vec4(tex_list[3], 0, 1, 0, 0);
     
-    add_face(0, 1, 2,    0, 1, 2,    0, 2, 1);
-    add_face(0, 2, 3,    0, 1, 2,    0, 3, 2);
+    add_face(0, 1, 2,    0, 1, 2,    0, 1, 2);
+    add_face(0, 2, 3,    0, 1, 2,    0, 2, 3);
 }
 
 /* set vertices of a unit cube with world space coordinates and
@@ -554,7 +555,7 @@ void init_sphere (float radius, float cx, float cy, float cz)
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
 //            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-            set_vec4(color_list[0], 1, 1, 1, 1);
+            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
             set_vec4(color_list[1], 0, 0, 0, 1);
 
         }
@@ -860,7 +861,7 @@ void perspective_xform(float near, float far)
 
         if(perspective_correct && texturing)
         {
-            vertex_list[i].position[Z] = 1.0 / (z / (far - near));
+            vertex_list[i].position[Z] = (float)(far - near) / z;
         }
         else
         {
@@ -912,7 +913,7 @@ void draw_model(int mode)
         cpy_vec4(p2.color, color_list[f.colors[2]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
         
-        if(perspective_correct)
+        if(perspective_correct && texturing)
         {
             scalar_multiply(p0.position[Z], p0.tex, p0.tex);
             scalar_multiply(p1.position[Z], p1.tex, p1.tex);
@@ -928,7 +929,7 @@ void draw_model(int mode)
         }
         else if(mode == FILL)
         {
-            
+    
             if(shading_mode == FLAT)
             {
                 float diffuse, tmp_diff[4], tmp_spec[4];
@@ -949,7 +950,12 @@ void draw_model(int mode)
                     cpy_vec4(p0.color, tmp_diff);
                     cpy_vec4(p1.color, tmp_diff);
                     cpy_vec4(p2.color, tmp_diff);
-                    
+                    if(specular_highlight)
+                    {
+                        vector_add(tmp_spec, p0.color, p0.color);
+                        vector_add(tmp_spec, p1.color, p1.color);
+                        vector_add(tmp_spec, p2.color, p2.color);
+                    }
                     float ambient[4] = {0, 0 , 0 , 0};
                     vector_multiply(light_ambient, material_ambient, ambient);
                     
@@ -958,14 +964,21 @@ void draw_model(int mode)
                     vector_add(p2.color, ambient, p2.color);
                 }
             }
-            if(f.f_normal[Z] >= 0 ) //pointing away from us
+            if(f.f_normal[Z] >= 0) //pointing away from us
             {
-                scalar_multiply(0.2, p0.color, p0.color);
-                scalar_multiply(0.2, p1.color, p1.color);
-                scalar_multiply(0.2, p2.color, p2.color);
+                drawing_backside = ON;
+                set_vec4(p0.color, 0.5, 0.5, 0.5, 1);
+                set_vec4(p1.color, 0.5, 0.5, 0.5, 1);
+                set_vec4(p2.color, 0.5, 0.5, 0.5, 1);
+
+//                scalar_multiply(0, p0.color, p0.color);
+//                scalar_multiply(0, p1.color, p1.color);
+//                scalar_multiply(0, p2.color, p2.color);
                 draw_triangle_barycentric (&p0, &p2, &p1);
+            
             }
             else {
+                drawing_backside = OFF;
                 draw_triangle_barycentric (&p0, &p1, &p2);
                 
                 if (normal_type == V_NORMALS && !texturing)
@@ -976,22 +989,27 @@ void draw_model(int mode)
                     set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
                     
                     set_vec4(p0.color, 0, 1, 0, 1);
-                    scalar_multiply(10, p0.v_normal, tmp);
+                    scalar_multiply(20, p0.v_normal, tmp);
                     vector_add(p0.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = vtx.position[Z];
                     draw_line(&p0, &v_norm_endpt, DRAW);
                     
                     set_vec4(p1.color, 0, 1, 0, 1);
-                    scalar_multiply(10, p1.v_normal, tmp);
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
+
+                    scalar_multiply(20, p1.v_normal, tmp);
                     vector_add(p1.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p1.position[Z];
                     draw_line(&p1, &v_norm_endpt, DRAW);
                     
                     set_vec4(p2.color, 0, 1, 0, 1);
-                    scalar_multiply(10, p2.v_normal, tmp);
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
+
+                    scalar_multiply(20, p2.v_normal, tmp);
                     vector_add(p2.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p2.position[Z];
                     draw_line(&p2, &v_norm_endpt, DRAW);
+                    drawing_normal = OFF;
                 }
             }
             if(normal_type == F_NORMALS)

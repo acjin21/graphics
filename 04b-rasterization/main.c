@@ -91,7 +91,8 @@ extern int material;
 extern IMAGE bump_map;
 extern int drawing_normal;
 extern int fog;
-
+extern int specular_highlight;
+int dof_mode = OFF;
 /* more knobs */
 int texture_idx = 0;            //todo
 int material_type = EMERALD;    //todo  //have a diff material type for each object
@@ -145,6 +146,10 @@ void print_settings(void)
            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
     printf("Fog Mode (F):\t%s\n",
            fog ? "ON" : "OFF");
+    printf("Post-Processing (2):\t%s\n",
+           post_processing ? "ON" : "OFF");
+    printf("DOF (5):\t%s\n",
+           dof_mode ? "ON" : "OFF");
     printf(".....................\n");
 }
 
@@ -352,8 +357,12 @@ void display(void)
     }
     if(post_processing == ON)
     {
-//        apply_post_processing();
+        apply_post_processing();
+    }
+    if (dof_mode == ON)
+    {
         depth_of_field();
+
     }
 
     //draw color or depth buffer
@@ -460,7 +469,10 @@ static void Key(unsigned char key, int x, int y)
         case '2': post_processing = 1 - post_processing;                break;
         case '3': bump_mapping = 1 - bump_mapping;                      break;
         case '4': material = 1 - material;                              break;
+        case '5': dof_mode = 1 - dof_mode;                              break;
+
         case 'F': fog = 1 - fog;                                        break;
+        case 'S': specular_highlight = 1 - specular_highlight;          break;
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;

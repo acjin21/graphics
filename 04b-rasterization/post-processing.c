@@ -147,7 +147,7 @@ void depth_of_field (void)
     texture03.width = WIN_W;
     texture03.height = WIN_H;
 
-    int num_blurs = 1;
+    int num_blurs = 3;
     color_buffer_to_image(&texture00); //sharp
     
     color_buffer_to_image(&texture01); //pingpong 1
