@@ -37,4 +37,8 @@ val = (val < min_val) ? min_val : val; \
 #define PHONG 1
 #define NO_SHADING 2
 
+
+#define F_NORMALS 1
+#define V_NORMALS 2
+#define NO_NORMALS 0
 #endif

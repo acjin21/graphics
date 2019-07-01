@@ -23,8 +23,9 @@ extern float eye[4];
 extern float shinyness;
 extern int modulate_type;
 IMAGE bump_map;
-int bump_mapping = ON;
-int material = OFF;
+
+int bump_mapping = OFF; //bump mapping for specular lighting
+int material = OFF; //material properties
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
@@ -97,56 +98,54 @@ void draw_point (POINT *p)
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     float blend_weight = 0.50;
 
-    if(depth_test && p->position[Z] > depth_buffer[r][c] && !(perspective_correct && texturing))
+    if(depth_test && p->position[Z] > depth_buffer[r][c] &&
+       !(perspective_correct && texturing))
     {
         return;
     }
     
-    if(texturing && bump_mapping)
+    if(bump_mapping)
     {
-        float bump[4], s, t;
+        float bump[4];
+        int u, v;
         
-        s = (p->tex[S] * texture.width);
-        t = (p->tex[T] * texture.height);
+        u = (int) (p->tex[S] * texture.width);
+        v = (int) (p->tex[T] * texture.height);
         
+        //fix for texel conversion
         if(p->tex[S] == 1 || p->tex[T] == 1)
         {
-            s = p->tex[S] == 1 ? texture.width - 1 : s;
-            t = p->tex[T] == 1 ? texture.width - 1 : t;
+            u = p->tex[S] == 1 ? texture.width - 1 : u;
+            v = p->tex[T] == 1 ? texture.height - 1 : v;
         }
-        int u = (int) s;
-        int v = (int) t;
-        
         bump[X] = bump_map.data[v][u][R] / 255.0;
         bump[Y] = bump_map.data[v][u][G] / 255.0;
         bump[Z] = bump_map.data[v][u][B] / 255.0;
+
         bump[W] = 1;
         
         scalar_add(-0.5, bump, bump);
         normalize(bump);
         vector_multiply(bump, p->v_normal, p->v_normal);
+//        normalize(p->v_normal);
     }
     
     if(shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
-        
         set_diffuse_term(p->v_normal, tmp_diff);
         set_specular_term(p->v_normal, tmp_spec);
         
-        if(modulate_type == MOD_COLOR) //modulate texture with color and brightness
+        //modulate texture with color and brightness
+        if(!modulate || (modulate && modulate_type == MOD_COLOR))
         {
             shade_point(tmp_diff, tmp_spec, p);
         }
-        else if(modulate) //don't incorporate point's interpolated color
+        //don't incorporate point's interpolated color
+        else if(modulate && modulate_type == MOD_LIGHT)
         {
             cpy_vec4(p->color, tmp_diff);
             vector_add(p->color, tmp_spec, p->color);
-            
-//            float ambient[4] = {0, 0, 0, 0};
-//            vector_multiply(light_ambient, material_ambient, ambient);
-//            vector_add(p->color, ambient, p->color);
-            
             float ambient[4] = {0, 0 , 0 , 0};
             if(material)
             {

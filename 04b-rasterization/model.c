@@ -34,7 +34,7 @@ int normals_provided = 0;
 
 extern int texturing; // mode: whether texturing or not
 extern int perspective_correct; // mode: for perspective correct interpolation
-extern int normals; // mode: whether drawing normals or not
+extern int normal_type; // mode: whether drawing normals or not
 extern int shading_mode;
 
 //for flat shading -- shading needs to happen inside draw_model
@@ -140,10 +140,11 @@ void init_cube (float scale, float cx, float cy, float cz)
     }
     
     /* set tex coordinates to four corners of texture */
-    set_vec4(tex_list[0], 0, 0, 0, 0);
-    set_vec4(tex_list[1], 1, 0, 0, 0);
-    set_vec4(tex_list[2], 0, 1, 0, 0);
-    set_vec4(tex_list[3], 1, 1, 0, 0);
+    //0.1, 0.9 for the rock bump map
+    set_vec4(tex_list[0], 0.1, 0.1, 0, 0);
+    set_vec4(tex_list[1], 0.9, 0.1, 0, 0);
+    set_vec4(tex_list[2], 0.9, 0.9, 0, 0);
+    set_vec4(tex_list[3], 0.1, 0.9, 0, 0);
     num_textures = 4;
 
     /* r, g, b color options */
@@ -160,17 +161,17 @@ void init_cube (float scale, float cx, float cy, float cz)
     /* add faces/triangles */
     num_triangles = 0; // reset num of triangles
     //       vertices    colors      texture coords
-    add_face(0, 1, 2,    0, 1, 2,    0, 3, 1);
+    add_face(0, 1, 2,    0, 1, 2,    0, 1, 2);
     add_face(0, 2, 3,    1, 1, 1,    0, 2, 3);
-    add_face(1, 5, 6,    0, 1, 2,    0, 3, 1);
+    add_face(1, 5, 6,    0, 1, 2,    0, 1, 2);
     add_face(1, 6, 2,    2, 2, 2,    0, 2, 3);
-    add_face(5, 4, 7,    0, 1, 2,    0, 3, 1);
+    add_face(5, 4, 7,    0, 1, 2,    0, 1, 2);
     add_face(5, 7, 6,    0, 1, 2,    0, 2, 3);
-    add_face(4, 0, 3,    0, 0, 0,    0, 3, 1);
+    add_face(4, 0, 3,    0, 0, 0,    0, 1, 2);
     add_face(4, 3, 7,    0, 1, 2,    0, 2, 3);
-    add_face(0, 4, 5,    0, 1, 2,    0, 3, 1);
+    add_face(0, 4, 5,    0, 1, 2,    0, 1, 2);
     add_face(0, 5, 1,    0, 1, 2,    0, 2, 3);
-    add_face(7, 3, 2,    0, 1, 2,    0, 3, 1);
+    add_face(7, 3, 2,    0, 1, 2,    0, 1, 2);
     add_face(7, 2, 6,    0, 1, 2,    0, 2, 3);
     /* should now have 12 triangles */
 }
@@ -203,8 +204,8 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         float x, y, z, s, t, r, nx, ny, nz;
         int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
         vt1 = 0;
-        vt2 = 0;
-        vt3 = 0;
+        vt2 = 1;
+        vt3 = 2;
         /* handle any possible comments */
         int next_ch;
         char comment[500];
@@ -675,6 +676,30 @@ void insert_normal_coords(void)
         //increment num_normals
         num_normals++;
     }
+    
+//    for(int i = 0; i < num_vertices; i++)
+//    {
+//        //get vertices of triangle
+//        POINT vtx = vertex_list[i];
+//
+//        //draw blue normals
+//        set_vec4(color, 0, 0, 1, 1);
+//
+//        //store centroid
+//        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].world, vtx.world);
+//        cpy_vec4(vertex_list[num_vertices + 2 * num_normals].color, color);
+//
+//        //calculate endpoint
+//        scalar_divide(6, vtx.v_normal, tmp);
+//        vector_add(vtx.world, tmp, end.world);
+//        //store endpoint
+//        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].world, end.world);
+//        cpy_vec4(vertex_list[num_vertices + 2 * num_normals + 1].color, color);
+//
+//
+//        //increment num_normals
+//        num_normals++;
+//    }
 }
 
 //void insert_coord_axes (float cx, float cy, float cz, float scale)
@@ -810,7 +835,7 @@ void calculate_vertex_normals (void)
 void translate_model (float distance)
 {
     int max_idx;
-    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    max_idx = normal_type == F_NORMALS ? num_vertices + 2 * num_normals : num_vertices;
     for(int i = 0; i < max_idx; i++)
     {
         vertex_list[i].world[Z] += distance;
@@ -821,7 +846,7 @@ void translate_model (float distance)
 void perspective_xform(float near, float far)
 {
     int max_idx;
-    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    max_idx = normal_type == F_NORMALS ? num_vertices + 2 * num_normals : num_vertices;
     for(int i = 0; i < max_idx; i++)
     {
         float x, y, z;
@@ -849,7 +874,7 @@ void perspective_xform(float near, float far)
 void viewport_xform(float scale)
 {
     int max_idx;
-    max_idx = normals ? num_vertices + 2 * num_normals : num_vertices;
+    max_idx = normal_type == F_NORMALS ? num_vertices + 2 * num_normals : num_vertices;
     for(int i = 0; i < max_idx; i++)
     {
         vertex_list[i].position[X] *= scale;
@@ -932,25 +957,52 @@ void draw_model(int mode)
                     vector_add(p2.color, ambient, p2.color);
                 }
             }
+            if(f.f_normal[Z] >= 0 ) //pointing away from us
+            {
+                scalar_multiply(0.5, p0.color, p0.color);
+                scalar_multiply(0.5, p1.color, p1.color);
+                scalar_multiply(0.5, p2.color, p2.color);
+                draw_triangle_barycentric (&p0, &p2, &p1);
+            }
+            else {
+                draw_triangle_barycentric (&p0, &p1, &p2);
+            }
+            if(normal_type == F_NORMALS)
+            {
+
+                //draw normals
+                set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
+                set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
+                draw_line(&vertex_list[num_vertices + 2 * i],
+                          &vertex_list[num_vertices + 2 * i + 1], DRAW);
+
+            }
+            if (normal_type == V_NORMALS)
+            {
+                POINT v_norm_endpt;
+                float tmp[4];
+                set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
+                
+                set_vec4(p0.color, 0, 1, 0, 1);
+                scalar_multiply(10, p0.v_normal, tmp);
+                vector_add(p0.position, tmp, v_norm_endpt.position);
+                v_norm_endpt.position[Z] = p0.position[Z];
+                draw_line(&p0, &v_norm_endpt, DRAW);
+                
+                set_vec4(p1.color, 0, 1, 0, 1);
+                scalar_multiply(10, p1.v_normal, tmp);
+                vector_add(p1.position, tmp, v_norm_endpt.position);
+                v_norm_endpt.position[Z] = p1.position[Z];
+                draw_line(&p1, &v_norm_endpt, DRAW);
+                
+                set_vec4(p2.color, 0, 1, 0, 1);
+                scalar_multiply(10, p2.v_normal, tmp);
+                vector_add(p2.position, tmp, v_norm_endpt.position);
+                v_norm_endpt.position[Z] = p2.position[Z];
+                draw_line(&p2, &v_norm_endpt, DRAW);
+            }
         }
-        if(f.f_normal[Z] >= 0 ) //pointing away from us
-        {
-            scalar_multiply(0.5, p0.color, p0.color);
-            scalar_multiply(0.5, p1.color, p1.color);
-            scalar_multiply(0.5, p2.color, p2.color);
-            draw_triangle_barycentric (&p0, &p2, &p1);
-        }
-        else {
-            draw_triangle_barycentric (&p0, &p1, &p2);
-        }
-        if(normals == ON)
-        {
-            //draw normals
-            set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
-            set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
-            draw_line(&vertex_list[num_vertices + 2 * i],
-                      &vertex_list[num_vertices + 2 * i + 1], DRAW);
-        }
+        
 //        if( 1 )
 //        {
 //            set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);

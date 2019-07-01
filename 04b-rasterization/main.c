@@ -86,6 +86,7 @@ extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
 extern int bump_mapping;
+extern int material;
 extern IMAGE bump_map;
 
 /* more knobs */
@@ -93,7 +94,7 @@ int texture_idx = 0;            //todo
 int material_type = EMERALD;    //todo  //have a diff material type for each object
 
 int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) //already recorded in scene files */
-int normals = 0;            //todo or omit-- more of a debugging tool
+int normal_type = NO_NORMALS;            //todo or omit-- more of a debugging tool
 
 /* for drawing multiple 3d objects on screen */
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -124,7 +125,10 @@ void print_settings(void)
     printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
     printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
     printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
+    printf("Material Shading:\t%s\n", material ? "ON" : "OFF");
     printf("Material:\t%s\n", material_name(material_type));
+    printf("Bump Mapping:\t%s\n", bump_mapping ? "ON" : "OFF");
+
     printf(".....................\n");
 }
 
@@ -214,7 +218,7 @@ void render_object(OBJECT *o)
     calculate_face_normals();
     calculate_vertex_normals();
     
-    if(normals) insert_normal_coords();
+    if(normal_type == F_NORMALS) insert_normal_coords();
 
     switch(proj_mode)
     {
@@ -259,15 +263,15 @@ void display(void)
         depth_test = ON;
     }
     /* if modulating, turn on texturing and fill the model. */
-    if(modulate == ON)
-    {
-        if(modulate_type == MOD_LIGHT)
-        {
-            clear_color_buffer(0, 0, 0, 0);
-        }
-        texturing = ON;
-        draw_mode = FILL;
-    }
+//    if(modulate == ON)
+//    {
+//        if(modulate_type == MOD_LIGHT)
+//        {
+//            clear_color_buffer(0, 0, 0, 0);
+//        }
+//        texturing = ON;
+//        draw_mode = FILL;
+//    }
     /* since alpha blending does not blend textures, if alpha blending is on,
         turn off texturing and fill the model. */
     if(alpha_blend == ON)
@@ -402,7 +406,7 @@ static void Key(unsigned char key, int x, int y)
         /* flowing mesh animation */
         case 'w':       mesh_da += 0.5;                                 break;
         /* write out the normals */
-        case 'n':       normals = 1 - normals;                          break;
+        case 'n':       normal_type = (normal_type + 1) % 3;                break;
         /* write out scene objects with initial orientation to a scene file */
         case 'W':
             for(int i = 0; i < num_objects; i++)
@@ -431,6 +435,8 @@ static void Key(unsigned char key, int x, int y)
             material_type = (material_type + 1) % NUM_MATERIALS;        break;
         case '2':
             post_processing = 1 - post_processing;                      break;
+        case '3':
+            bump_mapping = 1 - bump_mapping;                            break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
