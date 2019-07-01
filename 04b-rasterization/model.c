@@ -567,13 +567,13 @@ void init_sphere (float radius, float cx, float cy, float cz)
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-//                                          0, 0, 0,
-                     1, 1, 1,
+                                          0, 0, 0,
+//                     1, 1, 1,
 //                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c);
             add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-//                                          0, 0, 0,
-                     1, 1, 1,
+                                          0, 0, 0,
+//                     1, 1, 1,
 //                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1));
         }
@@ -932,19 +932,17 @@ void draw_model(int mode)
                     vector_add(p2.color, ambient, p2.color);
                 }
             }
-        
-            if(f.f_normal[Z] >= 0 ) //pointing away from us
-            {
-                scalar_multiply(0.5, p0.color, p0.color);
-                scalar_multiply(0.5, p1.color, p1.color);
-                scalar_multiply(0.5, p2.color, p2.color);
-                draw_triangle_barycentric (&p0, &p2, &p1);
-            }
-            else {
-                draw_triangle_barycentric (&p0, &p1, &p2);
-            }
         }
-        
+        if(f.f_normal[Z] >= 0 ) //pointing away from us
+        {
+            scalar_multiply(0.5, p0.color, p0.color);
+            scalar_multiply(0.5, p1.color, p1.color);
+            scalar_multiply(0.5, p2.color, p2.color);
+            draw_triangle_barycentric (&p0, &p2, &p1);
+        }
+        else {
+            draw_triangle_barycentric (&p0, &p1, &p2);
+        }
         if(normals == ON)
         {
             //draw normals

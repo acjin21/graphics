@@ -384,7 +384,7 @@ static void Key(unsigned char key, int x, int y)
         case 'd':       depth_test = 1 - depth_test;                    break;
         case 'm':       modulate = 1 - modulate;                        break;
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 's':       shading_mode = 1 - shading_mode;                break;
+        case 's':       shading_mode = (shading_mode + 1) % 3;                break;
             
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
         case 'M':       modulate_type = 1 - modulate_type;              break;
