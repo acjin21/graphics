@@ -22,7 +22,8 @@ extern float light[4];
 extern float eye[4];
 extern float shinyness;
 extern int modulate_type;
-IMAGE bump_map;
+
+IMAGE bump_map; //bump/normal map
 int drawing_normal = OFF;
 
 int bump_mapping = OFF; //bump mapping for specular lighting

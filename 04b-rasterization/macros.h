@@ -33,9 +33,9 @@ val = (val < min_val) ? min_val : val; \
 #define MOD_COLOR 0
 #define MOD_LIGHT 1
 
-#define FLAT 0
-#define PHONG 1
-#define NO_SHADING 2
+#define NO_SHADING 0
+#define FLAT 1
+#define PHONG 2
 
 
 #define F_NORMALS 1

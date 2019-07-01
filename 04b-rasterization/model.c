@@ -15,8 +15,6 @@ typedef struct face
 
 #define NUM_VERTS 1000000
 
-int modulate_type = MOD_COLOR;
-
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -37,6 +35,8 @@ extern int perspective_correct; // mode: for perspective correct interpolation
 extern int normal_type; // mode: whether drawing normals or not
 extern int shading_mode;
 extern int drawing_normal;
+extern int modulate;
+int modulate_type = MOD_COLOR;
 
 //for flat shading -- shading needs to happen inside draw_model
 extern float material_ambient[4];
@@ -937,14 +937,14 @@ void draw_model(int mode)
                 set_specular_term (f.f_normal, tmp_spec);
                 
                 //modulate interpolated color * texture
-                if(modulate_type == MOD_COLOR)
+                if(!modulate || (modulate && modulate_type == MOD_COLOR))
                 {
                     shade_point(tmp_diff, tmp_spec, &p0);
                     shade_point(tmp_diff, tmp_spec, &p1);
                     shade_point(tmp_diff, tmp_spec, &p2);
                 }
                 //modulate texture and intensity i.e. lighting
-                else if(modulate_type == MOD_LIGHT)
+                else if(modulate && modulate_type == MOD_LIGHT)
                 {
                     cpy_vec4(p0.color, tmp_diff);
                     cpy_vec4(p1.color, tmp_diff);

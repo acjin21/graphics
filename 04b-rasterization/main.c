@@ -85,6 +85,7 @@ extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
 extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
+
 extern int bump_mapping;
 extern int material;
 extern IMAGE bump_map;
@@ -116,19 +117,19 @@ int counter = 0;
 void print_settings(void)
 {
     printf("\n============================\nNEW DISPLAY: %i\n", counter);
-    printf("Projection:\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    printf("Perspective Correct:\t%s\n", perspective_correct ? "ON" : "OFF");
-    printf("Buffer:\t\t%s\n", buffer ? "COLOR" : "DEPTH");
-    printf("Rotation Mode:\t%s\n", rot_mode ? "LOCAL" : "GLOBAL");
+    printf("Projection Mode (p):\t%s\n", proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
+    printf("Perspect. Correct (C):\t%s\n", perspective_correct ? "ON" : "OFF");
+    printf("Buffer (c):\t\t%s\n", buffer ? "COLOR" : "DEPTH");
+    printf("Rotation Mode (R):\t%s\n", rot_mode ? "LOCAL" : "GLOBAL");
     printf(".....................\n");
-    printf("Alpha blending:\t%s\n", alpha_blend ? "ON" : "OFF");
-    printf("Depth testing:\t%s\n", depth_test ? "ON" : "OFF");
-    printf("Texturing:\t%s\n", texturing ? "ON" : "OFF");
-    printf("Modulating:\t%s\n", modulate ? "ON" : "OFF");
-    printf("Mod type:\t%s\n", modulate_type ? "LIGHT" : "COLOR");
-    printf("Material Shading:\t%s\n", material ? "ON" : "OFF");
-    printf("Material:\t%s\n", material_name(material_type));
-    printf("Bump Mapping:\t%s\n", bump_mapping ? "ON" : "OFF");
+    printf("Alpha Blending (b):\t%s\n", alpha_blend ? "ON" : "OFF");
+    printf("Depth Testing (d):\t%s\n", depth_test ? "ON" : "OFF");
+    printf("Texturing (t/P):\t%s\n", texturing ? "ON" : "OFF");
+    printf("Modulate Type (M):\t%s\n", modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
+    printf("Material Type (4/1):\t%s\n", material ? material_name(material_type) : "OFF");
+    printf("Bump Mapping (3):\t%s\n", bump_mapping ? "ON" : "OFF");
+    printf("Normals Type (n):\t%s\n", normal_type ? (normal_type == 1 ? "FACE" : "VTX") : "NONE" );
+    printf("Shading Type (s):\t%s\n", shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
 
     printf(".....................\n");
 }
@@ -448,6 +449,8 @@ static void Key(unsigned char key, int x, int y)
             post_processing = 1 - post_processing;                      break;
         case '3':
             bump_mapping = 1 - bump_mapping;                            break;
+        case '4':
+            material = 1 - material;                                    break;
             
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;
