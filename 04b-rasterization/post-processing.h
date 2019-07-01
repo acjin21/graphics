@@ -2,5 +2,6 @@
 #define POST_PROCESSING_H
 
 void apply_post_processing (void);
+void depth_of_field (void);
 
 #endif

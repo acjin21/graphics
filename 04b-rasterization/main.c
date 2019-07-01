@@ -321,6 +321,7 @@ void display(void)
     {
         apply_post_processing();
     }
+    depth_of_field();
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    
