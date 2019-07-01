@@ -35,5 +35,6 @@ val = (val < min_val) ? min_val : val; \
 
 #define FLAT 0
 #define PHONG 1
+#define NO_SHADING 2
 
 #endif
