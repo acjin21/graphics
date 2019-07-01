@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*************************************************************************/
 /* textures */
@@ -110,6 +111,21 @@ void read_ppm (char *file_name, IMAGE *img)
                 img->data[t][s][G] = (float) c / max * 255.0;
                 img->data[t][s][B] = (float) c / max * 255.0;
                 img->data[t][s][A] = 1;
+            }
+        }
+    }
+    else if(!strcmp(ppm_type, "P6"))
+    {
+        unsigned char *data = malloc(width * height * 3);
+        fread((void *) data, 3, width * height, fp);
+        for(int j = 0; j < height; j++)
+        {
+            for(int i = 0; i < width; i++)
+            {
+                img->data[j][i][R] =  data[(j * width + i) * 3];
+                img->data[j][i][G] =  data[(j * width + i) * 3 + 1];
+                img->data[j][i][B] =  data[(j * width + i) * 3 + 2];
+                img->data[j][i][A] = 1.0;
             }
         }
     }

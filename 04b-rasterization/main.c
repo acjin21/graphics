@@ -129,11 +129,12 @@ void print_settings(void)
 /*******************************************************/
 /* Reading in texture files */
 /*******************************************************/
-#define N_PPM_FILES 12
+#define N_PPM_FILES 13
 #define N_TEXTURES (N_PPM_FILES + 2)
 /* to rotate between ppm files */
 char file_names[N_PPM_FILES][100] =
 {
+    "ppm/rocks_color.ppm",
     "ppm/blackbuck.ascii.ppm",
     "ppm/out.ppm",
     "ppm/feep.ascii.ppm",
@@ -319,10 +320,10 @@ void display(void)
     }
     if(post_processing == ON)
     {
-        apply_post_processing();
+//        apply_post_processing();
+        depth_of_field();
     }
-    depth_test = ON;
-    depth_of_field();
+
     //draw color or depth buffer
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
    

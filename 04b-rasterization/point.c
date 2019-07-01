@@ -13,7 +13,7 @@ extern float depth_buffer[WIN_H][WIN_W];
 
 /* modes */
 int alpha_blend = OFF;
-int depth_test = OFF;
+int depth_test = ON;
 int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
