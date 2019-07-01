@@ -315,7 +315,7 @@ void display(void)
     /*
      * clear color and depth buffers
      */
-    clear_color_buffer(0, 0, 0, 1);
+    clear_color_buffer(1, 1, 1, 1);
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -454,17 +454,12 @@ static void Key(unsigned char key, int x, int y)
             }
             break;
             
-        case 'O':
-            write_obj_file("obj/out.obj");                              break;
-        
-        case '1':
-            material_type = (material_type + 1) % NUM_MATERIALS;        break;
-        case '2':
-            post_processing = 1 - post_processing;                      break;
-        case '3':
-            bump_mapping = 1 - bump_mapping;                            break;
-        case '4':
-            material = 1 - material;                                    break;
+        case 'O': write_obj_file("obj/out.obj");                        break;
+
+        case '1': material_type = (material_type + 1) % NUM_MATERIALS;  break;
+        case '2': post_processing = 1 - post_processing;                break;
+        case '3': bump_mapping = 1 - bump_mapping;                      break;
+        case '4': material = 1 - material;                              break;
         case 'F': fog = 1 - fog;                                        break;
         case 'a':       draw_one_frame = 1;                             break;
         case 'q':       exit(0);                                        break;

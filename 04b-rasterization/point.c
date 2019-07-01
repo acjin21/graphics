@@ -29,7 +29,7 @@ int drawing_normal = OFF;
 int bump_mapping = OFF; //bump mapping for specular lighting
 int material = OFF; //material properties
 
-float fog_color[4] = {0, 0, 0, 1};
+float fog_color[4] = {1, 1, 1, 1};
 int fog = OFF;
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
