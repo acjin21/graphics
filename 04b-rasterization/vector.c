@@ -49,7 +49,7 @@ void vector_reflect (float light[4], float normal[4], float refl[4])
     float tmp[4];
     float dot = vector_dot (normal, light);
     scalar_multiply(2.0 * dot, normal, tmp);
-    vector_subtract(light, tmp, refl);
+    vector_subtract(tmp, light, refl);
     normalize(refl);
 }
 
