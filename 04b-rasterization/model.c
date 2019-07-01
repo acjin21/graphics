@@ -979,21 +979,17 @@ void draw_model(int mode)
                     scalar_multiply(10, p0.v_normal, tmp);
                     vector_add(p0.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = vtx.position[Z];
-                    //                bump_mapping = OFF;
                     draw_line(&p0, &v_norm_endpt, DRAW);
-                    //                bump_mapping = ON;
                     
                     set_vec4(p1.color, 0, 1, 0, 1);
                     scalar_multiply(10, p1.v_normal, tmp);
                     vector_add(p1.position, tmp, v_norm_endpt.position);
-                    //                scalar_add(100, p1.position, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p1.position[Z];
                     draw_line(&p1, &v_norm_endpt, DRAW);
                     
                     set_vec4(p2.color, 0, 1, 0, 1);
                     scalar_multiply(10, p2.v_normal, tmp);
                     vector_add(p2.position, tmp, v_norm_endpt.position);
-                    //                scalar_add(100, p2.position, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p2.position[Z];
                     draw_line(&p2, &v_norm_endpt, DRAW);
                 }
