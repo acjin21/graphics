@@ -23,11 +23,11 @@ extern float eye[4];
 extern float shinyness;
 extern int modulate_type;
 
-IMAGE bump_map; //bump/normal map
+IMAGE bump_map;
 int drawing_normal = OFF;
 extern int drawing_backside;
-int bump_mapping = OFF; //bump mapping for specular lighting
-int material = OFF; //material properties
+int bump_mapping = OFF; // bump mapping for specular lighting
+int material = OFF; // material properties
 int specular_highlight = OFF;
 
 float fog_color[4] = {1, 1, 1, 1};
@@ -86,7 +86,7 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
     }
     
     float ambient[4] = {0, 0 , 0 , 0};
-    if(material)
+    if(material) 
     {
         vector_multiply(light_ambient, material_ambient, ambient);
     }
@@ -104,15 +104,20 @@ void draw_point (POINT *p)
 {
     int r = (int) (p->position[Y] + WIN_H / 2);
     int c = (int) (p->position[X] + WIN_W / 2);
+    
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
+    
     float blend_weight = 0.50;
-
-    if((!(perspective_correct && texturing) && depth_test && p->position[Z] > depth_buffer[r][c]) ||
-       (perspective_correct && texturing &&  depth_test && (1.0/p->position[Z]) > depth_buffer[r][c]))
+    int persp_correct_texturing = perspective_correct && texturing;
+    
+    /* early return if fail depth test (for persp. correct and non-persp. correct texturing) */
+    if((!persp_correct_texturing && depth_test && p->position[Z] > depth_buffer[r][c]) ||
+       (persp_correct_texturing && depth_test && (1.0/p->position[Z]) > depth_buffer[r][c]))
     {
         return;
     }
     
+    /* bump map */
     if(!drawing_normal && bump_mapping)
     {
         float bump[4];
@@ -127,18 +132,18 @@ void draw_point (POINT *p)
             u = p->tex[S] == 1 ? texture.width - 1 : u;
             v = p->tex[T] == 1 ? texture.height - 1 : v;
         }
+        
         bump[X] = bump_map.data[v][u][R] / 255.0;
         bump[Y] = bump_map.data[v][u][G] / 255.0;
         bump[Z] = bump_map.data[v][u][B] / 255.0;
-
         bump[W] = 1;
         
         scalar_add(-0.5, bump, bump);
         normalize(bump);
         vector_multiply(bump, p->v_normal, p->v_normal);
-        
     }
     
+    /* phong shading */
     if(!drawing_normal && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
@@ -150,7 +155,9 @@ void draw_point (POINT *p)
         {
             shade_point(tmp_diff, tmp_spec, p);
         }
-        //don't incorporate point's interpolated color; just modulate texture with lighting/brightness
+        
+        //don't incorporate point's interpolated color;
+        //  just modulate texture with lighting/brightness
         if(modulate && modulate_type == MOD_LIGHT)
         {
             cpy_vec4(p->color, tmp_diff);
@@ -170,12 +177,14 @@ void draw_point (POINT *p)
             vector_add(p->color, ambient, p->color);
         }
     }
+    
+    /* texture mapping */
     if(!drawing_normal && texturing)
     {
         float s, t;
         int u, v;
         
-        if( perspective_correct )
+        if (perspective_correct)
         {
             s = p->tex[S];
             t = p->tex[T];
@@ -198,22 +207,24 @@ void draw_point (POINT *p)
                 s = p->tex[S] == 1 ? texture.width - 1 : s;
                 t = p->tex[T] == 1 ? texture.width - 1 : t;
             }
+            
             u = (int) s;
             v = (int) t;
         }
-
 
         color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
         color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
         color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
         color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
-        if(drawing_backside) //ignore texture, just draw black
+        // if drawing reverse side of triangles, ignore the texel channels
+        if(drawing_backside)
         {
             color_buffer[r][c][R] = 0;
             color_buffer[r][c][G] = 0;
             color_buffer[r][c][B] = 0;
             color_buffer[r][c][A] = 1;
         }
+        //any form of modulating (with color or with light)
         if(modulate)
         {
             color_buffer[r][c][R] *= p->color[R];
@@ -222,18 +233,20 @@ void draw_point (POINT *p)
             color_buffer[r][c][A] *= p->color[A];
         }
     }
+    
+    /* alpha blending */
     else if(alpha_blend)
     {
         float new_r, new_g, new_b, new_a;
         
         new_r = (1 - blend_weight) * color_buffer[r][c][R] +
-        blend_weight * p->color[R];
+                blend_weight * p->color[R];
         new_g = (1 - blend_weight) * color_buffer[r][c][G] +
-        blend_weight * p->color[G];
+                blend_weight * p->color[G];
         new_b = (1 - blend_weight) * color_buffer[r][c][B] +
-        blend_weight * p->color[B];
+                blend_weight * p->color[B];
         new_a = (1 - blend_weight) * color_buffer[r][c][A] +
-        blend_weight * p->color[A];
+                blend_weight * p->color[A];
         
         /* write blended color to color_buffer */
         color_buffer[r][c][R] = new_r;
@@ -241,22 +254,25 @@ void draw_point (POINT *p)
         color_buffer[r][c][B] = new_b;
         color_buffer[r][c][A] = new_a;
     }
+    
+    /* just write interpolated point color into color buffer */
     else
     {
-        /* write p.color to color_buffer */
         color_buffer[r][c][R] = p->color[R];
         color_buffer[r][c][G] = p->color[G];
         color_buffer[r][c][B] = p->color[B];
         color_buffer[r][c][A] = p->color[A];
     }
+    
+    /* fog effect */
     if(fog)
     {
         float z = p->position[Z];
         color_buffer[r][c][R] = z * fog_color[R] + (1 - z) * color_buffer[r][c][R];
         color_buffer[r][c][G] = z * fog_color[G] + (1 - z) * color_buffer[r][c][G];
         color_buffer[r][c][B] = z * fog_color[B] + (1 - z) * color_buffer[r][c][B];
-
     }
+    
     if(depth_test)
     {
         depth_buffer[r][c] = p->position[Z];
