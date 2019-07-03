@@ -9,6 +9,7 @@
 #define DEPTH 0
 #define COLOR 1
 
+/* type of scene object */
 typedef struct object {
     int type;
     float center[3];

@@ -1,43 +1,57 @@
-
 #include "point.h"
+
 #include <stdio.h>
 #include <math.h>
-
-extern IMAGE texture;
-extern float color_buffer[WIN_H][WIN_W][4];
-extern float depth_buffer[WIN_H][WIN_W];
+#include "macros.h"
+#include "texture.h"
+#include "vector.h"
 
 /*************************************************************************/
-/* defines                                                               */
+/* global vars                                                          */
 /*************************************************************************/
-
-/* modes */
+/* draw modes */
 int alpha_blend = OFF;
 int depth_test = ON;
 int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
-extern float light[4];
-extern float eye[4];
-extern float shinyness;
-extern int modulate_type;
-
-IMAGE bump_map;
 int drawing_normal = OFF;
-extern int drawing_backside;
 int bump_mapping = OFF; // bump mapping for specular lighting
 int material = OFF; // material properties
 int specular_highlight = OFF;
-
-float fog_color[4] = {1, 1, 1, 1};
 int fog = OFF;
+
+IMAGE bump_map;
+float fog_color[4] = {1, 1, 1, 1};
+
+/*************************************************************************/
+/* externs                                                               */
+/*************************************************************************/
+/* data */
+extern float light[4];
+extern float eye[4];
+extern float shinyness;
+
+extern IMAGE texture;
+extern float color_buffer[WIN_H][WIN_W][4];
+extern float depth_buffer[WIN_H][WIN_W];
 
 extern float material_diffuse[4], material_specular[4], material_ambient[4];
 extern float light_diffuse[4], light_specular[4], light_ambient[4];
 
-/* calculate diffuse term for current material and light types, and
- store vector result in diffuse_term */
+/* knobs / metadata */
+extern int modulate_type;
+extern int drawing_backside;
+
+
+/*************************************************************************/
+/* helper functions                                                      */
+/*************************************************************************/
+/*
+    calculate diffuse term for current material and light types, and
+        store vector result in diffuse_term
+ */
 void set_diffuse_term (float normal[4], float diffuse_term[4])
 {
     float diffuse;
@@ -45,18 +59,22 @@ void set_diffuse_term (float normal[4], float diffuse_term[4])
     diffuse = MAX(vector_dot(normal, light), 0);
     if(material)
     {
+        // include material properties
         scalar_multiply(diffuse, material_diffuse, diffuse_term);
         vector_multiply(diffuse_term, light_diffuse, diffuse_term);
     }
     else
     {
+        // only use light properties
         scalar_multiply(diffuse, light_diffuse, diffuse_term);
     }
 
 }
 
-/* calculate specular term for current material and light types, and
- store vector result in specular_term */
+/*
+    calculate specular term for current material and light types, and
+        store vector result in specular_term
+ */
 void set_specular_term (float normal[4], float spec_term[4])
 {
     float specular, refl[4];
@@ -66,11 +84,13 @@ void set_specular_term (float normal[4], float spec_term[4])
     specular = pow(specular, shinyness);
     if(material)
     {
+        // include material properties
         scalar_multiply(specular, material_specular, spec_term);
         vector_multiply(spec_term, light_specular, spec_term);
     }
     else
     {
+        // include material properties
         scalar_multiply(specular, light_specular, spec_term);
     }
 }
@@ -86,7 +106,7 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
     }
     
     float ambient[4] = {0, 0 , 0 , 0};
-    if(material) 
+    if(material)
     {
         vector_multiply(light_ambient, material_ambient, ambient);
     }
@@ -105,14 +125,21 @@ void draw_point (POINT *p)
     int r = (int) (p->position[Y] + WIN_H / 2);
     int c = (int) (p->position[X] + WIN_W / 2);
     
+    /* if not within window size, do not draw */
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     
-    float blend_weight = 0.50;
+    float blend_weight = 0.50; //for alpha blending
+    
+    /* for now, we only implement perspective correct texture mapping */
     int persp_correct_texturing = perspective_correct && texturing;
     
-    /* early return if fail depth test (for persp. correct and non-persp. correct texturing) */
-    if((!persp_correct_texturing && depth_test && p->position[Z] > depth_buffer[r][c]) ||
-       (persp_correct_texturing && depth_test && (1.0/p->position[Z]) > depth_buffer[r][c]))
+    /* calculate fail condition for depth test */
+    int fails_z =
+        (!persp_correct_texturing && p->position[Z] > depth_buffer[r][c]) ||
+        (persp_correct_texturing && 1.0/p->position[Z] > depth_buffer[r][c]);
+    
+    /* early return if fail depth test */
+    if(depth_test && fails_z)
     {
         return;
     }
@@ -165,15 +192,12 @@ void draw_point (POINT *p)
             {
                 vector_add(p->color, tmp_spec, p->color);
             }
-            float ambient[4] = {0, 0 , 0 , 0};
+            float ambient[4] = {0.5, 0.5 , 0.5 , 0};
             if(material)
             {
                 vector_multiply(light_ambient, material_ambient, ambient);
             }
-            else
-            {
-                scalar_add(0.5, ambient, ambient);
-            }
+
             vector_add(p->color, ambient, p->color);
         }
     }
@@ -219,18 +243,12 @@ void draw_point (POINT *p)
         // if drawing reverse side of triangles, ignore the texel channels
         if(drawing_backside)
         {
-            color_buffer[r][c][R] = 0;
-            color_buffer[r][c][G] = 0;
-            color_buffer[r][c][B] = 0;
-            color_buffer[r][c][A] = 1;
+            set_vec4(color_buffer[r][c], 0, 0, 0, 1);
         }
         //any form of modulating (with color or with light)
         if(modulate)
         {
-            color_buffer[r][c][R] *= p->color[R];
-            color_buffer[r][c][G] *= p->color[G];
-            color_buffer[r][c][B] *= p->color[B];
-            color_buffer[r][c][A] *= p->color[A];
+            vector_multiply(color_buffer[r][c], p->color, color_buffer[r][c]);
         }
     }
     
@@ -249,28 +267,27 @@ void draw_point (POINT *p)
                 blend_weight * p->color[A];
         
         /* write blended color to color_buffer */
-        color_buffer[r][c][R] = new_r;
-        color_buffer[r][c][G] = new_g;
-        color_buffer[r][c][B] = new_b;
-        color_buffer[r][c][A] = new_a;
+        set_vec4(color_buffer[r][c], new_r, new_g, new_b, new_a);
     }
     
     /* just write interpolated point color into color buffer */
     else
     {
-        color_buffer[r][c][R] = p->color[R];
-        color_buffer[r][c][G] = p->color[G];
-        color_buffer[r][c][B] = p->color[B];
-        color_buffer[r][c][A] = p->color[A];
+        cpy_vec4(color_buffer[r][c], p->color);
     }
     
     /* fog effect */
     if(fog)
     {
         float z = p->position[Z];
-        color_buffer[r][c][R] = z * fog_color[R] + (1 - z) * color_buffer[r][c][R];
-        color_buffer[r][c][G] = z * fog_color[G] + (1 - z) * color_buffer[r][c][G];
-        color_buffer[r][c][B] = z * fog_color[B] + (1 - z) * color_buffer[r][c][B];
+        float new_r, new_g, new_b, new_a;
+        
+        new_r = z * fog_color[R] + (1 - z) * color_buffer[r][c][R];
+        new_g = z * fog_color[G] + (1 - z) * color_buffer[r][c][G];
+        new_b = z * fog_color[B] + (1 - z) * color_buffer[r][c][B];
+
+        set_vec4(color_buffer[r][c], new_r, new_g, new_b, 1);
+
     }
     
     if(depth_test)
@@ -279,28 +296,5 @@ void draw_point (POINT *p)
     }
 }
 
-/*
- * set position of point *p to (x, y, z, w)
- */
-void set_position (POINT *p, float x, float y, float z, float w)
-{
-    set_vec4(p->position, x, y, z, w);
-}
-
-/*
- * set color of point *p to (r, g, b, a)
- */
-void set_color (POINT *p, float r, float g, float b, float a)
-{
-    set_vec4(p->color, r, g, b, a);
-}
-
-/*
- * set tex coords of point *p to (s, t, 0, 0)
- */
-void set_tex (POINT *p, float s, float t)
-{
-    set_vec4(p->color, s, t, 0, 0);
-}
 
 

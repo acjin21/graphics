@@ -1,7 +1,12 @@
 #include "model.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include "raster.h"
+#include "vector.h"
+#include "macros.h"
+#include "point.h"
 
 extern float depth_buffer[WIN_H][WIN_W];
 

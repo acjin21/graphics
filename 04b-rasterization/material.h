@@ -36,4 +36,5 @@ typedef struct material {
 
 void set_material(int mat_type);
 char *material_name(int mat_type);
+
 #endif

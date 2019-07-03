@@ -1,5 +1,7 @@
 #include "depth.h"
+
 #include <stdio.h>
+#include "macros.h"
 
 void clear_depth_buffer (float value)
 {
@@ -19,7 +21,6 @@ void draw_depth_buffer (void)
     {
         for(int x = 0; x < WIN_H; x++)
         {
-            
             glColor4f(depth_buffer[y][x], depth_buffer[y][x],
                       depth_buffer[y][x], 1);
             glVertex2f(x - WIN_W / 2, y - WIN_H / 2);

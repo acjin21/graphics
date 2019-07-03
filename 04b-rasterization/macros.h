@@ -29,16 +29,18 @@ val = (val >= max_val) ? max_val - 1 : val; \
 val = (val < min_val) ? min_val : val; \
 }
 
-
+/* different modulation modes */
 #define MOD_COLOR 0
 #define MOD_LIGHT 1
 
+/* shading techniques */
 #define NO_SHADING 0
 #define FLAT 1
 #define PHONG 2
 
-
+/* different types of normals to be drawn */
+#define NO_NORMALS 0
 #define F_NORMALS 1
 #define V_NORMALS 2
-#define NO_NORMALS 0
+
 #endif
