@@ -4,15 +4,19 @@
 #include "color.h"
 #include <stdio.h>
 
+/*************************************************************************/
+/* externs                                                               */
+/*************************************************************************/
 extern float color_buffer[800][800][4];
 extern float depth_buffer[800][800];
 
+/*************************************************************************/
+/* global variables                                                      */
+/*************************************************************************/
 IMAGE texture00;
 IMAGE texture01;
 IMAGE texture02;
 IMAGE texture03;
-
-
 
 float gaussian_kernel[5][5] =
 {
@@ -23,6 +27,9 @@ float gaussian_kernel[5][5] =
     {1 / 256.0, 4 / 256.0,  6 / 256.0,  4 / 256.0,  1 / 256.0}
 };
 
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
 /* copy rgba vals [0, 1] in color_buffer to byte channels in image [0, 255] */
 void color_buffer_to_image (IMAGE *img)
 {
@@ -111,17 +118,14 @@ void blur (IMAGE *in, IMAGE *out, float kernel[5][5])
                     }
                 }
             }
-//            if(j >= 2 && i >= 2 && i < WIN_W - 2 && j < WIN_H - 2)
-//            {
-                out->data[j][i][R] = CLAMP(accum[R], 0, 255);
-                out->data[j][i][G] = CLAMP(accum[G], 0, 255);
-                out->data[j][i][B] = CLAMP(accum[B], 0, 255);
-//            }
+            out->data[j][i][R] = CLAMP(accum[R], 0, 255);
+            out->data[j][i][G] = CLAMP(accum[G], 0, 255);
+            out->data[j][i][B] = CLAMP(accum[B], 0, 255);
         }
     }
 }
 
-
+/* blend sharp + blurry imgs w/ mask as blend weight and store result in out */
 void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
 {
     out->height = WIN_H;
@@ -130,7 +134,7 @@ void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
     {
         for(int i = 0; i < out->width; i++)
         {
-            float z = mask->data[j][i][R] / 255.0; //z value [0, 1] is our blend weight
+            float z = mask->data[j][i][R] / 255.0; //z value [0, 1] blend weight
             out->data[j][i][R] = CLAMP( z * blur->data[j][i][R] +
                                        (1 - z) * sharp->data[j][i][R], 0, 255);
             out->data[j][i][G] = CLAMP(z * blur->data[j][i][G] +
@@ -142,6 +146,7 @@ void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
     }
 }
 
+/* implement depth_of_field post proc effect using textures 00-03 */
 void depth_of_field (void)
 {
     texture03.width = WIN_W;
@@ -165,9 +170,7 @@ void depth_of_field (void)
     image_to_color_buffer (&texture03);
 }
 
-
-
-/* post processing on color buffer */
+/* apply post processing on color buffer */
 void apply_post_processing (void)
 {
     color_buffer_to_image(&texture00);
