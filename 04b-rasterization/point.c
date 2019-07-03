@@ -16,7 +16,7 @@ int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
-int drawing_normal = OFF;
+int drawing_normals = OFF;
 int bump_mapping = OFF; // bump mapping for specular lighting
 int material = OFF; // material properties
 int specular_highlight = OFF;
@@ -145,7 +145,7 @@ void draw_point (POINT *p)
     }
     
     /* bump map */
-    if(!drawing_normal && bump_mapping)
+    if(!drawing_normals && bump_mapping)
     {
         float bump[4];
         int u, v;
@@ -171,7 +171,7 @@ void draw_point (POINT *p)
     }
     
     /* phong shading */
-    if(!drawing_normal && shading_mode == PHONG)
+    if(!drawing_normals && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         set_diffuse_term(p->v_normal, tmp_diff);
@@ -203,7 +203,7 @@ void draw_point (POINT *p)
     }
     
     /* texture mapping */
-    if(!drawing_normal && texturing)
+    if(!drawing_normals && texturing)
     {
         float s, t;
         int u, v;

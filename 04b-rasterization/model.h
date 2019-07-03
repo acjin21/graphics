@@ -16,7 +16,7 @@ void read_obj_file (char *name, float scale, float cx, float cy, float cz);
 void write_obj_file (char *file_name);
 
 void insert_normal_coords(void);
-//void insert_coord_axes (void);
+void insert_coord_axes (float cx, float cy, float cz, float scale);
 
 void xform_model(float scale);
 void draw_model(int mode);

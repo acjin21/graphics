@@ -34,7 +34,7 @@
 
 #define INIT_DZ 5
 
-#define N_TYPES 10
+#define N_TYPES 11
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -45,6 +45,7 @@
 #define TEAPOT 7
 #define CAT 8
 #define DEER 9
+#define LAPTOP 10
 
 #define NA -1
 
@@ -89,7 +90,7 @@ extern int modulate_type;
 extern int bump_mapping;
 extern int material;
 extern IMAGE bump_map;
-extern int drawing_normal;
+extern int drawing_normals;
 extern int fog;
 extern int specular_highlight;
 int dof_mode = OFF;
@@ -110,7 +111,8 @@ float dy_angle = 0;     /* init 3D rotation angle about the y axis */
 float dz_angle = 0;     /* init 3D rotation angle about the z axis */
 
 int post_processing = OFF;
-
+int obj_has_vnorms = OFF;
+int reading_obj = OFF;
 float mesh_da = 0;      /* flowing mesh animation */
 
 int counter = 0;
@@ -218,10 +220,22 @@ void render_object(OBJECT *o)
         case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
         case TEAPOT:    read_obj_file("obj/teapot.obj", scale, cx, cy, cz); break;
         case CAT:       init_scale = 0.01;
-                        read_obj_file("obj/cat.obj", init_scale, 0, 0, 0);  break;
+                        read_obj_file("obj/cat.obj", init_scale * scale, 0, 0, 0);  break;
         case DEER:      init_scale = 0.005;
-                        read_obj_file("obj/deer.obj", init_scale, 0, 0, 0); break;
+                        read_obj_file("obj/deer.obj", init_scale * scale, 0, 0, 0); break;
+        case LAPTOP:    read_obj_file("obj/laptop.obj", scale, 0, 0, 0); break;
     }
+    if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
+    {
+        reading_obj = ON;
+    }
+    else
+    {
+        reading_obj = OFF;
+    }
+    
+    insert_coord_axes(cx, cy, cz, scale);
+
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
@@ -237,13 +251,21 @@ void render_object(OBJECT *o)
                      o->init_orientation[Z] + dz_angle);
     }
     calculate_face_normals();
-    calculate_vertex_normals();
-    
-    if(normal_type == F_NORMALS) insert_normal_coords();
-    if(normal_type == V_NORMALS) drawing_normal = ON;
+    if(!reading_obj || (reading_obj && !obj_has_vnorms))
+    {
+        calculate_vertex_normals();
+    }
+    else {
+        printf("not calculating vertex normals\n");
+    }
+    if(normal_type == F_NORMALS)
+    {
+        insert_normal_coords();
+    }
+    if(normal_type == V_NORMALS) drawing_normals = ON;
     else
     {
-        drawing_normal = OFF;
+        drawing_normals = OFF;
     }
 
 
@@ -289,16 +311,7 @@ void display(void)
     {
         depth_test = ON;
     }
-    /* if modulating, turn on texturing and fill the model. */
-//    if(modulate == ON)
-//    {
-//        if(modulate_type == MOD_LIGHT)
-//        {
-//            clear_color_buffer(0, 0, 0, 0);
-//        }
-//        texturing = ON;
-//        draw_mode = FILL;
-//    }
+
     /* since alpha blending does not blend textures, if alpha blending is on,
         turn off texturing and fill the model. */
     if(alpha_blend == ON)
