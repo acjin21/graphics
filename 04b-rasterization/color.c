@@ -1,6 +1,10 @@
 #include "color.h"
 #include "macros.h"
 
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
+/* clear color buffer with clear color (r, g, b, a) */
 void clear_color_buffer (float r, float g, float b, float a)
 {
     for(int row = 0; row < WIN_H; row++)
@@ -15,6 +19,7 @@ void clear_color_buffer (float r, float g, float b, float a)
     }
 }
 
+/* draw color buffer to screen using OpenGL */
 void draw_color_buffer (void)
 {
     glBegin(GL_POINTS);

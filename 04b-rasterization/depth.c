@@ -18,7 +18,7 @@ void clear_depth_buffer (float value)
     }
 }
 
-/* draw depth buffer using OpenGL */
+/* draw depth buffer to screen using OpenGL */
 void draw_depth_buffer (void)
 {
     glBegin(GL_POINTS);
