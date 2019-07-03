@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include "macros.h"
 
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
+/* clear depth buffer by setting each pixel's depth to value */
 void clear_depth_buffer (float value)
 {
     for(int row = 0; row < WIN_H; row++)
@@ -14,6 +18,7 @@ void clear_depth_buffer (float value)
     }
 }
 
+/* draw depth buffer using OpenGL */
 void draw_depth_buffer (void)
 {
     glBegin(GL_POINTS);
