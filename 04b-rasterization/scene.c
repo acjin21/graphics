@@ -5,9 +5,9 @@
 #include "model.h"
 #include <stdio.h>
 
-OBJECT objects[MAX_N_OBJECTS];
-int num_objects = 0;
-
+/*************************************************************************/
+/* externs                                                               */
+/*************************************************************************/
 extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
 extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
 extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
@@ -20,6 +20,15 @@ extern int shading_mode;
 extern int perspective_correct;
 extern int modulate_type;
 
+/*************************************************************************/
+/* global variables                                                      */
+/*************************************************************************/
+OBJECT objects[MAX_N_OBJECTS];
+int num_objects = 0;
+
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
 void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
                  float scale, float r0, float r1)
 {
