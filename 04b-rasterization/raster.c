@@ -1,10 +1,22 @@
 #include "raster.h"
 #include <stdio.h>
 
+/*************************************************************************/
+/* defines                                                               */
+/*************************************************************************/
+#define MIN3(a,b,c) (((a) < (b)) ? (((a) < (c)) ? (a) : (c)) : (((b) < (c)) ? (b) : (c)))
+#define MAX3(a,b,c) (((a) > (b)) ? (((a) > (c)) ? (a) : (c)) : (((b) > (c)) ? (b) : (c)))
+
+/*************************************************************************/
+/* global variables                                                      */
+/*************************************************************************/
 /* for rasterization */
 POINT span[WIN_H][2];
 int edge_counts[WIN_H];
 
+/*************************************************************************/
+/* method prototypes                                                     */
+/*************************************************************************/
 void store_point (POINT *p);
 void reset_edge_counts (void);
 
@@ -197,14 +209,9 @@ void print_span (int row_start, int row_end)
     }
 }
 
-
-#define MIN3(a,b,c) (((a) < (b)) ? (((a) < (c)) ? (a) : (c)) : (((b) < (c)) ? (b) : (c)))
-#define MAX3(a,b,c) (((a) > (b)) ? (((a) > (c)) ? (a) : (c)) : (((b) > (c)) ? (b) : (c)))
-
 /*
  * edgeFunction()
  */
-
 float edgeFunction( float a[4], float b[4], float c[4] )
 {
     return (c[X] - a[X]) * (b[Y] - a[Y]) - (c[Y] - a[Y]) * (b[X] - a[X] );
