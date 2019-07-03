@@ -28,6 +28,7 @@
 
 #define NUM_MATERIALS 24
 
+/* material lighting properties type */
 typedef struct material {
     float   ambient[4];
     float   diffuse[4];
