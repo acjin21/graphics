@@ -8,51 +8,52 @@
 #include "macros.h"
 #include "point.h"
 
+/****************************************************************/
+/* defines */
+/****************************************************************/
+#define MAX_N_VERTS 1000000
+#define MAX_N_FACES 1000000
+
+/****************************************************************/
+/* externs */
+/****************************************************************/
+/* modes */
+extern int texturing;           // whether texturing or not
+extern int perspective_correct; // for perspective correct interpolation
+extern int normal_type;         // whether drawing normals or not
+extern int shading_mode;
+extern int drawing_normals;
+extern int modulate;
+extern int specular_highlight;
+extern int obj_has_vnorms;
+
+/* data */
 extern float depth_buffer[WIN_H][WIN_W];
-
-typedef struct face
-{
-    int vertices[3];
-    int colors[3];
-    int tex[3];
-    float f_normal[4]; //face normal in world coordinates
-    int v_normals[3];
-} FACE;
-
-#define NUM_VERTS 1000000
+extern float material_ambient[4];
+extern float light_ambient[4];
 
 /****************************************************************/
 /* global variables */
 /****************************************************************/
-POINT vertex_list[NUM_VERTS];
-float tex_list[NUM_VERTS][4];
-float color_list[NUM_VERTS][4];
-float normal_list[NUM_VERTS][4];
+/* modes */
+int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
+int drawing_backside = OFF;     // if drawing backside of a triangle
 
-FACE face_list[1000000];
-int num_triangles = 0;
-int num_vertices = 0;
-int num_face_normals = 0; //for finding centroids + endpoints in vertex_list
-int num_vertex_normals = 0;
-int num_textures = 0;
-int normals_provided = 0;
+/* data */
+POINT vertex_list[MAX_N_VERTS];
+FACE face_list[MAX_N_FACES];
 
-extern int texturing; // mode: whether texturing or not
-extern int perspective_correct; // mode: for perspective correct interpolation
-extern int normal_type; // mode: whether drawing normals or not
-extern int shading_mode;
-extern int drawing_normals;
-extern int modulate;
-int modulate_type = MOD_COLOR;
-int drawing_backside = OFF;
-extern int specular_highlight;
-//for flat shading -- shading needs to happen inside draw_model
-extern float material_ambient[4];
-extern float light_ambient[4];
-extern int obj_has_vnorms;
+float tex_list[MAX_N_VERTS][4];
+float color_list[MAX_N_VERTS][4];
+float normal_list[MAX_N_VERTS][4];
 
-
-int axes_start_idx = 0;
+/* counts */
+int num_triangles = 0;          // total num of triangles (curr. faces)
+int num_vertices = 0;           // total number of model vertices (not including norms or axes)
+int num_face_normals = 0;       // for finding centroids + endpoints in vertex_list
+int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by insert_coord_axes()
+int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
+int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 
 /****************************************************************/
 /* helper functions */
@@ -78,6 +79,9 @@ void add_face (int v0, int v1, int v2,
     face_list[num_triangles].v_normals[1] = n1;
     face_list[num_triangles].v_normals[2] = n2;
     
+    // set SOME point data (tri_list, num_tris, and v_normal)
+    //      the init_model functions that call this func have set the world coords in vertex_list
+    //      right now, we've only set the indices v, vn, vt (for each vtx of each face)
     POINT *p = &vertex_list[v0];
     p->tri_list[p->num_tris] = num_triangles;
     p->num_tris++;
@@ -89,16 +93,15 @@ void add_face (int v0, int v1, int v2,
     p->num_tris++;
     if(obj_has_vnorms) cpy_vec4(p->v_normal, normal_list[n1]);
 
-    
     p = &vertex_list[v2];
     p->tri_list[p->num_tris] = num_triangles;
     p->num_tris++;
     if(obj_has_vnorms) cpy_vec4(p->v_normal, normal_list[n2]);
-
     
-    num_triangles++;
+    num_triangles++; // should be only location in which we increment num_triangles
 }
 
+/* reset num_tris for POINTs vertex_list[0, num_verts) */
 void reset_num_tris (int num_verts)
 {
     for(int i = 0; i < num_verts; i++)
@@ -110,7 +113,7 @@ void reset_num_tris (int num_verts)
 /****************************************************************/
 /* model init functions */
 /****************************************************************/
-
+/* init a 2D quad of two right triangles */
 void init_quad (void)
 {
     num_vertices = 4;
@@ -167,7 +170,7 @@ void init_cube (float scale, float cx, float cy, float cz)
     set_vec4(tex_list[1], 0.9, 0.1, 0, 0);
     set_vec4(tex_list[2], 0.9, 0.9, 0, 0);
     set_vec4(tex_list[3], 0.1, 0.9, 0, 0);
-    num_textures = 4;
+    num_tex_coords = 4;
 
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
@@ -206,7 +209,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
     set_vec4(tex_list[1], 1, 0, 0, 0);
     set_vec4(tex_list[2], 0, 1, 0, 0);
     set_vec4(tex_list[3], 1, 1, 0, 0);
-    num_textures = 4;
+    num_tex_coords = 4;
     
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
@@ -273,18 +276,18 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         /******************/
         /* textures */
         /******************/
-        num_textures = 0;
+        num_tex_coords = 0;
         while (!strncmp(next_line, "vt", 2))
         {
 
             sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
-            set_vec4(tex_list[num_textures], s, t, r, 0.0);
-            num_textures++;
+            set_vec4(tex_list[num_tex_coords], s, t, r, 0.0);
+            num_tex_coords++;
             fgets(next_line, 500, fp);
 
         }
         fputs(next_line, fp);
-//        printf("%i textures read\n", num_textures);
+//        printf("%i textures read\n", num_tex_coords);
 //        printf("NEXT: %s\n", next_line);
 
         while(next_line[0] == '\n')
@@ -307,7 +310,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             
         }
         fputs(next_line, fp);
-//        printf("%i normals read\n", num_textures);
+//        printf("%i normals read\n", num_vertex_normals);
 //        printf("NEXT: %s\n", next_line);
         
         while(next_line[0] != 'f')
@@ -323,29 +326,29 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         num_triangles = 0; // reset num of triangles
         while(!strncmp(next_line, "f", 1))
         {
-            if(num_textures > 0 && num_vertex_normals > 0) // obj file has vt, vn
+            if(num_tex_coords > 0 && num_vertex_normals > 0) // obj file has vt, vn
             {
-                obj_has_vnorms = 1;
+                obj_has_vnorms = TRUE;
                 sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
                        &i, &vt1, &vn1,
                        &j, &vt2, &vn2,
                        &k, &vt3, &vn3);
 
             }
-            else if (num_textures > 0) // obj file has vt, vn
+            else if (num_tex_coords > 0) // obj file has vt, vn
             {
-                obj_has_vnorms = 0;
+                obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
                        &i, &vt1, &j, &vt2, &k, &vt3);
             }
             else if (num_vertex_normals > 0)
             {
-                obj_has_vnorms = 1;
+                obj_has_vnorms = TRUE;
                 sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
                        &i, &vn1, &j, &vn2, &k, &vn3);
             }
             else {
-                obj_has_vnorms = 0;
+                obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
             }
             add_face(i-1, j-1, k-1,    3, 3, 3,    vt1, vt2, vt3,   vn1, vn2, vn3);

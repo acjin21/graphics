@@ -8,9 +8,10 @@
 OBJECT objects[MAX_N_OBJECTS];
 int num_objects = 0;
 
-int draw_mode = FRAME;  /* draw model as wireframe or filled (FRAME/FILL) */
-int proj_mode = ORTHO;  /* projection type (ORTHO/PERSPECT) */
-int buffer = COLOR;     /* which buffer to draw from (COLOR/DEPTH) */
+extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
+extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
+extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
+
 extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
 extern int texturing;   /* whether texturing is turned on (OFF/ON) */
 extern int modulate;    /* whether modulating is turned on (OFF/ON) */

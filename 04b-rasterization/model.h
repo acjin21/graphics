@@ -1,9 +1,29 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+/****************************************************************/
+/* defines */
+/****************************************************************/
 #define FRAME 0
 #define FILL 1
 
+/****************************************************************/
+/* types */
+/****************************************************************/
+typedef struct face
+{
+    /* indices into respective lists */
+    int vertices[3];
+    int colors[3];
+    int tex[3];
+    int v_normals[3];
+    
+    float f_normal[4]; //face normal in world coordinates
+} FACE;
+
+/****************************************************************/
+/* functions */
+/****************************************************************/
 void init_quad (void);
 void init_cube (float scale, float cx, float cy, float cz);
 void init_mesh (float scale, float cx, float cy, float cz, float mesh_da);

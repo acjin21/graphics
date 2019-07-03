@@ -17,6 +17,9 @@
 #define S 0
 #define T 1
 
+#define FALSE 0
+#define TRUE 1
+
 #define PI 3.1415926
 #define EPSILON 0.0001
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))

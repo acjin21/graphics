@@ -7,6 +7,24 @@
 #include "vector.h"
 
 /*************************************************************************/
+/* externs                                                               */
+/*************************************************************************/
+/* modes */
+extern int modulate_type;
+extern int drawing_backside;
+
+/* data */
+extern IMAGE texture;
+extern float color_buffer[WIN_H][WIN_W][4];
+extern float depth_buffer[WIN_H][WIN_W];
+
+extern float light[4];
+extern float eye[4];
+extern float shinyness;
+extern float material_diffuse[4], material_specular[4], material_ambient[4];
+extern float light_diffuse[4], light_specular[4], light_ambient[4];
+
+/*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/
 /* draw modes */
@@ -17,33 +35,14 @@ int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
 int drawing_normals = OFF;
-int bump_mapping = OFF; // bump mapping for specular lighting
-int material = OFF; // material properties
+int bump_mapping = OFF;         // bump mapping for specular lighting
+int material = OFF;             // material properties
 int specular_highlight = OFF;
 int fog = OFF;
 
+/* data */
 IMAGE bump_map;
 float fog_color[4] = {1, 1, 1, 1};
-
-/*************************************************************************/
-/* externs                                                               */
-/*************************************************************************/
-/* data */
-extern float light[4];
-extern float eye[4];
-extern float shinyness;
-
-extern IMAGE texture;
-extern float color_buffer[WIN_H][WIN_W][4];
-extern float depth_buffer[WIN_H][WIN_W];
-
-extern float material_diffuse[4], material_specular[4], material_ambient[4];
-extern float light_diffuse[4], light_specular[4], light_ambient[4];
-
-/* knobs / metadata */
-extern int modulate_type;
-extern int drawing_backside;
-
 
 /*************************************************************************/
 /* helper functions                                                      */

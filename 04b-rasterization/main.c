@@ -56,66 +56,79 @@
 #define OBJ 0
 #define SCENE 1
 #define BASIC 2
+
+/*************************************************************************/
+/* externs                                                               */
+/*************************************************************************/
+/* from point.c */
+extern int alpha_blend;         // whether alpha blending is turned on (OFF/ON)
+extern int depth_test;          // whether depth testing turned on (OFF/ON)
+extern int texturing;           // whether texturing is turned on (OFF/ON)
+extern int modulate;            // whether modulating is turned on (OFF/ON)
+extern int perspective_correct;
+extern int shading_mode;        // FLAT / PHONG / NONE
+extern int drawing_normals;     // TODO: this may belong here or in model.c
+extern int bump_mapping;
+extern int material;
+extern int specular_highlight;
+extern int fog;
+extern IMAGE bump_map;
+
+/* from model.c */
+extern int modulate_type;
+
+/* from scene.c */              // for drawing multiple 3d objects on screen
+extern OBJECT objects[MAX_N_OBJECTS];
+extern int num_objects;
+
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
 int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
-int draw_prog = 1;
-char scene_file[MAX_FILE_NAME];
-char obj_file[MAX_FILE_NAME];
-int input_type = 0;
-float init_scale = 1.0; //for obj files from the internet
-
-IMAGE texture;          /* final display texture */
-
-/* toggles/knobs */
-extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
-extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
-extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
-
-float ortho_scale = 50;
-int rot_mode = LOCAL;
-float dz = INIT_DZ;     /* init dz in world space for perspective projection */
-
-extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
-extern int texturing;   /* whether texturing is turned on (OFF/ON) */
-extern int modulate;    /* whether modulating is turned on (OFF/ON) */
-extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
-extern int shading_mode;
-extern int perspective_correct;
-extern int modulate_type;
-
-extern int bump_mapping;
-extern int material;
-extern IMAGE bump_map;
-extern int drawing_normals;
-extern int fog;
-extern int specular_highlight;
-int dof_mode = OFF;
-/* more knobs */
-int texture_idx = 0;            //todo
-int material_type = EMERALD;    //todo  //have a diff material type for each object
-
-int object_type = QUAD;       /* model shape (CUBE/MESH/QUAD) //already recorded in scene files */
-int normal_type = NO_NORMALS;            //todo or omit-- more of a debugging tool
-
-/* for drawing multiple 3d objects on screen */
-extern OBJECT objects[MAX_N_OBJECTS];
-extern int num_objects;
-
-/* offset vars */
-float dx_angle = 0;     /* init 3D rotation angle about the x axis */
-float dy_angle = 0;     /* init 3D rotation angle about the y axis */
-float dz_angle = 0;     /* init 3D rotation angle about the z axis */
-
-int post_processing = OFF;
-int obj_has_vnorms = OFF;
-int reading_obj = OFF;
-float mesh_da = 0;      /* flowing mesh animation */
-
 int counter = 0;
+
+int buffer = COLOR;             // which buffer to draw from (COLOR/DEPTH)
+
+/* reading in different inputs: OBJ, SCENE (persistence) */
+int input_type = 0;
+char scene_file[MAX_FILE_NAME]; // when input_type == SCENE, "scene_name.txt"
+char obj_file[MAX_FILE_NAME];   // when input_type == OBJ, "obj_name.obj"
+
+/* for render pipeline */
+int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
+float init_scale = 1.0;         // for obj files from the internet
+float mesh_da = 0;              // flowing mesh animation
+
+int rot_mode = LOCAL;
+float dx_angle = 0;             // init 3D rotation angle about the x axis
+float dy_angle = 0;             // init 3D rotation angle about the y axis
+float dz_angle = 0;             // init 3D rotation angle about the z axis
+
+int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
+float ortho_scale = 50;
+float dz = INIT_DZ;             // init dz in world space for perspective projection
+
+int draw_mode = FRAME;          // draw model as wireframe or filled (FRAME/FILL)
+
+
+/* for post processing */
+int post_processing = OFF;
+int dof_mode = OFF;             // depth_of_field
+
+/* misc */
+//todo: diff texture_idx and material_types for each object in a scene
+IMAGE texture;                  // final display texture
+int texture_idx = 0;            // determine which texture to read from
+int material_type = EMERALD;    // material type for each object
+int normal_type = NO_NORMALS;
+int obj_has_vnorms = FALSE;
+int reading_obj = FALSE;
+
+/*************************************************************************/
+/* helper functions                                                    */
+/*************************************************************************/
 
 /* console logging for some of the more ambiguous knobs */
 void print_settings(void)
@@ -227,11 +240,11 @@ void render_object(OBJECT *o)
     }
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
     {
-        reading_obj = ON;
+        reading_obj = TRUE;
     }
     else
     {
-        reading_obj = OFF;
+        reading_obj = FALSE;
     }
     
     insert_coord_axes(cx, cy, cz, scale);
@@ -262,7 +275,7 @@ void render_object(OBJECT *o)
     {
         insert_normal_coords();
     }
-    if(normal_type == V_NORMALS) drawing_normals = ON;
+    if(normal_type == V_NORMALS || normal_type == F_NORMALS) drawing_normals = ON;
     else
     {
         drawing_normals = OFF;
@@ -397,9 +410,6 @@ static void Key(unsigned char key, int x, int y)
     char scene_name[MAX_FILE_NAME - 4] = "";
     switch (key)
     {
-        /* rotate between diff PPM files */
-        case 'P':       texture_idx++;                                  break;
-            
         /* draw wire frame or fill */
         case 'f':       draw_mode = 1 - draw_mode;                      break;
         /* toggle object_type between cube and mesh */
@@ -438,7 +448,7 @@ static void Key(unsigned char key, int x, int y)
         case 'd':       depth_test = 1 - depth_test;                    break;
         case 'm':       modulate = 1 - modulate;                        break;
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 's':       shading_mode = (shading_mode + 1) % 3;                break;
+        case 's':       shading_mode = (shading_mode + 1) % 3;          break;
             
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
         case 'M':       modulate_type = 1 - modulate_type;              break;
