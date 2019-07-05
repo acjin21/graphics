@@ -138,6 +138,9 @@ void init_quad (void)
     
     add_face(0, 1, 2,    0, 1, 2,    0, 1, 2,   0, 0, 0);
     add_face(0, 2, 3,    0, 1, 2,    0, 2, 3,   0, 0, 0);
+    
+    num_face_normals = num_triangles;
+
 }
 
 /* set vertices of a unit cube with world space coordinates and
@@ -199,6 +202,9 @@ void init_cube (float scale, float cx, float cy, float cz)
     add_face(7, 3, 2,    0, 1, 2,    0, 1, 2,       0, 0, 0);
     add_face(7, 2, 6,    0, 1, 2,    0, 2, 3,       0, 0, 0);
     /* should now have 12 triangles */
+    
+    num_face_normals = num_triangles;
+
 }
 
 void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
@@ -368,6 +374,9 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
         fclose(fp);
     }
+    
+    num_face_normals = num_triangles;
+
 }
 
 void write_obj_file (char *file_name)
@@ -453,6 +462,9 @@ void init_mesh (float scale, float cx, float cy, float cz, float da)
                      0, 0, 0);
         }
     }
+    
+    num_face_normals = num_triangles;
+
 
 }
 
@@ -507,6 +519,9 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
         }
     }
     
+    num_face_normals = num_triangles;
+
+    
 }
 
 /* init a cone */
@@ -560,6 +575,9 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
                      0, 0, 0);
         }
     }
+    
+    num_face_normals = num_triangles;
+
     
 }
 
@@ -618,6 +636,9 @@ void init_sphere (float radius, float cx, float cy, float cz)
         }
     }
     
+    num_face_normals = num_triangles;
+
+    
 }
 
 /* init a torus */
@@ -675,6 +696,8 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
         }
     }
     
+    num_face_normals = num_triangles;
+
 }
 
 
@@ -715,8 +738,6 @@ void insert_normal_coords(void)
 
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
-    num_face_normals = num_triangles;
-
     if(normal_type == F_NORMALS)
     {
         axes_start_idx = num_vertices + 2 * num_face_normals;
