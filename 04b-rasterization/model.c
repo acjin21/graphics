@@ -404,26 +404,6 @@ void write_obj_file (char *file_name)
         fclose(fp);
     }
 }
-void init_quad (void)
-{
-    set_vec4(vertex_list[0].world, -0.5, 0.5, 0, 1.0);
-    set_vec4(vertex_list[1].world, 0.5, 0.5, 0, 1.0);
-    set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
-    set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
-    
-    num_vertices = 4;
-    
-    set_vec4(vertex_list[0].tex, 0, 0, 0, 0);
-    set_vec4(vertex_list[1].tex, 1, 0, 0, 0);
-    set_vec4(vertex_list[2].tex, 1, 1, 0, 0);
-    set_vec4(vertex_list[3].tex, 0, 1, 0, 0);
-    
-    set_triangle(0, 0, 2, 1);
-    set_triangle(1, 0, 3, 2);
-    num_triangles = 2;
-
-
-}
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
 void init_mesh (float scale, float cx, float cy, float cz, float da)

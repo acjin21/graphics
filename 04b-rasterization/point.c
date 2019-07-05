@@ -33,8 +33,7 @@ int depth_test = ON;
 int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
-<<<<<<< HEAD
-=======
+
 int shading_mode = FLAT;
 int drawing_normals = OFF;
 int bump_mapping = OFF;         // bump mapping for specular lighting
@@ -118,20 +117,11 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
     vector_add(p->color, ambient, p->color);
 }
 
->>>>>>> face-struct
 /*************************************************************************/
 /* draw a point into color_buffer */
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-<<<<<<< HEAD
-    
-//    glBegin(GL_POINTS);
-    int r = (int) (p->position[Y] + 400);
-    int c = (int) (p->position[X] + 400);
-    if(r >= 800 || r < 0 || c >= 800 || c < 0) return;
-    float blend_weight = 0.50;
-=======
     int r = (int) (p->position[Y] + WIN_H / 2);
     int c = (int) (p->position[X] + WIN_W / 2);
     
@@ -139,7 +129,6 @@ void draw_point (POINT *p)
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     
     float blend_weight = 0.50; //for alpha blending
->>>>>>> face-struct
     
     /* for now, we only implement perspective correct texture mapping */
     int persp_correct_texturing = perspective_correct && texturing;
@@ -158,53 +147,6 @@ void draw_point (POINT *p)
     /* bump map */
     if(!drawing_normals && bump_mapping)
     {
-<<<<<<< HEAD
-        float s, t;
-        int u, v;
-        
-        if( perspective_correct == ON )
-        {
-            //            printf("perspect on");
-            s = p->tex[S];
-            t = p->tex[T];
-            
-            float z = 1.0 / p->position[Z];
-            s *= z;
-            t *= z;
-            
-            u = (int) (s * texture.width);
-            v = (int) (t * texture.height);
-            
-            color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
-            color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
-            color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
-            color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
-        }
-        
-        else
-        {
-            s = (p->tex[S] * texture.width);
-            t = (p->tex[T] * texture.height);
-            
-            if(p->tex[S] == 1 || p->tex[T] == 1)
-            {
-                s = p->tex[S] == 1 ? texture.width - 1 : s;
-                t = p->tex[T] == 1 ? texture.width - 1 : t;
-            }
-            color_buffer[r][c][R] = texture.data[(int) t][(int) s][R] / 255.0;
-            color_buffer[r][c][G] = texture.data[(int) t][(int) s][G] / 255.0;
-            color_buffer[r][c][B] = texture.data[(int) t][(int) s][B] / 255.0;
-            color_buffer[r][c][A] = texture.data[(int) t][(int) s][A] / 255.0;
-            
-        }
-        
-        if(modulate)
-        {
-            color_buffer[r][c][R] *= p->color[R];
-            color_buffer[r][c][G] *= p->color[G];
-            color_buffer[r][c][B] *= p->color[B];
-            color_buffer[r][c][A] *= p->color[A];
-=======
         float bump[4];
         int u, v;
         
@@ -216,7 +158,6 @@ void draw_point (POINT *p)
         {
             u = p->tex[S] == 1 ? texture.width - 1 : u;
             v = p->tex[T] == 1 ? texture.height - 1 : v;
->>>>>>> face-struct
         }
         
         bump[X] = bump_map.data[v][u][R] / 255.0;
@@ -310,14 +251,6 @@ void draw_point (POINT *p)
             vector_multiply(color_buffer[r][c], p->color, color_buffer[r][c]);
         }
     }
-<<<<<<< HEAD
-    /* draw point on screen */
-//    glColor4f(color_buffer[r][c][R], color_buffer[r][c][G],
-//              color_buffer[r][c][B], color_buffer[r][c][A]);
-//    glVertex2f(p->position[X], p->position[Y]);
-//    glEnd();
-}
-=======
     
     /* alpha blending */
     else if(alpha_blend)
@@ -352,7 +285,6 @@ void draw_point (POINT *p)
         new_r = z * fog_color[R] + (1 - z) * color_buffer[r][c][R];
         new_g = z * fog_color[G] + (1 - z) * color_buffer[r][c][G];
         new_b = z * fog_color[B] + (1 - z) * color_buffer[r][c][B];
->>>>>>> face-struct
 
         set_vec4(color_buffer[r][c], new_r, new_g, new_b, 1);
 
