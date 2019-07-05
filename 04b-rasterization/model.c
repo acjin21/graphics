@@ -26,7 +26,7 @@ extern int drawing_normals;
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
-
+extern int draw_coord_axes;
 /* data */
 extern float depth_buffer[WIN_H][WIN_W];
 extern float material_ambient[4];
@@ -1018,7 +1018,6 @@ void draw_model(int mode)
                 
                 if (normal_type == V_NORMALS && !texturing)
                 {
-//                    printf("drawing vertex normals\n");
                     drawing_normals = ON;
                     POINT v_norm_endpt, vtx;
                     float tmp[4];
@@ -1061,7 +1060,7 @@ void draw_model(int mode)
             }
         }
     }
-    if(axes_start_idx != 0)
+    if(axes_start_idx != 0 && draw_coord_axes)
     {
         //draw coord axes of model
         set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);

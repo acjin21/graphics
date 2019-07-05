@@ -127,6 +127,7 @@ int normal_type = NO_NORMALS;
 int obj_has_vnorms = FALSE;
 int reading_obj = FALSE;
 
+int draw_coord_axes = OFF;    // draw object space coord axes
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -137,9 +138,9 @@ void print_settings(void)
     printf("\n============================\nNEW DISPLAY: %i\n", counter);
     printf("Projection Mode (p):\t%s\n",
            proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    printf("Perspect. Correct (C):\t%s\n",
+    printf("Perspect. Correct (c):\t%s\n",
            perspective_correct ? "ON" : "OFF");
-    printf("Buffer (c):\t\t%s\n",
+    printf("Buffer (B):\t\t%s\n",
            buffer ? "COLOR" : "DEPTH");
     printf("Rotation Mode (R):\t%s\n",
            rot_mode ? "LOCAL" : "GLOBAL");
@@ -152,21 +153,27 @@ void print_settings(void)
            texturing ? "ON" : "OFF");
     printf("Modulate Type (M):\t%s\n",
            modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
-    printf("Material Type (4/1):\t%s\n",
-           material ? material_name(material_type) : "OFF");
-    printf("Bump Mapping (3):\t%s\n",
-           bump_mapping ? "ON" : "OFF");
     printf("Normals Type (n):\t%s\n",
            normal_type ? (normal_type == 1 ? "FACE" : "VTX") : "NONE" );
     printf("Shading Type (s):\t%s\n",
            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
     printf("Fog Mode (F):\t%s\n",
            fog ? "ON" : "OFF");
-    printf("Post-Processing (2):\t%s\n",
-           post_processing ? "ON" : "OFF");
-    printf("DOF (5):\t%s\n",
-           dof_mode ? "ON" : "OFF");
+    printf("Spec Highlight (S):\t%s\n",
+           specular_highlight ? "ON" : "OFF");
     printf(".....................\n");
+    printf("Material Type (1/2):\t%s\n",
+           material ? material_name(material_type) : "OFF");
+    printf("Post-Processing (3):\t%s\n",
+           post_processing ? "ON" : "OFF");
+    printf("DOF (4):\t%s\n",
+           dof_mode ? "ON" : "OFF");
+    printf("Bump Mapping (5):\t%s\n",
+           bump_mapping ? "ON" : "OFF");
+    printf(".....................\n");
+    printf("Drawing Coord Axes (a):\t%s\n",
+           draw_coord_axes ? "ON" : "OFF");
+    printf("\n============================\n");
 }
 
 /*******************************************************/
@@ -248,8 +255,11 @@ void render_object(OBJECT *o)
         reading_obj = FALSE;
     }
     
-    insert_coord_axes(cx, cy, cz, scale);
-
+    if(draw_coord_axes)
+    {
+        insert_coord_axes(cx, cy, cz, scale);
+    }
+    
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
@@ -411,6 +421,7 @@ static void Key(unsigned char key, int x, int y)
     char scene_name[MAX_FILE_NAME - 4] = "";
     switch (key)
     {
+            
         /* draw wire frame or fill */
         case 'f':       draw_mode = 1 - draw_mode;                      break;
         /* toggle object_type between cube and mesh */
@@ -424,11 +435,8 @@ static void Key(unsigned char key, int x, int y)
         case 'Y':       dy_angle -= 10;                                 break;
         case 'Z':       dz_angle -= 10;                                 break;
         case 'R':       rot_mode = 1 - rot_mode;                        break;
-        /* 'tumble' around */
-        case 'u':       dx_angle += 10;
-                        dy_angle += 10;
-                        dz_angle += 10;                                 break;
-            
+        /* flowing mesh animation */
+        case 'w':       mesh_da += 0.5;                                 break;
         /* reset rotations and any offsets */
         case 'r':       dx_angle = 0;
                         dy_angle = 0;
@@ -446,26 +454,29 @@ static void Key(unsigned char key, int x, int y)
         
         /* point drawing modes */
         case 't':       texturing = 1 - texturing;                      break;
-        case 'd':       depth_test = 1 - depth_test;                    break;
-        case 'm':       modulate = 1 - modulate;                        break;
-        case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 's':       shading_mode = (shading_mode + 1) % 3;          break;
-            
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
+            
+        case 'b':       alpha_blend = 1 - alpha_blend;                  break;
+        case 'd':       depth_test = 1 - depth_test;                    break;
+            
+        case 'm':       modulate = 1 - modulate;                        break;
         case 'M':       modulate_type = 1 - modulate_type;              break;
+        case 'n':       normal_type = (normal_type + 1) % 3;            break;
+        case 's':       shading_mode = (shading_mode + 1) % 3;          break;
+        case 'F':       fog = 1 - fog;                                  break;
+        case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                      break;
         /* toggle perspective-correct texturing */
-        case 'C':       perspective_correct = 1 - perspective_correct;  break;
+        case 'c':       perspective_correct = 1 - perspective_correct;  break;
         
         /* toggle between color and depth buffer */
-        case 'c':       buffer = 1 - buffer;                            break;
+        case 'B':       buffer = 1 - buffer;                            break;
             
-        /* flowing mesh animation */
-        case 'w':       mesh_da += 0.5;                                 break;
-        /* write out the normals */
-        case 'n':       normal_type = (normal_type + 1) % 3;                break;
+        case 'a':       draw_coord_axes = 1 - draw_coord_axes;          break;
+
+        
         /* write out scene objects with initial orientation to a scene file */
         case 'W':
             for(int i = 0; i < num_objects; i++)
@@ -486,18 +497,17 @@ static void Key(unsigned char key, int x, int y)
                 o->init_orientation[Z] -= dz_angle;
             }
             break;
-            
+       /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
+        
+        case '1': material = 1 - material;                              break;
+        case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
+        case '3': post_processing = 1 - post_processing;                break;
+        case '4': dof_mode = 1 - dof_mode;                              break;
 
-        case '1': material_type = (material_type + 1) % NUM_MATERIALS;  break;
-        case '2': post_processing = 1 - post_processing;                break;
-        case '3': bump_mapping = 1 - bump_mapping;                      break;
-        case '4': material = 1 - material;                              break;
-        case '5': dof_mode = 1 - dof_mode;                              break;
+        case '5': bump_mapping = 1 - bump_mapping;                      break;
 
-        case 'F': fog = 1 - fog;                                        break;
-        case 'S': specular_highlight = 1 - specular_highlight;          break;
-        case 'a':       draw_one_frame = 1;                             break;
+            
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }
