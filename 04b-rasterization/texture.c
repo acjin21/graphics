@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*************************************************************************/
 /* textures */
@@ -26,16 +27,21 @@ void random_texture (IMAGE *img)
 /* generate checkerboard texture */
 void checkerboard_texture (IMAGE *img)
 {
+
     img->width = 256;
     img->height = 256;
+    
+    int num_squares = 16;
+    int px_per_sq = img->width / num_squares;
+    
     int color;
     for(int j = 0; j < 256; j++)
     {
-        color = ((j / 32) % 2 == 0) ? 0 : 255;
+        color = ((j / px_per_sq) % 2 == 0) ? 0 : 255;
         
         for(int i = 0; i < 256; i++)
         {
-            if(i % 32 == 0 && i / 32 != 0)
+            if(i % px_per_sq == 0 && i / px_per_sq != 0)
             {
                 /* if start new block and not 0, switch color */
                 color = (color == 255 ? 0 : 255);
@@ -74,7 +80,7 @@ void read_ppm (char *file_name, IMAGE *img)
     }
     
     fscanf(fp, "%i %i\n" , &width, &height);
-    printf("%i, %i\n", width, height);
+//    printf("%i, %i\n", width, height);
     fscanf(fp, "%f\n", &max);
     
     img->width = width;
@@ -108,6 +114,21 @@ void read_ppm (char *file_name, IMAGE *img)
             }
         }
     }
+    else if(!strcmp(ppm_type, "P6"))
+    {
+        unsigned char *data = malloc(width * height * 3);
+        fread((void *) data, 3, width * height, fp);
+        for(int j = 0; j < height; j++)
+        {
+            for(int i = 0; i < width; i++)
+            {
+                img->data[j][i][R] =  data[(j * width + i) * 3];
+                img->data[j][i][G] =  data[(j * width + i) * 3 + 1];
+                img->data[j][i][B] =  data[(j * width + i) * 3 + 2];
+                img->data[j][i][A] = 1.0;
+            }
+        }
+    }
     fclose(fp);
 }
 
@@ -116,7 +137,6 @@ void write_ppm (char *file_name, IMAGE *img)
     FILE *fp;
     fp = fopen(file_name, "w");
 
-    
     if (fp == NULL)
     {
         printf("Unable to open file %s\n", file_name);

@@ -1,11 +1,22 @@
 #include "raster.h"
-
 #include <stdio.h>
 
-/* for rasterization */
-POINT span[800][2];
-int edge_counts[800];
+/*************************************************************************/
+/* defines                                                               */
+/*************************************************************************/
+#define MIN3(a,b,c) (((a) < (b)) ? (((a) < (c)) ? (a) : (c)) : (((b) < (c)) ? (b) : (c)))
+#define MAX3(a,b,c) (((a) > (b)) ? (((a) > (c)) ? (a) : (c)) : (((b) > (c)) ? (b) : (c)))
 
+/*************************************************************************/
+/* global variables                                                      */
+/*************************************************************************/
+/* for rasterization */
+POINT span[WIN_H][2];
+int edge_counts[WIN_H];
+
+/*************************************************************************/
+/* method prototypes                                                     */
+/*************************************************************************/
 void store_point (POINT *p);
 void reset_edge_counts (void);
 
@@ -78,7 +89,7 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* store point in span */
 void store_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + 400);
+    int r = (int) (p->position[Y] + WIN_H / 2);
     int count = edge_counts[r];
     
     /* sanity check */
@@ -94,7 +105,7 @@ void store_point (POINT *p)
 /* draw horizontal scan lines of triangle */
 void draw_spans(void)
 {
-    for(int r = 0; r < 800; r++)
+    for(int r = 0; r < WIN_H; r++)
     {
         POINT start_p = span[r][0];
         int count = edge_counts[r];
@@ -112,7 +123,7 @@ void draw_spans(void)
 /* reset all edge counts to 0 */
 void reset_edge_counts (void)
 {
-    for(int i = 0; i < 800; i++)
+    for(int i = 0; i < WIN_H; i++)
     {
         edge_counts[i] = 0;
     }
@@ -174,9 +185,9 @@ void sprint_point (char *s, POINT *p)
  */
 void print_edge_counts (void)
 {
-    for(int i = 0; i < 800; i++)
+    for(int i = 0; i < WIN_H; i++)
     {
-        printf("row %i, y = %i, count = %i\n", i, i - 400, edge_counts[i]);
+        printf("row %i, y = %i, count = %i\n", i, i - WIN_H / 2, edge_counts[i]);
     }
 }
 
@@ -198,17 +209,12 @@ void print_span (int row_start, int row_end)
     }
 }
 
-
-#define MIN3(a,b,c) (((a) < (b)) ? (((a) < (c)) ? (a) : (c)) : (((b) < (c)) ? (b) : (c)))
-#define MAX3(a,b,c) (((a) > (b)) ? (((a) > (c)) ? (a) : (c)) : (((b) > (c)) ? (b) : (c)))
-
 /*
  * edgeFunction()
  */
-
 float edgeFunction( float a[4], float b[4], float c[4] )
 {
-    return( c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0] );
+    return (c[X] - a[X]) * (b[Y] - a[Y]) - (c[Y] - a[Y]) * (b[X] - a[X] );
 }
 
 /*
@@ -247,24 +253,35 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                  * if point is inside triangle, compute barycentric weighting of vertex attributes (e.g. z, color, s, t)
                  */
                 scalar_divide(area, w, w);
-                p.position[Z]    = w[0] * v0->position[Z] +
+                p.position[Z] = w[0] * v0->position[Z] +
                                 w[1] * v1->position[Z] +
                                 w[2] * v2->position[Z];
-                p.color[R]  = w[0] * v0->color[R] +
+                p.color[R] = w[0] * v0->color[R] +
                                 w[1] * v1->color[R] +
                                 w[2] * v2->color[R];
-                p.color[G]  = w[0] * v0->color[G] +
+                p.color[G] = w[0] * v0->color[G] +
                                 w[1] * v1->color[G] +
                                 w[2] * v2->color[G];
-                p.color[B]  = w[0] * v0->color[B] +
+                p.color[B] = w[0] * v0->color[B] +
                                 w[1] * v1->color[B] +
                                 w[2] * v2->color[B];
-                p.tex[S]    = w[0] * v0->tex[S] +
+                p.tex[S] = w[0] * v0->tex[S] +
                                 w[1] * v1->tex[S] +
                                 w[2] * v2->tex[S];
-                p.tex[T]    = w[0] * v0->tex[T] +
+                p.tex[T] = w[0] * v0->tex[T] +
                                 w[1] * v1->tex[T] +
                                 w[2] * v2->tex[T];
+                
+                p.v_normal[X] = w[0] * v0->v_normal[X] +
+                                w[1] * v1->v_normal[X] +
+                                w[2] * v2->v_normal[X];
+                p.v_normal[Y] = w[0] * v0->v_normal[Y] +
+                                w[1] * v1->v_normal[Y] +
+                                w[2] * v2->v_normal[Y];
+                p.v_normal[Z] = w[0] * v0->v_normal[Z] +
+                                w[1] * v1->v_normal[Z] +
+                                w[2] * v2->v_normal[Z];
+                
                 draw_point(&p);
             }
         }

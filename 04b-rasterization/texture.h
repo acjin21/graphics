@@ -4,15 +4,13 @@
 #include "macros.h"
 #include "util.h"
 
+/* image resource */
 typedef struct image
 {
     int width;
     int height;
     unsigned char data[2000][2000][4];
 } IMAGE;
-
-//extern IMAGE texture;
-//extern IMAGE texture_in;
 
 void random_texture (IMAGE *img);
 void checkerboard_texture (IMAGE *img);

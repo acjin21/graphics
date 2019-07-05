@@ -1,20 +1,19 @@
 */*
 
 !*/*.*
-!*/ppm
-!*/out_ppm
+!*/
 
 !*/Makefile
 
 *.DS_Store
-*/.DS_Store
+**/.DS_Store
 # Prerequisites
 *.d
 
 # Object files
 *.o
 *.ko
-*.obj
+#*.obj
 *.elf
 
 # Linker output

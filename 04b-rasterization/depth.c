@@ -1,29 +1,34 @@
 #include "depth.h"
 
-extern int window_size;
+#include <stdio.h>
+#include "macros.h"
 
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
+/* clear depth buffer by setting each pixel's depth to value */
 void clear_depth_buffer (float value)
 {
-    for(int row = 0; row < 800; row++)
+    for(int row = 0; row < WIN_H; row++)
     {
-        for(int col = 0; col < 800; col++)
+        for(int col = 0; col < WIN_W; col++)
         {
             depth_buffer[row][col] = value;
         }
     }
 }
 
+/* draw depth buffer to screen using OpenGL */
 void draw_depth_buffer (void)
 {
     glBegin(GL_POINTS);
-    for(int y = -window_size; y < window_size; y++)
+    for(int y = 0; y < WIN_H; y++)
     {
-        for(int x = -window_size; x < window_size; x++)
+        for(int x = 0; x < WIN_H; x++)
         {
-            int r = (int) (y + 400);
-            int c = (int) (x + 400);
-            glColor4f(depth_buffer[r][c], depth_buffer[r][c], depth_buffer[r][c], 1);
-            glVertex2f(x, y);
+            glColor4f(depth_buffer[y][x], depth_buffer[y][x],
+                      depth_buffer[y][x], 1);
+            glVertex2f(x - WIN_W / 2, y - WIN_H / 2);
         }
     }
     glEnd();
