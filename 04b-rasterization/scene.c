@@ -41,6 +41,10 @@ void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
     o_ptr->radii[1] = r1;
 }
 
+OBJECT *get_curr_object (int objectID)
+{
+    return &objects[objectID];
+}
 ///* randomly drawn 3d objects */
 //void init_objects_random (void)
 //{
@@ -101,13 +105,12 @@ void write_scene (char *file_name)
             scale = o->scale;
             r0 = o->radii[0];
             r1 = o->radii[1];
-            dx_angle = o->init_orientation[X];
-            dy_angle = o->init_orientation[Y];
-            dz_angle = o->init_orientation[Z];
             
             //iterate through objects list
-            fprintf(fp, "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f\tr0: %.2f\tr1: %.2f\trotation: %.2f, %.2f, %.2f\n",
-                    type, cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle);
+            fprintf(fp, "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f\tr0: %.2f\tr1: %.2f\tinit_orientation: %.2f, %.2f, %.2f\trotation: %.2f, %.2f, %.2f\n",
+                    type, cx, cy, cz, scale, r0, r1,
+                    o->init_orientation[X], o->init_orientation[Y], o->init_orientation[Z],
+                    o->rotation[X], o->rotation[Y], o->rotation[Z]);
             //write each object out into file
         }
         printf("Done writing scene file to %s\n", file_name);
@@ -137,30 +140,34 @@ void read_scene (char *file_name)
                &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
 
         int type;
-        float cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle;
+        float cx, cy, cz, scale, r0, r1, init_orient_x, init_orient_y, init_orient_z, rot_x, rot_y, rot_z;
         for(int i = 0 ; i < num_objects; i++)
         {
             //iterate through lines in file
-            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f\tr0: %f\tr1: %f\trotation: %f, %f, %f\n",
+            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f\tr0: %f\tr1: %f\tinit_orientation: %f, %f, %f\trotation: %f, %f, %f\n",
                              &type, &cx, &cy, &cz, &scale, &r0, &r1,
-                             &dx_angle, &dy_angle, &dz_angle);
-            if(ret != 10)
+                             &init_orient_x, &init_orient_y, &init_orient_z,
+                             &rot_x, &rot_y, &rot_z);
+            if(ret != 13)
             {
                 printf("Error while reading %s\n", file_name);
                 return;
             }
             OBJECT *o = &objects[i];
             o->type = type;
+            o->ID = i;
             o->center[X] = cx;
             o->center[Y] = cy;
             o->center[Z] = cz;
             o->scale = scale;
             o->radii[0] = r0;
             o->radii[1] = r1;
-            o->init_orientation[X] = dx_angle;
-            o->init_orientation[Y] = dy_angle;
-            o->init_orientation[Z] = dz_angle;
-
+            o->init_orientation[X] = init_orient_x;
+            o->init_orientation[Y] = init_orient_y;
+            o->init_orientation[Z] = init_orient_z;
+            o->rotation[X] = rot_x;
+            o->rotation[Y] = rot_y;
+            o->rotation[Z] = rot_z;
         }
         printf("Done reading scene file from %s\n", file_name);
         fclose(fp);

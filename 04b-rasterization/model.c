@@ -371,7 +371,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             }
         }
 //        printf("%i faces read\n", num_triangles);
-        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
+//        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
         fclose(fp);
     }
     
