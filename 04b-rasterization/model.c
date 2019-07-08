@@ -42,6 +42,7 @@ int drawing_backside = OFF;     // if drawing backside of a triangle
 /* data */
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
+POINT *bottom_left, *top_right;
 
 float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
@@ -122,7 +123,7 @@ void init_quad (void)
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0, 1.0);
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
     set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
-    
+
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
@@ -1100,6 +1101,11 @@ void draw_model(int mode)
                   &vertex_list[axes_start_idx + 3], DRAW);
     }
 
+}
+
+void draw_model_2D_bound (void)
+{
+    
 }
 
 
