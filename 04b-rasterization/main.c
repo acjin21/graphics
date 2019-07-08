@@ -77,6 +77,7 @@ extern IMAGE bump_map;
 
 /* from model.c */
 extern int modulate_type;
+extern int tex_gen_mode;
 
 /* from scene.c */              // for drawing multiple 3d objects on screen
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -253,6 +254,7 @@ void render_object(OBJECT *o)
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
     {
         reading_obj = TRUE;
+        get_tex_coords();
     }
     else
     {
@@ -263,10 +265,8 @@ void render_object(OBJECT *o)
     {
         insert_coord_axes(cx, cy, cz, scale);
     }
-    
     if(rot_mode == LOCAL)
     {
-      
         rotate_model(cx, cy, cz,
                      o->init_orientation[X] + o->rotation[X],
                      o->init_orientation[Y] + o->rotation[Y],
@@ -293,11 +293,7 @@ void render_object(OBJECT *o)
     {
         insert_normal_coords();
     }
-    if(normal_type == V_NORMALS || normal_type == F_NORMALS) drawing_normals = ON;
-    else
-    {
-        drawing_normals = OFF;
-    }
+
 
 
     switch(proj_mode)
@@ -329,6 +325,7 @@ void display(void)
         //  Necessary for Mojave.
         //  Has to be different dimensions than in glutInitWindowSize();
         Mojave_WorkAround = 0;
+//        tex_gen_mode = OFF;
     }
     if( draw_one_frame == 0 ) return;
     

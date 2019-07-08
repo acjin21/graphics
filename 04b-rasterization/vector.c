@@ -4,6 +4,9 @@
 #include <math.h>
 #include "macros.h"
 
+/****************************************************************/
+/* vector utility functions */
+/****************************************************************/
 void vector_add (float v1[4], float v2[4], float res[4])
 {
     for(int i = 0; i < 4; i++)
@@ -112,3 +115,25 @@ void cpy_vec4 (float dest[4], float val[4])
     }
 }
 
+/****************************************************************/
+/* normal-to-texture conversions */
+/****************************************************************/
+// assert normal is normalized
+void naive_map (float normal[4], float tex[4])
+{
+    tex[S] = (normal[X] + 1.0) / 2.0;
+    tex[T] = (normal[Y] + 1.0) / 2.0;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+}
+
+void cylindrical_map (float normal[4], float tex[4])
+{
+    float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
+    float theta = asin(normal[Z] / r); // theta in [-pi/2, pi/2]
+    
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI) + (normal[Z] < 0 ? 0.5 : 0);
+    tex[T] = (normal[Y] + 1.0) / 2.0;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+}

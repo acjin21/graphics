@@ -22,7 +22,7 @@ extern int texturing;           // whether texturing or not
 extern int perspective_correct; // for perspective correct interpolation
 extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
-extern int drawing_normals;
+//extern int drawing_normals;
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
@@ -38,6 +38,7 @@ extern float light_ambient[4];
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
+int tex_gen_mode = NAIVE;
 
 /* data */
 POINT vertex_list[MAX_N_VERTS];
@@ -353,10 +354,16 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                 obj_has_vnorms = TRUE;
                 sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
                        &i, &vn1, &j, &vn2, &k, &vn3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
             else {
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
             add_face(i-1, j-1, k-1,    3, 3, 3,    vt1, vt2, vt3,   vn1, vn2, vn3);
             
@@ -1038,9 +1045,9 @@ void draw_model(int mode)
                 drawing_backside = OFF;
                 draw_triangle_barycentric (&p0, &p1, &p2);
                 
-                if (normal_type == V_NORMALS && !texturing)
+                if (normal_type == V_NORMALS)
                 {
-                    drawing_normals = ON;
+//                    drawing_normals = ON;
                     POINT v_norm_endpt, vtx;
                     float tmp[4];
                     set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
@@ -1066,7 +1073,7 @@ void draw_model(int mode)
                     vector_add(p2.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p2.position[Z];
                     draw_line(&p2, &v_norm_endpt, DRAW);
-                    drawing_normals = OFF;
+//                    drawing_normals = OFF;
                     
                 }
 
@@ -1074,6 +1081,7 @@ void draw_model(int mode)
 
             if(normal_type == F_NORMALS)
             {
+                printf("draw normals\n");
                 //draw normals
                 set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
                 set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
@@ -1103,10 +1111,24 @@ void draw_model(int mode)
 
 }
 
-void draw_model_2D_bound (void)
+//void draw_model_2D_bound (void)
+//{
+//
+//}
+
+/* go through all vertices and generate texture coordinates from normals */
+void get_tex_coords (void)
 {
-    
+    if(tex_gen_mode == OFF)
+    {
+        return;
+    }
+    if(tex_gen_mode == NAIVE)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            naive_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+
 }
-
-
-
