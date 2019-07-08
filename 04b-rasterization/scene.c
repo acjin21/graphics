@@ -27,9 +27,10 @@ OBJECT objects[MAX_N_OBJECTS];
 int num_objects = 0;
 
 /*************************************************************************/
-/* functions                                                             */
+/* custom init scene functions                                          */
 /*************************************************************************/
-void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
+void set_object (OBJECT *o_ptr,
+                 int type, float cx, float cy, float cz,
                  float scale, float r0, float r1)
 {
     o_ptr->type = type;
@@ -41,38 +42,44 @@ void set_object (OBJECT *o_ptr, int type, float cx, float cy, float cz,
     o_ptr->radii[1] = r1;
 }
 
+/* randomly drawn 3d objects */
+void init_objects_random (void)
+{
+    for(int i = 0; i < MAX_N_OBJECTS; i++)
+    {
+        float rand_x, rand_y, rand_z, rand_scale;
+        rand_x = random_float(-2, 0);
+        rand_y = random_float(-3, 3);
+        rand_z = random_float(0, 3);
+        rand_scale = random_float(1, 5);
+
+        set_object(&objects[i], CUBE, rand_x, rand_y, rand_z, rand_scale, NA, NA);
+    }
+    num_objects = MAX_N_OBJECTS;
+}
+
+/* non-overlapping objects */
+void init_objects(void)
+{                                     //cx, cy, cz, scale, r0, r1
+    set_object(&objects[0], CUBE,       -3, 3,  0, 1,   NA,     NA);
+    set_object(&objects[1], CYLINDER,   0,  3,  0, 1,   0.5,    NA);
+    set_object(&objects[2], CONE,       3,  3,  0, 1,   0.5,    NA);
+    set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
+    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
+    set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
+    set_object(&objects[6], TEAPOT,     0,  0,  0, 0.5,  NA,     NA);
+    num_objects = 7;
+}
+
+
+/*************************************************************************/
+/* functions                                                             */
+/*************************************************************************/
+
 OBJECT *get_curr_object (int objectID)
 {
     return &objects[objectID];
 }
-///* randomly drawn 3d objects */
-//void init_objects_random (void)
-//{
-//    for(int i = 0; i < MAX_N_OBJECTS; i++)
-//    {
-//        float rand_x, rand_y, rand_z, rand_scale;
-//        rand_x = random_float(-2, 0);
-//        rand_y = random_float(-3, 3);
-//        rand_z = random_float(0, 3);
-//        rand_scale = random_float(1, 5);
-//
-//        set_object(&objects[i], CUBE, rand_x, rand_y, rand_z, rand_scale, NA, NA);
-//    }
-//    num_objects = MAX_N_OBJECTS;
-//}
-//
-///* non-overlapping objects */
-//void init_objects(void)
-//{                                     //cx, cy, cz, scale, r0, r1
-//    set_object(&objects[0], CUBE,       -3, 3,  0, 1,   NA,     NA);
-//    set_object(&objects[1], CYLINDER,   0,  3,  0, 1,   0.5,    NA);
-//    set_object(&objects[2], CONE,       3,  3,  0, 1,   0.5,    NA);
-//    set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
-//    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
-//    set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
-//    set_object(&objects[6], TEAPOT,     0,  0,  0, 0.5,  NA,     NA);
-//    num_objects = 7;
-//}
 
 /* write object metadata out to a scene file */
 void write_scene (char *file_name)
