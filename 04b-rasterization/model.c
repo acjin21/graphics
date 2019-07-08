@@ -9,6 +9,7 @@
 #include "vector.h"
 #include "macros.h"
 #include "point.h"
+#include "math_lib/mat4.h"
 
 /****************************************************************/
 /* defines */
@@ -728,34 +729,61 @@ void xform_model(float scale)
     z_angle about the z axis */
 void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, float z_angle)
 {
-    z_angle *= (PI / 180.0);
-    y_angle *= (PI / 180.0);
-    x_angle *= (PI / 180.0);
-
+//    z_angle *= (PI / 180.0);
+//    y_angle *= (PI / 180.0);
+//    x_angle *= (PI / 180.0);
+//
+//    float nx, ny, nz;
+//    int max_idx = get_max_idx (normal_type);
+//
+//    for(int i = 0; i < max_idx; i++)
+//    {
+//        POINT *p = &vertex_list[i];
+//
+//        /* about z axis */
+//        nx = (p->world[X] - cx) * cos(z_angle) - (p->world[Y] - cy) * sin(z_angle);
+//        ny = (p->world[X] - cx) * sin(z_angle) + (p->world[Y] - cy)* cos(z_angle);
+//        vertex_list[i].world[X] = nx + cx;
+//        vertex_list[i].world[Y] = ny + cy;
+//
+//        /* about y axis */
+//        nx = (p->world[X] - cx) * cos(y_angle) - (p->world[Z] - cz) * sin(y_angle);
+//        nz = (p->world[X] - cx) * sin(y_angle) + (p->world[Z] - cz) * cos(y_angle);
+//        vertex_list[i].world[X] = nx + cx;
+//        vertex_list[i].world[Z] = nz + cz;
+//
+//        /* about x axis */
+//        ny = (p->world[Y] - cy) * cos(x_angle) - (p->world[Z] - cz) * sin(x_angle);
+//        nz = (p->world[Y] - cy) * sin(x_angle) + (p->world[Z] - cz) * cos(x_angle);
+//        vertex_list[i].world[Y] = ny + cy;
+//        vertex_list[i].world[Z] = nz + cz;
+//    }
+    
     float nx, ny, nz;
     int max_idx = get_max_idx (normal_type);
-
+    
     for(int i = 0; i < max_idx; i++)
     {
         POINT *p = &vertex_list[i];
-
-        /* about z axis */
-        nx = (p->world[X] - cx) * cos(z_angle) - (p->world[Y] - cy) * sin(z_angle);
-        ny = (p->world[X] - cx) * sin(z_angle) + (p->world[Y] - cy)* cos(z_angle);
-        vertex_list[i].world[X] = nx + cx;
-        vertex_list[i].world[Y] = ny + cy;
-
-        /* about y axis */
-        nx = (p->world[X] - cx) * cos(y_angle) - (p->world[Z] - cz) * sin(y_angle);
-        nz = (p->world[X] - cx) * sin(y_angle) + (p->world[Z] - cz) * cos(y_angle);
-        vertex_list[i].world[X] = nx + cx;
-        vertex_list[i].world[Z] = nz + cz;
-
-        /* about x axis */
-        ny = (p->world[Y] - cy) * cos(x_angle) - (p->world[Z] - cz) * sin(x_angle);
-        nz = (p->world[Y] - cy) * sin(x_angle) + (p->world[Z] - cz) * cos(x_angle);
-        vertex_list[i].world[Y] = ny + cy;
-        vertex_list[i].world[Z] = nz + cz;
+        float in_vec[4], out_vec[4], tmp[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 inv_transl, rot_X, rot_Y, rot_Z, transl;
+        set_transl (&inv_transl, -cx, -cy, -cz);
+        set_transl (&transl, cx, cy, cz);
+        set_rot_X (&rot_X, x_angle);
+        set_rot_Y (&rot_Y, y_angle);
+        set_rot_Z (&rot_Z, z_angle);
+        
+        /* transform world coords */
+        mat_vec_mul (&inv_transl, in_vec, out_vec);
+        mat_vec_mul (&rot_Z, out_vec, tmp);
+        mat_vec_mul (&rot_X, tmp, out_vec);
+        mat_vec_mul (&rot_Y, out_vec, tmp);
+        mat_vec_mul (&transl, tmp, out_vec); // transl origin -> object center
+        
+        cpy_vec4(vertex_list[i].world, out_vec);
     }
 }
 
