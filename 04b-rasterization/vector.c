@@ -133,7 +133,7 @@ void cylindrical_map (float normal[4], float tex[4])
 {
     normalize(normal);
     float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
-    float theta = asin(normal[Z] / r);
+    float theta = asin(normal[Z] / r);//  + (normal[Z] > 0 ? 0 : 0.5);
     if(isnan(theta)) //NaN correction
     {
         theta = 0;
@@ -153,7 +153,7 @@ void spherical_map (float normal[4], float tex[4])
 {
     normalize(normal);
     float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
-    float theta = asin(normal[Z] / r);
+    float theta = asin(normal[Z] / r);// + (normal[Z] > 0 ? 0 : 0.5);
     if(isnan(theta)) //NaN correction
     {
         theta = 0;
