@@ -325,7 +325,6 @@ void display(void)
         //  Necessary for Mojave.
         //  Has to be different dimensions than in glutInitWindowSize();
         Mojave_WorkAround = 0;
-//        tex_gen_mode = OFF;
     }
     if( draw_one_frame == 0 ) return;
     
@@ -503,7 +502,8 @@ static void Key(unsigned char key, int x, int y)
         case '4': dof_mode = 1 - dof_mode;                              break;
 
         case '5': bump_mapping = 1 - bump_mapping;                      break;
-
+        
+        case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
             
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;

@@ -38,7 +38,7 @@ extern float light_ambient[4];
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
-int tex_gen_mode = NAIVE;
+int tex_gen_mode = CYLINDRICAL;
 
 /* data */
 POINT vertex_list[MAX_N_VERTS];
@@ -1130,5 +1130,13 @@ void get_tex_coords (void)
             naive_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
+    if(tex_gen_mode == CYLINDRICAL)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            cylindrical_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+    
 
 }

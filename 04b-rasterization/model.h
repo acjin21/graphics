@@ -7,6 +7,7 @@
 #define FRAME 0
 #define FILL 1
 
+#define NUM_TEX_MODES 3
 #define NAIVE 1
 #define CYLINDRICAL 2
 #define SPHERICAL 3
