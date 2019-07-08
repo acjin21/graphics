@@ -11,8 +11,10 @@
 /****************************************************************/
 /* defines */
 /****************************************************************/
-#define MAX_N_VERTS 1000000
-#define MAX_N_FACES 1000000
+#define MAX_N_VERTS 100000000
+#define MAX_N_FACES 100000000
+
+#define V_NORM_SCALE 10
 
 /****************************************************************/
 /* externs */
@@ -38,10 +40,12 @@ extern float light_ambient[4];
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
+int tex_gen_mode = SPHERICAL;
 
 /* data */
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
+POINT *bottom_left, *top_right;
 
 float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
@@ -121,7 +125,7 @@ void init_quad (void)
     set_vec4(vertex_list[1].world, 0.5, 0.5, 0, 1.0);
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
     set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
-    
+
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
@@ -210,11 +214,11 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
 //    printf("%f\n", scale);
     /* set tex coordinates to four corners of texture */
-    set_vec4(tex_list[0], 0, 0, 0, 0);
-    set_vec4(tex_list[1], 1, 0, 0, 0);
-    set_vec4(tex_list[2], 0, 1, 0, 0);
-    set_vec4(tex_list[3], 1, 1, 0, 0);
-    num_tex_coords = 4;
+//    set_vec4(tex_list[0], 0, 0, 0, 0);
+//    set_vec4(tex_list[1], 1, 0, 0, 0);
+//    set_vec4(tex_list[2], 0, 1, 0, 0);
+//    set_vec4(tex_list[3], 1, 1, 0, 0);
+//    num_tex_coords = 4;
     
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
@@ -338,6 +342,9 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                        &i, &vt1, &vn1,
                        &j, &vt2, &vn2,
                        &k, &vt3, &vn3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
 
             }
             else if (num_tex_coords > 0) // obj file has vt, vn
@@ -345,18 +352,30 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
                        &i, &vt1, &j, &vt2, &k, &vt3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
             else if (num_vertex_normals > 0)
             {
                 obj_has_vnorms = TRUE;
                 sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
                        &i, &vn1, &j, &vn2, &k, &vn3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
             else {
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
-            add_face(i-1, j-1, k-1,    3, 3, 3,    vt1, vt2, vt3,   vn1, vn2, vn3);
+            add_face(i - 1, j - 1, k - 1,       //vtx indices
+                     3, 3, 3,                   //colors
+                     vt1 - 1, vt2 - 1, vt3 - 1, //tex coord indices
+                     vn1, vn2, vn3);            //normal indices
             
             if(fgets(next_line, 500, fp) == NULL) {
                 break; // reach end of file
@@ -370,7 +389,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
             }
         }
 //        printf("%i faces read\n", num_triangles);
-        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
+//        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
         fclose(fp);
     }
     
@@ -669,7 +688,6 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
             set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
         }
         count += 0.05;
     }
@@ -683,12 +701,10 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     //                     0, 0, 0,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      0, 0, 0);
             add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     //                     0, 0, 0,
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      0, 0, 0);
@@ -982,10 +998,10 @@ void draw_model(int mode)
         
         cpy_vec4(p1.color, color_list[f.colors[1]]);
         cpy_vec4(p1.tex, tex_list[f.tex[1]]);
-        
+
         cpy_vec4(p2.color, color_list[f.colors[2]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
-        
+
         if(perspective_correct && texturing)
         {
             scalar_multiply(p0.position[Z], p0.tex, p0.tex);
@@ -1050,7 +1066,7 @@ void draw_model(int mode)
                 drawing_backside = OFF;
                 draw_triangle_barycentric (&p0, &p1, &p2);
                 
-                if (normal_type == V_NORMALS && !texturing)
+                if (normal_type == V_NORMALS)
                 {
                     drawing_normals = ON;
                     POINT v_norm_endpt, vtx;
@@ -1058,7 +1074,7 @@ void draw_model(int mode)
                     set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
                     
                     set_vec4(p0.color, 0, 1, 0, 1);
-                    scalar_multiply(20, p0.v_normal, tmp);
+                    scalar_multiply(V_NORM_SCALE, p0.v_normal, tmp);
                     vector_add(p0.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = vtx.position[Z];
                     draw_line(&p0, &v_norm_endpt, DRAW);
@@ -1066,7 +1082,7 @@ void draw_model(int mode)
                     set_vec4(p1.color, 0, 1, 0, 1);
                     set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
                     
-                    scalar_multiply(20, p1.v_normal, tmp);
+                    scalar_multiply(V_NORM_SCALE, p1.v_normal, tmp);
                     vector_add(p1.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p1.position[Z];
                     draw_line(&p1, &v_norm_endpt, DRAW);
@@ -1074,12 +1090,12 @@ void draw_model(int mode)
                     set_vec4(p2.color, 0, 1, 0, 1);
                     set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
                     
-                    scalar_multiply(20, p2.v_normal, tmp);
+                    scalar_multiply(V_NORM_SCALE, p2.v_normal, tmp);
                     vector_add(p2.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p2.position[Z];
                     draw_line(&p2, &v_norm_endpt, DRAW);
                     drawing_normals = OFF;
-                    
+
                 }
 
             }
@@ -1087,10 +1103,13 @@ void draw_model(int mode)
             if(normal_type == F_NORMALS)
             {
                 //draw normals
+                drawing_normals = ON;
                 set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
                 set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
                 draw_line(&vertex_list[num_vertices + 2 * i],
                           &vertex_list[num_vertices + 2 * i + 1], DRAW);
+                drawing_normals = OFF;
+
             }
         }
     }
@@ -1115,5 +1134,45 @@ void draw_model(int mode)
 
 }
 
+//void draw_model_2D_bound (void)
+//{
+//
+//}
 
+/* go through all vertices and generate texture coordinates from normals */
+void get_tex_coords (void)
+{
+    if(tex_gen_mode == OFF)
+    {
+        return;
+    }
+    if(tex_gen_mode == NAIVE)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            naive_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+    if(tex_gen_mode == CYLINDRICAL)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            cylindrical_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+    if(tex_gen_mode == SPHERICAL)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            spherical_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+    if(tex_gen_mode == REFLECTION)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            reflection_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
 
+}

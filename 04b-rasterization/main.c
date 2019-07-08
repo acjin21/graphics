@@ -76,6 +76,7 @@ extern IMAGE bump_map;
 
 /* from model.c */
 extern int modulate_type;
+extern int tex_gen_mode;
 
 /* from scene.c */              // for drawing multiple 3d objects on screen
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -103,9 +104,9 @@ float init_scale = 1.0;         // for obj files from the internet
 float mesh_da = 0;              // flowing mesh animation
 
 int rot_mode = LOCAL;
-float dx_angle = 0;             // init 3D rotation angle about the x axis
-float dy_angle = 0;             // init 3D rotation angle about the y axis
-float dz_angle = 0;             // init 3D rotation angle about the z axis
+//float dx_angle = 0;             // init 3D rotation angle about the x axis
+//float dy_angle = 0;             // init 3D rotation angle about the y axis
+//float dz_angle = 0;             // init 3D rotation angle about the z axis
 
 int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
 float ortho_scale = 50;
@@ -116,6 +117,9 @@ int draw_mode = FRAME;          // draw model as wireframe or filled (FRAME/FILL
 /* for post processing */
 int post_processing = OFF;
 int dof_mode = OFF;             // depth_of_field
+
+/* manipulating objects one at a time */
+int curr_objectID = 0;            //ID of current object
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
@@ -130,6 +134,7 @@ int draw_coord_axes = OFF;    // draw object space coord axes
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
+char *tex_gen_name (int mode);
 
 /* console logging for some of the more ambiguous knobs */
 void print_settings(void)
@@ -173,6 +178,8 @@ void print_settings(void)
     printf("Drawing Coord Axes (a):\t%s\n",
            draw_coord_axes ? "ON" : "OFF");
     printf("\n============================\n");
+    printf("Tex Gen mode (0):\t%s\n",
+           tex_gen_name(tex_gen_mode));
 }
 
 /*******************************************************/
@@ -216,6 +223,26 @@ void set_texture (void)
         checkerboard_texture(&texture);
     }
 }
+
+char *tex_gen_name (int mode)
+{
+    switch (mode)
+    {
+        case OFF:
+            return "NONE";
+        case NAIVE:
+            return "NAIVE";
+        case CYLINDRICAL:
+            return "CYLINDRICAL";
+        case SPHERICAL:
+            return "SPHERICAL";
+        case REFLECTION:
+            return "REFLECTION";
+        default:
+            return "ERROR";
+    }
+}
+
 /*******************************************************/
 /* Render object using 3d graphics pipeline */
 /*******************************************************/
@@ -248,6 +275,12 @@ void render_object(OBJECT *o)
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
     {
         reading_obj = TRUE;
+        calculate_face_normals();
+        if(!reading_obj || (reading_obj && !obj_has_vnorms))
+        {
+            calculate_vertex_normals();
+        }
+        get_tex_coords();
     }
     else
     {
@@ -258,43 +291,46 @@ void render_object(OBJECT *o)
     {
         insert_coord_axes(cx, cy, cz, scale);
     }
-    
+
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
-                     o->init_orientation[X] + dx_angle,
-                     o->init_orientation[Y] + dy_angle,
-                     o->init_orientation[Z] + dz_angle);
+                     o->init_orientation[X] + o->rotation[X],
+                     o->init_orientation[Y] + o->rotation[Y],
+                     o->init_orientation[Z] + o->rotation[Z]);
+       
+
     }
     else
     {
         rotate_model(0, 0, 0,
-                     o->init_orientation[X] + dx_angle,
-                     o->init_orientation[Y] + dy_angle,
-                     o->init_orientation[Z] + dz_angle);
+                     o->init_orientation[X] + o->rotation[X],
+                     o->init_orientation[Y] + o->rotation[Y],
+                     o->init_orientation[Z] + o->rotation[Z]);
     }
+
     calculate_face_normals();
+
     if(!reading_obj || (reading_obj && !obj_has_vnorms))
     {
         calculate_vertex_normals();
+
     }
     else {
         printf("not calculating vertex normals\n");
     }
     if(normal_type == F_NORMALS)
     {
+
         insert_normal_coords();
     }
-    if(normal_type == V_NORMALS || normal_type == F_NORMALS) drawing_normals = ON;
-    else
-    {
-        drawing_normals = OFF;
-    }
+
 
 
     switch(proj_mode)
     {
         case ORTHO:
+
             xform_model(ortho_scale);
             break;
         case PERSPECT:
@@ -305,6 +341,7 @@ void render_object(OBJECT *o)
     }
 
     draw_model(draw_mode);
+
 }
 
 /*************************************************************************/
@@ -367,8 +404,6 @@ void display(void)
 
     if(input_type == BASIC)
     {
-//        printf("BASIC MODE\n");
-
         OBJECT *o = &objects[0];
         o->type = object_type;
         o->scale = 1;
@@ -379,6 +414,7 @@ void display(void)
     
     else if(input_type == SCENE)
     {
+        printf("scene: %i objects\n", num_objects);
         for(int i = 0; i < num_objects; i++)
         {
             render_object(&objects[i]);
@@ -419,28 +455,37 @@ void display(void)
 static void Key(unsigned char key, int x, int y)
 {
     char scene_name[MAX_FILE_NAME - 4] = "";
+    OBJECT *curr_object = get_curr_object(curr_objectID);
+    
     switch (key)
     {
-            
         /* draw wire frame or fill */
         case 'f':       draw_mode = 1 - draw_mode;                      break;
-        /* toggle object_type between cube and mesh */
-        case ' ':       object_type = (object_type + 1) % N_TYPES;      break;
-            
+        
+        /* toggle object_type or curr_object */
+        case ' ':       if(input_type == BASIC)
+                        {
+                            object_type = (object_type + 1) % N_TYPES;
+                        }
+                        else if(input_type == SCENE)
+                        {
+                            curr_objectID = (curr_objectID + 1) % num_objects;
+                        }
+                        break;
+        
         /* rotations */
-        case 'x':       dx_angle += 10;                                 break;
-        case 'y':       dy_angle += 10;                                 break;
-        case 'z':       dz_angle += 10;                                 break;
-        case 'X':       dx_angle -= 10;                                 break;
-        case 'Y':       dy_angle -= 10;                                 break;
-        case 'Z':       dz_angle -= 10;                                 break;
+        case 'x':       curr_object->rotation[X] += 10;                 break;
+        case 'y':       curr_object->rotation[Y] += 10;                 break;
+        case 'z':       curr_object->rotation[Z] += 10;                 break;
+
         case 'R':       rot_mode = 1 - rot_mode;                        break;
         /* flowing mesh animation */
         case 'w':       mesh_da += 0.5;                                 break;
         /* reset rotations and any offsets */
-        case 'r':       dx_angle = 0;
-                        dy_angle = 0;
-                        dz_angle = 0;
+        case 'r':
+                        curr_object->rotation[X] = 0;
+                        curr_object->rotation[Y] = 0;
+                        curr_object->rotation[Z] = 0;
                         dz = INIT_DZ;
                         mesh_da = 0;                                    break;
         
@@ -479,23 +524,8 @@ static void Key(unsigned char key, int x, int y)
         
         /* write out scene objects with initial orientation to a scene file */
         case 'W':
-            for(int i = 0; i < num_objects; i++)
-            {
-                OBJECT *o = &objects[i];
-                o->init_orientation[X] += dx_angle;
-                o->init_orientation[Y] += dy_angle;
-                o->init_orientation[Z] += dz_angle;
-            }
             strcat(scene_name, strtok(scene_file, "."));
             write_scene(strcat(scene_name,"_out.txt"));
-            //temp fix so that writing object files doesnt cause another rotation
-            for(int i = 0; i < num_objects; i++)
-            {
-                OBJECT *o = &objects[i];
-                o->init_orientation[X] -= dx_angle;
-                o->init_orientation[Y] -= dy_angle;
-                o->init_orientation[Z] -= dz_angle;
-            }
             break;
        /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
@@ -506,6 +536,8 @@ static void Key(unsigned char key, int x, int y)
         case '4': dof_mode = 1 - dof_mode;                              break;
 
         case '5': bump_mapping = 1 - bump_mapping;                      break;
+        
+        case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
             
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;

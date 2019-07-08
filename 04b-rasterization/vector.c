@@ -4,6 +4,10 @@
 #include <math.h>
 #include "macros.h"
 
+extern float eye[4];
+/****************************************************************/
+/* vector utility functions */
+/****************************************************************/
 void vector_add (float v1[4], float v2[4], float res[4])
 {
     for(int i = 0; i < 4; i++)
@@ -110,5 +114,65 @@ void cpy_vec4 (float dest[4], float val[4])
     {
         dest[i] = val[i];
     }
+}
+
+/****************************************************************/
+/* normal-to-texture conversions */
+/****************************************************************/
+// assert normal is normalized
+void naive_map (float normal[4], float tex[4])
+{
+    normalize(normal);
+    tex[S] = (normal[X] + 1.0) / 2.0;
+    tex[T] = (normal[Y] + 1.0) / 2.0;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+}
+
+void cylindrical_map (float normal[4], float tex[4])
+{
+    normalize(normal);
+    float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
+    float theta = asin(normal[Z] / r);//  + (normal[Z] > 0 ? 0 : 0.5);
+    if(isnan(theta)) //NaN correction
+    {
+        theta = 0;
+    }
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI);
+    tex[T] = (normal[Y] + 1.0) / 2.0;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+    if(normal[X] < 0)
+    {
+        tex[S] = 0.5 + (0.5 - tex[S]);
+    }
+    
+}
+
+void spherical_map (float normal[4], float tex[4])
+{
+    normalize(normal);
+    float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
+    float theta = asin(normal[Z] / r);// + (normal[Z] > 0 ? 0 : 0.5);
+    if(isnan(theta)) //NaN correction
+    {
+        theta = 0;
+    }
+    float phi = asin(normal[Y]);
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI);
+    tex[T] = (phi + PI / 2.0) / PI;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+    if(normal[X] < 0)
+    {
+        tex[S] = 0.5 + (0.5 - tex[S]);
+    }
+}
+
+void reflection_map (float normal[4], float tex[4])
+{
+    float reflect[4];
+    vector_reflect(eye, normal, reflect);
+    spherical_map(reflect, tex);
 }
 

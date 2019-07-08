@@ -11,6 +11,7 @@
 /*************************************************************************/
 /* modes */
 extern int modulate_type;
+extern int normal_type;
 extern int drawing_backside;
 
 /* data */
@@ -145,7 +146,7 @@ void draw_point (POINT *p)
     }
     
     /* bump map */
-    if(!drawing_normals && bump_mapping)
+    if(normal_type != V_NORMALS && bump_mapping)
     {
         float bump[4];
         int u, v;
@@ -171,7 +172,7 @@ void draw_point (POINT *p)
     }
     
     /* phong shading */
-    if(!drawing_normals && shading_mode == PHONG)
+    if(normal_type != V_NORMALS && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         set_diffuse_term(p->v_normal, tmp_diff);
@@ -235,7 +236,7 @@ void draw_point (POINT *p)
             u = (int) s;
             v = (int) t;
         }
-
+        
         color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
         color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
         color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;

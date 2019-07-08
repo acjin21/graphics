@@ -7,6 +7,11 @@
 #define FRAME 0
 #define FILL 1
 
+#define NUM_TEX_MODES 5
+#define NAIVE 1
+#define CYLINDRICAL 2
+#define SPHERICAL 3
+#define REFLECTION 4
 /****************************************************************/
 /* types */
 /****************************************************************/
@@ -48,4 +53,6 @@ void calculate_vertex_normals (void);
 void translate_model (float distance);
 void perspective_xform(float near, float far);
 void viewport_xform(float scale);
+
+void get_tex_coords (void);
 #endif
