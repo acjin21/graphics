@@ -84,8 +84,8 @@ void add_face (int v0, int v1, int v2,
     face_list[num_triangles].v_normals[2] = n2;
     
     // set SOME point data (tri_list, num_tris, and v_normal)
-    //      the init_model functions that call this func have set the world coords in vertex_list
-    //      right now, we've only set the indices v, vn, vt (for each vtx of each face)
+    //      the init_model functions that call this have set WCs in vertex_list
+    //      right now, we've only set the indices v, vn, vt (for vtx : face)
     POINT *p = &vertex_list[v0];
     p->tri_list[p->num_tris] = num_triangles;
     p->num_tris++;
@@ -213,14 +213,6 @@ void init_cube (float scale, float cx, float cy, float cz)
 
 void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
-//    printf("%f\n", scale);
-    /* set tex coordinates to four corners of texture */
-//    set_vec4(tex_list[0], 0, 0, 0, 0);
-//    set_vec4(tex_list[1], 1, 0, 0, 0);
-//    set_vec4(tex_list[2], 0, 1, 0, 0);
-//    set_vec4(tex_list[3], 1, 1, 0, 0);
-//    num_tex_coords = 4;
-    
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
@@ -244,8 +236,6 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         /* handle any possible comments */
         int next_ch;
         char comment[500];
-//        char group[500];
-//        char material[500];
         char next_line[500];
         
         next_ch = getc(fp);
@@ -255,7 +245,6 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
         while(fgets(next_line, 500, fp)[0] != 'v')
         {
             ;
-//            printf("%s\n", next_line);
         }
         fputs(next_line, fp);
         
@@ -434,6 +423,31 @@ void write_obj_file (char *file_name)
     }
 }
 
+void add_mesh_faces (int width, int height)
+{
+    reset_num_tris(num_vertices);
+    
+    /* add triangles/faces */
+    num_triangles = 0;
+    
+    for(int r = 0; r < height - 1; r++) // height - 2 for mesh
+    {
+        for(int c = 0; c < width - 1; c++) // width - 2 for mesh
+        {
+            add_face(r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //v
+                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //c
+                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //vt
+                     0, 0, 0);                                          //vn
+            add_face(r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
+                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
+                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
+                     0, 0, 0);
+        }
+    }
+    
+    num_face_normals = num_triangles;
+}
+
 /* init a n x n wavy mesh that starts at angle mesh_da */
 void init_mesh (float scale, float cx, float cy, float cz, float da)
 {
@@ -441,10 +455,10 @@ void init_mesh (float scale, float cx, float cy, float cz, float da)
     int width = n;
     int height = n;
     /* add vertices */
-    num_vertices = n * n;
-    for(int r = 0; r < n; r++)
+    num_vertices = width * height;
+    for(int r = 0; r < height; r++)
     {
-        for(int c = 0; c < n; c++)
+        for(int c = 0; c < width; c++)
         {
             float u = (float) c / (width - 1);
             float v = (float) r / (height - 1);
@@ -458,33 +472,11 @@ void init_mesh (float scale, float cx, float cy, float cz, float da)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
+            set_vec4(tex_list[(r * width) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * width) + c], u, v, 0, 1);
         }
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-
-    for(int r = 0; r < n - 2; r++)
-    {
-        for(int c = 0; c < n - 2; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0); //normals
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0);
-        }
-    }
-    
-    num_face_normals = num_triangles;
-
-
+    add_mesh_faces(width, height);
 }
 
 /* init a cylinder */
@@ -511,36 +503,11 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-    
-    for(int r = 0; r < n - 1; r++)
-    {
-        for(int c = 0; c < n - 1; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     //                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                      0, 0, 0 );
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     //                     0, 0, 0,
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0 );
-        }
-    }
-    
-    num_face_normals = num_triangles;
-
-    
+    add_mesh_faces(width, height);
 }
 
 /* init a cone */
@@ -568,36 +535,11 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
-//            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-    
-    for(int r = 0; r < n - 1; r++)
-    {
-        for(int c = 0; c < n - 1; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     //                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0);
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     //                     0, 0, 0,
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0);
-        }
-    }
-    
-    num_face_normals = num_triangles;
-
-    
+    add_mesh_faces(width, height);
 }
 
 /* init a sphere */
@@ -625,7 +567,6 @@ void init_sphere (float radius, float cx, float cy, float cz)
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-//            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
             set_vec4(color_list[1], 0, 0, 0, 1);
 
@@ -641,23 +582,17 @@ void init_sphere (float radius, float cx, float cy, float cz)
         for(int c = 0; c < n - 1; c++)
         {
             add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                                          0, 0, 0,
-//                     1, 1, 1,
-//                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
+                     0, 0, 0,
                      r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
                      0, 0, 0);
             add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                                          0, 0, 0,
-//                     1, 1, 1,
-//                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
+                     0, 0, 0,
                      r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
                      0, 0, 0);
         }
     }
     
     num_face_normals = num_triangles;
-
-    
 }
 
 /* init a torus */
@@ -687,36 +622,17 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[(r * n) + c], (float) c / n, (float) r / n, 0, 1);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
         count += 0.05;
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-    
-    for(int r = 0; r < n - 1; r++)
-    {
-        for(int c = 0; c < n - 1; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0);
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0);
-        }
-    }
-    
-    num_face_normals = num_triangles;
-
+    add_mesh_faces(width, height);
 }
 
-
+/*************************************************************************/
+/* insert additional coordinates into vertex_list (normals, axes coords) */
+/*************************************************************************/
 //call after calculate_face_normals()
 //insert normals into vertex_list for a specific 3d model
     //(2 * num_normals extra points added by this function)
@@ -874,11 +790,6 @@ void calculate_face_normals (void)
 /* calculate each vertex's normal as the average of surrounding triangles' face normals */
 void calculate_vertex_normals (void)
 {
-    //dont calculate vertex normals for obj files that provide vertex normals
-//    if(num_vertex_normals > 0) {
-//        printf("already calculated vertex normals");
-//        return;
-//    }
     num_vertex_normals = num_vertices; //set num_vertex_normals
     
     float v_normal[4];
