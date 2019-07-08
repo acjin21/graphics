@@ -54,5 +54,6 @@ void translate_model (float distance);
 void perspective_xform(float near, float far);
 void viewport_xform(float scale);
 
+void draw_2D_select_box (void);
 void get_tex_coords (void);
 #endif
