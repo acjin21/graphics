@@ -4,6 +4,7 @@
 #include <math.h>
 #include "macros.h"
 
+extern float eye[4];
 /****************************************************************/
 /* vector utility functions */
 /****************************************************************/
@@ -130,11 +131,40 @@ void naive_map (float normal[4], float tex[4])
 
 void cylindrical_map (float normal[4], float tex[4])
 {
+    normalize(normal);
     float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
-    float theta = asin(normal[Z] / r); // theta in [-pi/2, pi/2]
-    
+    float theta = asin(normal[Z] / r);
+    if(isnan(theta)) //NaN correction
+    {
+        theta = 0;
+    }
     tex[S] = (theta + PI / 2.0) / (2.0 * PI) + (normal[Z] < 0 ? 0.5 : 0);
     tex[T] = (normal[Y] + 1.0) / 2.0;
     tex[2] = 0.0;
     tex[3] = 1.0;
+    
 }
+
+void spherical_map (float normal[4], float tex[4])
+{
+    normalize(normal);
+    float r = sqrt(normal[X] * normal[X] + normal[Z] * normal[Z]);
+    float theta = asin(normal[Z] / r);
+    if(isnan(theta)) //NaN correction
+    {
+        theta = 0;
+    }
+    float phi = asin(normal[Y]);
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI) + (normal[Z] < 0 ? 0.5 : 0);
+    tex[T] = (phi + PI / 2.0) / PI;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+}
+
+void reflection_map (float normal[4], float tex[4])
+{
+    float reflect[4];
+    vector_reflect(eye, normal, reflect);
+    spherical_map(reflect, tex);
+}
+

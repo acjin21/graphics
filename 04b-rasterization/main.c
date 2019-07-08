@@ -135,6 +135,7 @@ int draw_coord_axes = OFF;    // draw object space coord axes
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
+char *tex_gen_name (int mode);
 
 /* console logging for some of the more ambiguous knobs */
 void print_settings(void)
@@ -179,7 +180,7 @@ void print_settings(void)
            draw_coord_axes ? "ON" : "OFF");
     printf("\n============================\n");
     printf("Tex Gen mode (0):\t%s\n",
-           tex_gen_mode ? (tex_gen_mode == 1 ? "NAIVE" : "CYLINDRICAL") : "NONE");
+           tex_gen_name(tex_gen_mode));
 }
 
 /*******************************************************/
@@ -221,6 +222,25 @@ void set_texture (void)
     else if (texture_idx == N_PPM_FILES + 1)
     {
         checkerboard_texture(&texture);
+    }
+}
+
+char *tex_gen_name (int mode)
+{
+    switch (mode)
+    {
+        case OFF:
+            return "NONE";
+        case NAIVE:
+            return "NAIVE";
+        case CYLINDRICAL:
+            return "CYLINDRICAL";
+        case SPHERICAL:
+            return "SPHERICAL";
+        case REFLECTION:
+            return "REFLECTION";
+        default:
+            return "ERROR";
     }
 }
 
@@ -272,6 +292,7 @@ void render_object(OBJECT *o)
     {
         insert_coord_axes(cx, cy, cz, scale);
     }
+
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
@@ -288,16 +309,20 @@ void render_object(OBJECT *o)
                      o->init_orientation[Y] + o->rotation[Y],
                      o->init_orientation[Z] + o->rotation[Z]);
     }
+
     calculate_face_normals();
+
     if(!reading_obj || (reading_obj && !obj_has_vnorms))
     {
         calculate_vertex_normals();
+
     }
     else {
         printf("not calculating vertex normals\n");
     }
     if(normal_type == F_NORMALS)
     {
+
         insert_normal_coords();
     }
 
@@ -306,6 +331,7 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
+
             xform_model(ortho_scale);
             break;
         case PERSPECT:
@@ -316,6 +342,7 @@ void render_object(OBJECT *o)
     }
 
     draw_model(draw_mode);
+
 }
 
 /*************************************************************************/

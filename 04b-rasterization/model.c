@@ -11,8 +11,8 @@
 /****************************************************************/
 /* defines */
 /****************************************************************/
-#define MAX_N_VERTS 1000000
-#define MAX_N_FACES 1000000
+#define MAX_N_VERTS 100000000
+#define MAX_N_FACES 100000000
 
 /****************************************************************/
 /* externs */
@@ -38,7 +38,7 @@ extern float light_ambient[4];
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
-int tex_gen_mode = NAIVE;
+int tex_gen_mode = SPHERICAL;
 
 /* data */
 POINT vertex_list[MAX_N_VERTS];
@@ -341,6 +341,9 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                        &i, &vt1, &vn1,
                        &j, &vt2, &vn2,
                        &k, &vt3, &vn3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
 
             }
             else if (num_tex_coords > 0) // obj file has vt, vn
@@ -348,6 +351,9 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
                        &i, &vt1, &j, &vt2, &k, &vt3);
+                vt1 = i;
+                vt2 = j;
+                vt3 = k;
             }
             else if (num_vertex_normals > 0)
             {
@@ -365,7 +371,10 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                 vt2 = j;
                 vt3 = k;
             }
-            add_face(i-1, j-1, k-1,    3, 3, 3,    vt1 - 1, vt2 - 1, vt3 - 1,   vn1, vn2, vn3);
+            add_face(i - 1, j - 1, k - 1,       //vtx indices
+                     3, 3, 3,                   //colors
+                     vt1 - 1, vt2 - 1, vt3 - 1, //tex coord indices
+                     vn1, vn2, vn3);            //normal indices
             
             if(fgets(next_line, 500, fp) == NULL) {
                 break; // reach end of file
@@ -977,10 +986,10 @@ void draw_model(int mode)
         
         cpy_vec4(p1.color, color_list[f.colors[1]]);
         cpy_vec4(p1.tex, tex_list[f.tex[1]]);
-        
+
         cpy_vec4(p2.color, color_list[f.colors[2]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
-        
+
         if(perspective_correct && texturing)
         {
             scalar_multiply(p0.position[Z], p0.tex, p0.tex);
@@ -1137,6 +1146,19 @@ void get_tex_coords (void)
             cylindrical_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-    
+    if(tex_gen_mode == SPHERICAL)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            spherical_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
+    if(tex_gen_mode == REFLECTION)
+    {
+        for(int i = 0; i < num_vertices; i++)
+        {
+            reflection_map(vertex_list[i].v_normal, tex_list[i]);
+        }
+    }
 
 }

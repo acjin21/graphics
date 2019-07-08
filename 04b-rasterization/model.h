@@ -7,10 +7,11 @@
 #define FRAME 0
 #define FILL 1
 
-#define NUM_TEX_MODES 3
+#define NUM_TEX_MODES 5
 #define NAIVE 1
 #define CYLINDRICAL 2
 #define SPHERICAL 3
+#define REFLECTION 4
 /****************************************************************/
 /* types */
 /****************************************************************/

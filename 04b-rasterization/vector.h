@@ -48,4 +48,6 @@ void cpy_vec4 (float dest[4], float val[4]);
 
 void naive_map (float normal[4], float tex[4]);
 void cylindrical_map (float normal[4], float tex[4]);
+void spherical_map (float normal[4], float tex[4]);
+void reflection_map (float normal[4], float tex[4]);
 #endif
