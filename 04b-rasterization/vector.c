@@ -138,10 +138,14 @@ void cylindrical_map (float normal[4], float tex[4])
     {
         theta = 0;
     }
-    tex[S] = (theta + PI / 2.0) / (2.0 * PI) + (normal[Z] < 0 ? 0.5 : 0);
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI);
     tex[T] = (normal[Y] + 1.0) / 2.0;
     tex[2] = 0.0;
     tex[3] = 1.0;
+    if(normal[X] < 0)
+    {
+        tex[S] = 0.5 + (0.5 - tex[S]);
+    }
     
 }
 
@@ -155,10 +159,14 @@ void spherical_map (float normal[4], float tex[4])
         theta = 0;
     }
     float phi = asin(normal[Y]);
-    tex[S] = (theta + PI / 2.0) / (2.0 * PI) + (normal[Z] < 0 ? 0.5 : 0);
+    tex[S] = (theta + PI / 2.0) / (2.0 * PI);
     tex[T] = (phi + PI / 2.0) / PI;
     tex[2] = 0.0;
     tex[3] = 1.0;
+    if(normal[X] < 0)
+    {
+        tex[S] = 0.5 + (0.5 - tex[S]);
+    }
 }
 
 void reflection_map (float normal[4], float tex[4])
