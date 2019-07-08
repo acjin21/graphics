@@ -121,6 +121,7 @@ void cpy_vec4 (float dest[4], float val[4])
 // assert normal is normalized
 void naive_map (float normal[4], float tex[4])
 {
+    normalize(normal);
     tex[S] = (normal[X] + 1.0) / 2.0;
     tex[T] = (normal[Y] + 1.0) / 2.0;
     tex[2] = 0.0;

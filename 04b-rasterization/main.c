@@ -178,6 +178,8 @@ void print_settings(void)
     printf("Drawing Coord Axes (a):\t%s\n",
            draw_coord_axes ? "ON" : "OFF");
     printf("\n============================\n");
+    printf("Tex Gen mode (0):\t%s\n",
+           tex_gen_mode ? (tex_gen_mode == 1 ? "NAIVE" : "CYLINDRICAL") : "NONE");
 }
 
 /*******************************************************/
@@ -254,6 +256,11 @@ void render_object(OBJECT *o)
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
     {
         reading_obj = TRUE;
+        calculate_face_normals();
+        if(!reading_obj || (reading_obj && !obj_has_vnorms))
+        {
+            calculate_vertex_normals();
+        }
         get_tex_coords();
     }
     else

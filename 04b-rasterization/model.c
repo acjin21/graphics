@@ -38,7 +38,7 @@ extern float light_ambient[4];
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
-int tex_gen_mode = CYLINDRICAL;
+int tex_gen_mode = NAIVE;
 
 /* data */
 POINT vertex_list[MAX_N_VERTS];
@@ -213,11 +213,11 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
 {
 //    printf("%f\n", scale);
     /* set tex coordinates to four corners of texture */
-    set_vec4(tex_list[0], 0, 0, 0, 0);
-    set_vec4(tex_list[1], 1, 0, 0, 0);
-    set_vec4(tex_list[2], 0, 1, 0, 0);
-    set_vec4(tex_list[3], 1, 1, 0, 0);
-    num_tex_coords = 4;
+//    set_vec4(tex_list[0], 0, 0, 0, 0);
+//    set_vec4(tex_list[1], 1, 0, 0, 0);
+//    set_vec4(tex_list[2], 0, 1, 0, 0);
+//    set_vec4(tex_list[3], 1, 1, 0, 0);
+//    num_tex_coords = 4;
     
     /* r, g, b color options */
     set_vec4(color_list[0], 1, 0, 0, 1);
@@ -365,7 +365,7 @@ void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
                 vt2 = j;
                 vt3 = k;
             }
-            add_face(i-1, j-1, k-1,    3, 3, 3,    vt1, vt2, vt3,   vn1, vn2, vn3);
+            add_face(i-1, j-1, k-1,    3, 3, 3,    vt1 - 1, vt2 - 1, vt3 - 1,   vn1, vn2, vn3);
             
             if(fgets(next_line, 500, fp) == NULL) {
                 break; // reach end of file
