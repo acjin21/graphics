@@ -35,7 +35,7 @@ int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
-//int drawing_normals = OFF;
+int drawing_normals = OFF;
 int bump_mapping = OFF;         // bump mapping for specular lighting
 int material = OFF;             // material properties
 int specular_highlight = OFF;
@@ -203,7 +203,7 @@ void draw_point (POINT *p)
     }
     
     /* texture mapping */
-    if(normal_type != V_NORMALS && texturing)
+    if(!drawing_normals && texturing)
     {
         float s, t;
         int u, v;
