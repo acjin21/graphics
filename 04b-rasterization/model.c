@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
+
 #include "raster.h"
 #include "vector.h"
 #include "macros.h"
@@ -45,7 +47,7 @@ int tex_gen_mode = SPHERICAL;
 /* data */
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
-POINT *bottom_left, *top_right;
+POINT bottom_left, top_right;
 
 float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
@@ -545,6 +547,8 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
 /* init a sphere */
 void init_sphere (float radius, float cx, float cy, float cz)
 {
+
+
     int n = 32;
     int width = n;
     int height = n;
@@ -1032,10 +1036,58 @@ void draw_model(int mode)
 
 }
 
-//void draw_model_2D_bound (void)
-//{
-//
-//}
+void draw_2D_select_box (void)
+{
+    POINT top_left, bottom_right;
+    float max_x, max_y, min_x, min_y;
+    max_x = INT_MIN;
+    max_y = INT_MIN;
+    min_x = INT_MAX;
+    min_y = INT_MAX;
+
+    for(int i = 0; i < num_vertices; i++)
+    {
+        if(vertex_list[i].position[X] < min_x)
+        {
+            min_x = vertex_list[i].position[X];
+        }
+        else if(vertex_list[i].position[X] > max_x)
+        {
+            max_x = vertex_list[i].position[X];
+        }
+        if(vertex_list[i].position[Y] < min_y)
+        {
+            min_y = vertex_list[i].position[Y];
+        }
+        else if(vertex_list[i].position[Y] > max_y)
+        {
+            max_y = vertex_list[i].position[Y];
+        }
+    }
+
+    bottom_left.position[X] = min_x - 5;
+    bottom_left.position[Y] = min_y - 5;
+    top_right.position[X] = max_x + 5;
+    top_right.position[Y] = max_y + 5;
+
+    top_left.position[X] = bottom_left.position[X];
+    top_left.position[Y] = top_right.position[Y];
+    top_left.position[Z] = 0;
+    
+    bottom_right.position[X] = top_right.position[X];
+    bottom_right.position[Y] = bottom_left.position[Y];
+    bottom_right.position[Z] = 0;
+ 
+    set_vec4(bottom_right.color, 1, 0, 0, 1);
+    set_vec4(top_left.color, 1, 0, 0, 1);
+    set_vec4(bottom_left.color, 1, 0, 0, 1);
+    set_vec4(top_right.color, 1, 0, 0, 1);
+
+    draw_line(&top_left, &top_right, DRAW);
+    draw_line(&top_right, &bottom_right, DRAW);
+    draw_line(&bottom_right, &bottom_left, DRAW);
+    draw_line(&bottom_left, &top_left, DRAW);
+}
 
 /* go through all vertices and generate texture coordinates from normals */
 void get_tex_coords (void)

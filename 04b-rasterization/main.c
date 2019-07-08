@@ -342,6 +342,10 @@ void render_object(OBJECT *o)
     }
 
     draw_model(draw_mode);
+    if(input_type == SCENE && o->ID == curr_objectID)
+    {
+        draw_2D_select_box();
+    }
 
 }
 
