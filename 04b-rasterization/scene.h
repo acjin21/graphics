@@ -1,6 +1,8 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include "math_lib/mat4.h"
+
 #define MAX_N_OBJECTS 10
 
 #define ORTHO 0
@@ -19,6 +21,8 @@ typedef struct object {
     
     float init_orientation[3]; //dx_angle, dy_angle, dz_angle
     float rotation[3];
+    
+    MAT4 model_mat;
     
 } OBJECT;
 
