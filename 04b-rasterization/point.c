@@ -37,6 +37,7 @@ int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
 int drawing_normals = OFF;
+int drawing_2D_select_box = OFF;
 int bump_mapping = OFF;         // bump mapping for specular lighting
 int material = OFF;             // material properties
 int specular_highlight = OFF;
@@ -211,12 +212,13 @@ void draw_point (POINT *p)
     /* texture mapping */
     if( tex_gen_mode == CUBE_MAP)
     {
-//        normalize(p->v_normal);
+        normalize(p->v_normal);
         cube_map_vec(p->v_normal, p->tex, &cube_map_index);
         texture_ptr = &cube_map[cube_map_index];
+
     }
     
-    if(!drawing_normals && texturing)
+    if(!drawing_normals && !drawing_2D_select_box && texturing)
     {
         float s, t;
         int u, v;

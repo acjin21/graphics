@@ -27,6 +27,7 @@ extern int perspective_correct; // for perspective correct interpolation
 extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
 extern int drawing_normals;
+extern int drawing_2D_select_box;
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
@@ -1077,10 +1078,12 @@ void draw_2D_select_box (void)
     set_vec4(bottom_left.color, 1, 0, 0, 1);
     set_vec4(top_right.color, 1, 0, 0, 1);
 
+    drawing_2D_select_box = ON;
     draw_line(&top_left, &top_right, DRAW);
     draw_line(&top_right, &bottom_right, DRAW);
     draw_line(&bottom_right, &bottom_left, DRAW);
     draw_line(&bottom_left, &top_left, DRAW);
+    drawing_2D_select_box = OFF;
 }
 
 /* go through all vertices and generate texture coordinates from normals */

@@ -427,7 +427,6 @@ void display(void)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
-//        o->center[X] = 0.5;
         o->scale = 1;
         o->radii[0] = 0.5;
         o->radii[1] = 1;
