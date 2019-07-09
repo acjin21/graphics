@@ -20,9 +20,10 @@ typedef struct object {
     float radii[2];
     
     float init_orientation[3]; //dx_angle, dy_angle, dz_angle
-    float rotation[3];
+    float rotation[3]; // for rotating objects individually
     
     MAT4 model_mat;
+    MAT4 ws_transform; // holds transformations within world space (i.e. rotation, etc)
     
 } OBJECT;
 

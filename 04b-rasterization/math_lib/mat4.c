@@ -4,6 +4,20 @@
 #include "../macros.h"
 #include "../vector.h"
 
+void print_mat4 (MAT4 *mat)
+{
+    for(int r = 0; r < 4; r++)
+    {
+        for(int c = 0; c < 4; c++)
+        {
+            printf("%.2f ", mat->data[r * 4 + c]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    
+}
+
 /* set 4x4 matrix:
  *      [[m00, m01, m02, m03],
  *       [m10, m11, m12, m13],
@@ -32,6 +46,8 @@ void set(MAT4 *out,
     out->data[13] = m31;
     out->data[14] = m32;
     out->data[15] = m33;
+//    printf("SET\n");
+//    print_mat4(out);
 }
 
 /* set 4x4 matrix out to the identity matrix */
@@ -166,7 +182,12 @@ float inner_prod (MAT4* left, MAT4* right, int r, int c)
     float row[4], col[4];
     get_row(row, left, r);
     get_col(col, right, c);
-    return vector_dot(row, col);
+    float dotProduct = 0;
+    for(int i = 0; i < 4; i++)
+    {
+        dotProduct += (row[i] * col[i]);
+    }
+    return dotProduct;
 }
 
 // left * right
@@ -201,7 +222,8 @@ void set_3d_rot (MAT4 *out, float rx, float ry, float rz)
     mat_mul(out, &Rx, out);
 }
 
-void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz, float tx, float ty, float tz)
+void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
+                    float tx, float ty, float tz)
 {
     MAT4 tmp;
     set_identity (model);
@@ -212,6 +234,7 @@ void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz, float tx
     set_transl (&tmp, tx, ty, tz);
     mat_mul (model, &tmp, model);
 }
+
 
 
 

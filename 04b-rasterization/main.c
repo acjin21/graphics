@@ -257,9 +257,9 @@ void render_object(OBJECT *o)
     r0 = o->radii[0];
     r1 = o->radii[1];
     float rx, ry, rz;
-    rx = o->init_orientation[X] + o->rotation[X];
-    ry = o->init_orientation[Y] + o->rotation[Y];
-    rz = o->init_orientation[Z] + o->rotation[Z];
+    rx = o->init_orientation[X];// + o->rotation[X];
+    ry = o->init_orientation[Y];// + o->rotation[Y];
+    rz = o->init_orientation[Z];// + o->rotation[Z];
 
     /* construct model matrix */
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
@@ -270,9 +270,7 @@ void render_object(OBJECT *o)
     
     switch (o->type)
     {
-        case CUBE:
-            init_cube (&o->model_mat);
-            break;
+        case CUBE:      init_cube (&o->model_mat);                          break;
         case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
         case QUAD:      init_quad();                                        break;
         case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
@@ -310,17 +308,17 @@ void render_object(OBJECT *o)
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
-                     o->init_orientation[X] + o->rotation[X],
-                     o->init_orientation[Y] + o->rotation[Y],
-                     o->init_orientation[Z] + o->rotation[Z]);
+                     o->rotation[X],
+                     o->rotation[Y],
+                     o->rotation[Z]);
 
     }
     else
     {
         rotate_model(0, 0, 0,
-                     o->init_orientation[X] + o->rotation[X],
-                     o->init_orientation[Y] + o->rotation[Y],
-                     o->init_orientation[Z] + o->rotation[Z]);
+                     o->rotation[X],
+                     o->rotation[Y],
+                     o->rotation[Z]);
     }
 
     calculate_face_normals();
@@ -423,6 +421,7 @@ void display(void)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
+        o->center[X] = 0.5;
         o->scale = 1;
         o->radii[0] = 0.5;
         o->radii[1] = 1;

@@ -172,9 +172,12 @@ void read_scene (char *file_name)
             o->scale = scale;
             o->radii[0] = r0;
             o->radii[1] = r1;
+            
+            /* init rotation when move into world space */
             o->init_orientation[X] = init_orient_x;
             o->init_orientation[Y] = init_orient_y;
             o->init_orientation[Z] = init_orient_z;
+            /* individual rotations */
             o->rotation[X] = rot_x;
             o->rotation[Y] = rot_y;
             o->rotation[Z] = rot_z;
