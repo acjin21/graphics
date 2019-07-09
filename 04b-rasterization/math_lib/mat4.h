@@ -36,6 +36,9 @@ void set_3d_rot (MAT4 *out, float rx, float ry, float rz);
 
 /* matrix operations */
 void mat_vec_mul (MAT4 *m, float in[4], float out[4]);
+void mat_mul (MAT4 *out, MAT4 *left, MAT4 *right);
+void set_3d_rot (MAT4 *out, float rx, float ry, float rz);
+
 //void mat_mul_before (MAT4 *m1, MAT4 *m2, MAT4 *out);
 //void mat_mul_after (MAT4 *m1, MAT4 *m2, MAT4 *out);
 

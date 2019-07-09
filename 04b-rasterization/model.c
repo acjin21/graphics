@@ -735,25 +735,22 @@ void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, fl
     for(int i = 0; i < max_idx; i++)
     {
         POINT *p = &vertex_list[i];
-        float in_vec[4], out_vec[4], tmp[4];
+        float in_vec[4];
         
         cpy_vec4 (in_vec, p->world);
         /* matrices */
-        MAT4 inv_transl, rot_X, rot_Y, rot_Z, transl;
-        set_transl (&inv_transl, -cx, -cy, -cz);
-        set_transl (&transl, cx, cy, cz);
-        set_rot_X (&rot_X, x_angle);
-        set_rot_Y (&rot_Y, y_angle);
-        set_rot_Z (&rot_Z, z_angle);
+        MAT4 tmp, rotate_about_origin;
         
-        /* transform world coords */
-        mat_vec_mul (&inv_transl, in_vec, out_vec);
-        mat_vec_mul (&rot_Z, out_vec, tmp);
-        mat_vec_mul (&rot_X, tmp, out_vec);
-        mat_vec_mul (&rot_Y, out_vec, tmp);
-        mat_vec_mul (&transl, tmp, out_vec); // transl origin -> object center
-        
-        cpy_vec4(vertex_list[i].world, out_vec);
+        set_identity(&rotate_about_origin);
+        set_transl (&tmp, -cx, -cy, -cz);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+        set_3d_rot(&tmp, x_angle, y_angle, z_angle);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+        set_transl (&tmp, cx, cy, cz);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+
+        /* matrix transform world coords */
+        mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
     }
 }
 
