@@ -682,10 +682,10 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
     {
         axes_start_idx = num_vertices;
     }
-    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 0 );
-    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 2, cy, cz, 0);
-    set_vec4(vertex_list[axes_start_idx + 2].world, cx, cy + 2, cz, 0);
-    set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 0);
+    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 1 );
+    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 2, cy, cz, 1);
+    set_vec4(vertex_list[axes_start_idx + 2].world, cx, cy + 2, cz, 1);
+    set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 1);
 }
 
 //mode == F_NORMALS, V_NORMALS, NO_NORMALS, COORD_AXES (TODO)
