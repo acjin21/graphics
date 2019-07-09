@@ -1,6 +1,7 @@
 #include "mat4.h"
 
 #include <math.h>
+#include <stdio.h>
 #include "../macros.h"
 #include "../vector.h"
 

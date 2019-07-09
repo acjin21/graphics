@@ -60,7 +60,7 @@ void read_ppm (char *file_name, IMAGE *img)
     FILE *fp;
     char ppm_type[5];
 
-    fp = fopen(file_name, "r");
+    fp = fopen(file_name, "rb");
     int width, height;
     float max;
     
@@ -118,16 +118,23 @@ void read_ppm (char *file_name, IMAGE *img)
     {
         unsigned char *data = malloc(width * height * 3);
         fread((void *) data, 3, width * height, fp);
+
         for(int j = 0; j < height; j++)
         {
             for(int i = 0; i < width; i++)
             {
-                img->data[j][i][R] =  data[(j * width + i) * 3];
-                img->data[j][i][G] =  data[(j * width + i) * 3 + 1];
-                img->data[j][i][B] =  data[(j * width + i) * 3 + 2];
-                img->data[j][i][A] = 1.0;
+                float r, g, b;
+                r = data[(j * width + i) * 3 + 0] / (float)max * 255.0;
+                g = data[(j * width + i) * 3 + 1] / (float)max * 255.0;
+                b = data[(j * width + i) * 3 + 2] / (float)max * 255.0;
+                
+                img->data[height - j - 1][i][R] = CLAMP(r, 0, 255);
+                img->data[height - j - 1][i][G] = CLAMP(g, 0, 255);
+                img->data[height - j - 1][i][B] = CLAMP(b, 0, 255);
+                img->data[j][i][A] = 255;
             }
         }
+        free (data);
     }
     fclose(fp);
 }

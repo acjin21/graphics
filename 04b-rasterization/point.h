@@ -12,6 +12,13 @@
 #define ON 1
 #define OFF 0
 
+#define NUM_TEX_MODES 6
+#define NAIVE 1
+#define CYLINDRICAL 2
+#define SPHERICAL 3
+#define REFLECTION 4
+#define CUBE_MAP 5
+
 typedef struct point {
     float world[4];
     float position[4];

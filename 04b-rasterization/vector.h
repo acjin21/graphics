@@ -50,4 +50,5 @@ void naive_map (float normal[4], float tex[4]);
 void cylindrical_map (float normal[4], float tex[4]);
 void spherical_map (float normal[4], float tex[4]);
 void reflection_map (float normal[4], float tex[4]);
+void cube_map_vec (float normal[4], float tex[4], int *index);
 #endif

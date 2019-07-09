@@ -27,6 +27,8 @@
 #include "model.h"
 #include "scene.h"
 #include "material.h"
+#include "image.h"
+
 #include "post-processing.h"
 
 /*************************************************************************/
@@ -74,6 +76,7 @@ extern int material;
 extern int specular_highlight;
 extern int fog;
 extern IMAGE bump_map;
+extern IMAGE cube_map[6];
 
 /* from model.c */
 extern int modulate_type;
@@ -239,6 +242,8 @@ char *tex_gen_name (int mode)
             return "SPHERICAL";
         case REFLECTION:
             return "REFLECTION";
+        case CUBE_MAP:
+            return "CUBE MAP";
         default:
             return "ERROR";
     }
@@ -403,6 +408,7 @@ void display(void)
     {
         read_ppm("ppm/rocks_bump.ppm", &bump_map);
     }
+
     print_settings();
     set_texture();
     
@@ -421,7 +427,7 @@ void display(void)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
-        o->center[X] = 0.5;
+//        o->center[X] = 0.5;
         o->scale = 1;
         o->radii[0] = 0.5;
         o->radii[1] = 1;
@@ -626,6 +632,30 @@ int main(int argc, char **argv)
             printf("Invalid input file type. Should be either \"OBJ\" or \"SCENE\"\n");
             return -1;
         }
+    }
+    
+    if( 1 )//tex_gen_mode == CUBE_MAP)
+    {
+        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
+        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
+        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
+        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
+        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
+        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
+        
+//        read_ppm("ppm/right.ppm", &cube_map[0]);
+//        read_ppm("ppm/left.ppm", &cube_map[1]);
+//        read_ppm("ppm/top.ppm", &cube_map[2]);
+//        read_ppm("ppm/bottom.ppm", &cube_map[3]);
+//        read_ppm("ppm/back.ppm", &cube_map[4]);
+//        read_ppm("ppm/front.ppm", &cube_map[5]);
+        
+//        read_ppm("ppm/test_right.ppm", &cube_map[0]);
+//        read_ppm("ppm/test_left.ppm", &cube_map[1]);
+//        read_ppm("ppm/test_top.ppm", &cube_map[2]);
+//        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
+//        read_ppm("ppm/test_back.ppm", &cube_map[4]);
+//        read_ppm("ppm/test_front.ppm", &cube_map[5]);
     }
 
     

@@ -13,6 +13,7 @@
 extern int modulate_type;
 extern int normal_type;
 extern int drawing_backside;
+extern int tex_gen_mode;
 
 /* data */
 extern IMAGE texture;
@@ -44,6 +45,10 @@ int fog = OFF;
 /* data */
 IMAGE bump_map;
 float fog_color[4] = {1, 1, 1, 1};
+
+IMAGE cube_map[6];
+IMAGE *texture_ptr = &texture;
+int cube_map_index;
 
 /*************************************************************************/
 /* helper functions                                                      */
@@ -201,13 +206,21 @@ void draw_point (POINT *p)
             vector_add(p->color, ambient, p->color);
         }
     }
-    
+    texture_ptr = &texture;
+
     /* texture mapping */
+    if( tex_gen_mode == CUBE_MAP)
+    {
+//        normalize(p->v_normal);
+        cube_map_vec(p->v_normal, p->tex, &cube_map_index);
+        texture_ptr = &cube_map[cube_map_index];
+    }
+    
     if(!drawing_normals && texturing)
     {
         float s, t;
         int u, v;
-        
+
         if (perspective_correct)
         {
             s = p->tex[S];
@@ -218,28 +231,28 @@ void draw_point (POINT *p)
             s *= z;
             t *= z;
             
-            u = (int) (s * texture.width);
-            v = (int) (t * texture.height);
+            u = (int) (s * texture_ptr->width);
+            v = (int) (t * texture_ptr->height);
         }
         else
         {
-            s = (p->tex[S] * texture.width);
-            t = (p->tex[T] * texture.height);
+            s = (p->tex[S] * texture_ptr->width);
+            t = (p->tex[T] * texture_ptr->height);
             
             if(p->tex[S] == 1 || p->tex[T] == 1)
             {
-                s = p->tex[S] == 1 ? texture.width - 1 : s;
-                t = p->tex[T] == 1 ? texture.width - 1 : t;
+                s = p->tex[S] == 1 ? texture_ptr->width - 1 : s;
+                t = p->tex[T] == 1 ? texture_ptr->width - 1 : t;
             }
             
             u = (int) s;
             v = (int) t;
         }
         
-        color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
-        color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
-        color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
-        color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
+        color_buffer[r][c][R] = texture_ptr->data[v][u][R] / 255.0;
+        color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
+        color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
+        color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
         // if drawing reverse side of triangles, ignore the texel channels
         if(drawing_backside)
         {
