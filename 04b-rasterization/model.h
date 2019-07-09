@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include "math_lib/mat4.h"
+
 /****************************************************************/
 /* defines */
 /****************************************************************/
@@ -30,12 +32,13 @@ typedef struct face
 /* functions */
 /****************************************************************/
 void init_quad (void);
-void init_cube (float scale, float cx, float cy, float cz);
+void init_cube (MAT4 *model);
 void init_mesh (float scale, float cx, float cy, float cz, float mesh_da);
 void init_cylinder (float radius, float scale, float cx, float cy, float cz);
 void init_cone (float radius, float scale, float cx, float cy, float cz);
 void init_sphere (float radius, float cx, float cy, float cz);
 void init_torus (float tube_r, float hole_r, float cx, float cy, float cz);
+
 
 void read_obj_file (char *name, float scale, float cx, float cy, float cz);
 void write_obj_file (char *file_name);

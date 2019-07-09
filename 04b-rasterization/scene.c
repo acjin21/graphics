@@ -178,17 +178,7 @@ void read_scene (char *file_name)
             o->rotation[X] = rot_x;
             o->rotation[Y] = rot_y;
             o->rotation[Z] = rot_z;
-            
-            /* construct model matrix */
-            MAT4 scale_mat, rotX, rotY, rotZ, translate;
-            set_scale_nonuniform(&scale_mat, scale, scale, scale);
-            set_rot_X (&rotX, init_orient_x);
-            set_rot_Y (&rotY, init_orient_y);
-            set_rot_Z (&rotZ, init_orient_z);
-            set_transl (&translate, cx, cy, cz);
-//            o->model_mat =
-
-            
+                  
         }
         printf("Done reading scene file from %s\n", file_name);
         fclose(fp);

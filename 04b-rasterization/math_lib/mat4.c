@@ -201,6 +201,18 @@ void set_3d_rot (MAT4 *out, float rx, float ry, float rz)
     mat_mul(out, &Rx, out);
 }
 
+void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz, float tx, float ty, float tz)
+{
+    MAT4 tmp;
+    set_identity (model);
+    set_scale_nonuniform(&tmp, s, s, s); //scale
+    mat_mul (model, &tmp, model);
+    set_3d_rot(&tmp, rx, ry, rz); //rotate
+    mat_mul (model, &tmp, model);
+    set_transl (&tmp, tx, ty, tz);
+    mat_mul (model, &tmp, model);
+}
+
 
 
 

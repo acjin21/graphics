@@ -9,7 +9,6 @@
 #include "vector.h"
 #include "macros.h"
 #include "point.h"
-#include "math_lib/mat4.h"
 
 /****************************************************************/
 /* defines */
@@ -152,7 +151,7 @@ void init_quad (void)
 
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
-void init_cube (float scale, float cx, float cy, float cz)
+void init_cube (MAT4 *model)
 {
     /* add vertices */
     num_vertices = 8;
@@ -166,13 +165,14 @@ void init_cube (float scale, float cx, float cy, float cz)
     set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
     set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
     
-    float center[4] = {cx, cy, cz, 0};
+    /* transform from local to world coordinates */
     for(int i = 0; i < num_vertices; i++)
     {
-        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].world);
-        vector_add(vertex_list[i].world, center, vertex_list[i].world);
-        vertex_list[i].world[W] = 1;
+        float local_coord[4];
+        cpy_vec4(local_coord, vertex_list[i].world);
+        mat_vec_mul(model, local_coord, vertex_list[i].world);
     }
+    
     
     /* set tex coordinates to four corners of texture */
     //0.1, 0.9 for the rock bump map
@@ -211,7 +211,6 @@ void init_cube (float scale, float cx, float cy, float cz)
     /* should now have 12 triangles */
     
     num_face_normals = num_triangles;
-
 }
 
 void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)

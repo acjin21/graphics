@@ -256,10 +256,23 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
+    float rx, ry, rz;
+    rx = o->init_orientation[X] + o->rotation[X];
+    ry = o->init_orientation[Y] + o->rotation[Y];
+    rz = o->init_orientation[Z] + o->rotation[Z];
+
+    /* construct model matrix */
+    set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
+    
+    
     set_material(material_type);
+    
+    
     switch (o->type)
     {
-        case CUBE:      init_cube(scale, cx, cy, cz);                       break;
+        case CUBE:
+            init_cube (&o->model_mat);
+            break;
         case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
         case QUAD:      init_quad();                                        break;
         case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
@@ -293,13 +306,13 @@ void render_object(OBJECT *o)
         insert_coord_axes(cx, cy, cz, scale);
     }
 
+
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz,
                      o->init_orientation[X] + o->rotation[X],
                      o->init_orientation[Y] + o->rotation[Y],
                      o->init_orientation[Z] + o->rotation[Z]);
-       
 
     }
     else
