@@ -562,7 +562,6 @@ void calculate_face_normals (void)
 {
     for(int i = 0; i < num_triangles ; i++)
     {
-        //get p0, p1, p2
         int p0_idx = face_list[i].vertices[0];
         int p1_idx = face_list[i].vertices[1];
         int p2_idx = face_list[i].vertices[2];
@@ -571,16 +570,12 @@ void calculate_face_normals (void)
         POINT *p1 = &vertex_list[p1_idx];
         POINT *p2 = &vertex_list[p2_idx];
         
-        //calculate v1, v2
         float v1[4], v2[4], f_normal[4];
         vector_subtract(p1->world, p0->world, v1);
         vector_subtract(p2->world, p0->world, v2);
         
-        //cross v1, v2 = n
         vector_cross(v1, v2, f_normal);
-        //normalize(n)
         normalize(f_normal);
-        //store normal in face_list's normal property
         cpy_vec4(face_list[i].f_normal, f_normal);
         
     }
