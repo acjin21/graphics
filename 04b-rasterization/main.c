@@ -37,7 +37,7 @@
 
 #define INIT_DZ 5
 
-#define N_TYPES 11
+#define N_TYPES 10
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -48,7 +48,6 @@
 #define TEAPOT 7
 #define CAT 8
 #define DEER 9
-#define LAPTOP 10
 
 #define NA -1
 
@@ -287,9 +286,8 @@ void render_object(OBJECT *o)
                         read_obj_file("obj/cat.obj", init_scale * scale, 0, 0, 0);  break;
         case DEER:      init_scale = 0.005;
                         read_obj_file("obj/deer.obj", init_scale * scale, 0, 0, 0); break;
-        case LAPTOP:    read_obj_file("obj/laptop.obj", scale, 0, 0, 0); break;
     }
-    if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == LAPTOP)
+    if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
     {
         reading_obj = TRUE;
         calculate_face_normals();
@@ -635,12 +633,19 @@ int main(int argc, char **argv)
     
     if( 1 )//tex_gen_mode == CUBE_MAP)
     {
-        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
-        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
-        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
-        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
-        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
-        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
+        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
+        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
+        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
+        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
+        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
+        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
+        
+//        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
+//        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
+//        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
+//        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
+//        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
+//        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
         
 //        read_ppm("ppm/right.ppm", &cube_map[0]);
 //        read_ppm("ppm/left.ppm", &cube_map[1]);
