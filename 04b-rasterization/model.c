@@ -218,223 +218,6 @@ void init_cube (MAT4 *model)
     num_face_normals = num_triangles;
 }
 
-/* read a .obj file and transform vertices to world space */
-void read_obj_file (char *file_name, MAT4 *model)
-{
-    /* r, g, b color options */
-    set_vec4(color_list[0], 1, 0, 0, 1);
-    set_vec4(color_list[1], 0, 1, 0, 1);
-    set_vec4(color_list[2], 0, 0, 1, 1);
-    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
-    
-    FILE *fp;
-    fp = fopen(file_name, "r");
-    if (fp == NULL)
-    {
-        printf("Unable to open file %s\n", file_name);
-    }
-    else
-    {
-        num_vertices = 0;
-        float x, y, z, s, t, r, nx, ny, nz;
-        int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
-        vt1 = 0;
-        vt2 = 1;
-        vt3 = 2;
-        /* handle any possible comments */
-        int next_ch;
-        char comment[500];
-        char next_line[500];
-        
-        next_ch = getc(fp);
-        if(next_ch == '#') fgets(comment, 500, fp);
-        else ungetc(next_ch, fp);
-        
-        while(fgets(next_line, 500, fp)[0] != 'v')
-        {
-            ;
-        }
-        fputs(next_line, fp);
-        
-        /******************/
-        /* vertices */
-        /******************/
-        do
-        {
-            sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
-            set_vec4(vertex_list[num_vertices].world, x, y, z, 1.0);
-            num_vertices++;
-            fgets(next_line, 500, fp);
-        } while(!strncmp(next_line, "v ", 2));
-        
-        /* local to world space */
-        model_xform(model);
-        
-        /* reset num_tris for each vertex */
-        reset_num_tris(num_vertices);
-        
-#ifdef PRINT_DEBUG_OBJ
-        printf("%i vertices read\n", num_vertices);
-        printf("NEXT: %s\n", next_line);
-#endif
-        
-        while(next_line[0] == '\n')
-        {
-
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-        /******************/
-        /* textures */
-        /******************/
-        num_tex_coords = 0;
-        while (!strncmp(next_line, "vt", 2))
-        {
-            sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
-            set_vec4(tex_list[num_tex_coords], s, t, r, 0.0);
-            num_tex_coords++;
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-        
-#ifdef PRINT_DEBUG_OBJ
-        printf("%i textures read\n", num_tex_coords);
-        printf("NEXT: %s\n", next_line);
-#endif
-
-        while(next_line[0] == '\n')
-        {
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-        
-        /******************/
-        /* normals */
-        /******************/
-        num_vertex_normals = 0;
-        while (!strncmp(next_line, "vn", 2))
-        {
-            sscanf(next_line, "vn %f %f %f\n", &nx, &ny, &nz);
-            set_vec4(normal_list[num_vertex_normals], nx, ny, nz, 0.0);
-            num_vertex_normals++;
-            fgets(next_line, 500, fp);
-            
-        }
-        fputs(next_line, fp);
-        
-#ifdef PRINT_DEBUG_OBJ
-        printf("%i normals read\n", num_vertex_normals);
-        printf("NEXT: %s\n", next_line);
-#endif
-        
-        while(next_line[0] != 'f')
-        {
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-
-
-        /******************/
-        /* add faces/triangles */
-        /******************/
-        num_triangles = 0; /* reset num of triangles */
-        while(!strncmp(next_line, "f", 1))
-        {
-            if(num_tex_coords > 0 && num_vertex_normals > 0)
-                /* obj file has vt, vn */
-            {
-                obj_has_vnorms = TRUE;
-                sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                       &i, &vt1, &vn1,
-                       &j, &vt2, &vn2,
-                       &k, &vt3, &vn3);
-            }
-            else if (num_tex_coords > 0)
-                /* obj file has vt, no vn */
-            {
-                obj_has_vnorms = FALSE;
-                sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
-                       &i, &vt1, &j, &vt2, &k, &vt3);
-            }
-            else if (num_vertex_normals > 0)
-                /* obj has vn, no vt */
-            {
-                obj_has_vnorms = TRUE;
-                sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
-                       &i, &vn1, &j, &vn2, &k, &vn3);
-            }
-            else {
-                /* obj has neither vt nor vn */
-                obj_has_vnorms = FALSE;
-                sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
-            }
-            
-            vt1 = i;
-            vt2 = j;
-            vt3 = k;
-            add_face(i - 1,     j - 1,      k - 1,      //vtx indices
-                     3,         3,          3,          //colors
-                     vt1 - 1,   vt2 - 1,    vt3 - 1,    //tex coord indices
-                     vn1,       vn2,        vn3);       //normal indices
-            
-            if(fgets(next_line, 500, fp) == NULL)
-            {
-                break; // reach end of file
-            }
-            while(next_line[0] != 'f')
-            {
-                 if(fgets(next_line, 500, fp) == NULL)
-                 {
-                     break;
-                 }
-            }
-        }
-#ifdef PRINT_DEBUG_OBJ
-        printf("%i faces read\n", num_triangles);
-        printf("obj has vnorms: %s\n", obj_has_vnorms ? "YES" : "NO");
-#endif
-        fclose(fp);
-    }
-    /* in order to establish proper spacing in vertex_list */
-    num_face_normals = num_triangles;
-}
-
-void write_obj_file (char *file_name)
-{
-    FILE *fp;
-    fp = fopen(file_name, "w");
-    
-    if (fp == NULL)
-    {
-        printf("Unable to open file %s\n", file_name);
-    }
-    else
-    {
-        printf("%s has been opened and its contents overwritten.\n", file_name);
-        float x, y, z;
-        int i, j, k;
-        printf("num_vertices = %i\n", num_vertices);
-        for(int v = 0; v < num_vertices; v++)
-        {
-            x = vertex_list[v].world[X];
-            y = vertex_list[v].world[Y];
-            z = vertex_list[v].world[Z];
-            fprintf(fp, "v %f %f %f\n", x, y, z);
-        }
-        for(int f = 0; f < num_triangles; f++)
-        {
-            i = face_list[f].vertices[0];
-            j = face_list[f].vertices[1];
-            k = face_list[f].vertices[2];
-
-            fprintf(fp, "f %d %d %d\n", i+1, j+1, k+1);
-        }
-
-        printf("Done writing obj file to %s\n", file_name);
-        fclose(fp);
-    }
-}
-
 void add_mesh_faces (int width, int height)
 {
     reset_num_tris(num_vertices);
@@ -1130,5 +913,226 @@ void get_tex_coords (void)
             reflection_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-
 }
+
+/****************************************************************/
+/* OBJ I/O */
+/****************************************************************/
+
+/* read a .obj file and transform vertices to world space */
+void read_obj_file (char *file_name, MAT4 *model)
+{
+    /* r, g, b color options */
+    set_vec4(color_list[0], 1, 0, 0, 1);
+    set_vec4(color_list[1], 0, 1, 0, 1);
+    set_vec4(color_list[2], 0, 0, 1, 1);
+    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
+    
+    FILE *fp;
+    fp = fopen(file_name, "r");
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        num_vertices = 0;
+        float x, y, z, s, t, r, nx, ny, nz;
+        int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
+        vt1 = 0;
+        vt2 = 1;
+        vt3 = 2;
+        /* handle any possible comments */
+        int next_ch;
+        char comment[500];
+        char next_line[500];
+        
+        next_ch = getc(fp);
+        if(next_ch == '#') fgets(comment, 500, fp);
+        else ungetc(next_ch, fp);
+        
+        while(fgets(next_line, 500, fp)[0] != 'v')
+        {
+            ;
+        }
+        fputs(next_line, fp);
+        
+        /******************/
+        /* vertices */
+        /******************/
+        do
+        {
+            sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
+            set_vec4(vertex_list[num_vertices].world, x, y, z, 1.0);
+            num_vertices++;
+            fgets(next_line, 500, fp);
+        } while(!strncmp(next_line, "v ", 2));
+        
+        /* local to world space */
+        model_xform(model);
+        
+        /* reset num_tris for each vertex */
+        reset_num_tris(num_vertices);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i vertices read\n", num_vertices);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] == '\n')
+        {
+            
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        /******************/
+        /* textures */
+        /******************/
+        num_tex_coords = 0;
+        while (!strncmp(next_line, "vt", 2))
+        {
+            sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
+            set_vec4(tex_list[num_tex_coords], s, t, r, 0.0);
+            num_tex_coords++;
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i textures read\n", num_tex_coords);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] == '\n')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+        /******************/
+        /* normals */
+        /******************/
+        num_vertex_normals = 0;
+        while (!strncmp(next_line, "vn", 2))
+        {
+            sscanf(next_line, "vn %f %f %f\n", &nx, &ny, &nz);
+            set_vec4(normal_list[num_vertex_normals], nx, ny, nz, 0.0);
+            num_vertex_normals++;
+            fgets(next_line, 500, fp);
+            
+        }
+        fputs(next_line, fp);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i normals read\n", num_vertex_normals);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] != 'f')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+        
+        /******************/
+        /* add faces/triangles */
+        /******************/
+        num_triangles = 0; /* reset num of triangles */
+        while(!strncmp(next_line, "f", 1))
+        {
+            if(num_tex_coords > 0 && num_vertex_normals > 0)
+            /* obj file has vt, vn */
+            {
+                obj_has_vnorms = TRUE;
+                sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
+                       &i, &vt1, &vn1,
+                       &j, &vt2, &vn2,
+                       &k, &vt3, &vn3);
+            }
+            else if (num_tex_coords > 0)
+            /* obj file has vt, no vn */
+            {
+                obj_has_vnorms = FALSE;
+                sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
+                       &i, &vt1, &j, &vt2, &k, &vt3);
+            }
+            else if (num_vertex_normals > 0)
+            /* obj has vn, no vt */
+            {
+                obj_has_vnorms = TRUE;
+                sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
+                       &i, &vn1, &j, &vn2, &k, &vn3);
+            }
+            else {
+                /* obj has neither vt nor vn */
+                obj_has_vnorms = FALSE;
+                sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+            }
+            
+            vt1 = i;
+            vt2 = j;
+            vt3 = k;
+            add_face(i - 1,     j - 1,      k - 1,      //vtx indices
+                     3,         3,          3,          //colors
+                     vt1 - 1,   vt2 - 1,    vt3 - 1,    //tex coord indices
+                     vn1,       vn2,        vn3);       //normal indices
+            
+            if(fgets(next_line, 500, fp) == NULL)
+            {
+                break; // reach end of file
+            }
+            while(next_line[0] != 'f')
+            {
+                if(fgets(next_line, 500, fp) == NULL)
+                {
+                    break;
+                }
+            }
+        }
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i faces read\n", num_triangles);
+        printf("obj has vnorms: %s\n", obj_has_vnorms ? "YES" : "NO");
+#endif
+        fclose(fp);
+    }
+    /* in order to establish proper spacing in vertex_list */
+    num_face_normals = num_triangles;
+}
+
+void write_obj_file (char *file_name)
+{
+    FILE *fp;
+    fp = fopen(file_name, "w");
+    
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents overwritten.\n", file_name);
+        float x, y, z;
+        int i, j, k;
+        printf("num_vertices = %i\n", num_vertices);
+        for(int v = 0; v < num_vertices; v++)
+        {
+            x = vertex_list[v].world[X];
+            y = vertex_list[v].world[Y];
+            z = vertex_list[v].world[Z];
+            fprintf(fp, "v %f %f %f\n", x, y, z);
+        }
+        for(int f = 0; f < num_triangles; f++)
+        {
+            i = face_list[f].vertices[0];
+            j = face_list[f].vertices[1];
+            k = face_list[f].vertices[2];
+            
+            fprintf(fp, "f %d %d %d\n", i+1, j+1, k+1);
+        }
+        
+        printf("Done writing obj file to %s\n", file_name);
+        fclose(fp);
+    }
+}
+
