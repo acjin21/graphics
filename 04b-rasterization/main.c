@@ -269,10 +269,17 @@ void render_object(OBJECT *o)
     rx = o->init_orientation[X];// + o->rotation[X];
     ry = o->init_orientation[Y];// + o->rotation[Y];
     rz = o->init_orientation[Z];// + o->rotation[Z];
-
+    
+    if(o->type == CAT)
+    {
+        scale *= 0.01;
+    }
+    else if (o->type == DEER)
+    {
+        scale *= 0.005;
+    }
     /* construct model matrix */
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
-    
     
     set_material(material_type);
     
@@ -286,11 +293,9 @@ void render_object(OBJECT *o)
         case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
         case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
-        case TEAPOT:    read_obj_file("obj/teapot.obj", scale, cx, cy, cz); break;
-        case CAT:       init_scale = 0.01;
-                        read_obj_file("obj/cat.obj", init_scale * scale, 0, 0, 0);  break;
-        case DEER:      init_scale = 0.005;
-                        read_obj_file("obj/deer.obj", init_scale * scale, 0, 0, 0); break;
+        case TEAPOT:    read_obj_file("obj/teapot.obj", &o->model_mat);     break;
+        case CAT:       read_obj_file("obj/cat.obj", &o->model_mat);        break;
+        case DEER:      read_obj_file("obj/deer.obj", &o->model_mat);       break;
     }
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
     {
@@ -345,12 +350,9 @@ void render_object(OBJECT *o)
         insert_normal_coords();
     }
 
-
-
     switch(proj_mode)
     {
         case ORTHO:
-
             xform_model(ortho_scale);
             break;
         case PERSPECT:
@@ -452,7 +454,20 @@ void display(void)
 //        printf("FROM OBJ\n");
         OBJECT *o = &objects[0];
         o->type = NA;
-        read_obj_file(obj_file, init_scale, 0, 0, 0);
+        o->scale = init_scale;
+        o->center[X] = 0;
+        o->center[Y] = 0;
+        o->center[Z] = 0;
+        o->init_orientation[X] = 0;
+        o->init_orientation[Y] = 0;
+        o->init_orientation[Z] = 0;
+
+        set_model_mat (&o->model_mat, init_scale,
+                       o->init_orientation[X], o->init_orientation[Y],
+                       o->init_orientation[Z],
+                       o->center[X], o->center[Y], o->center[Z]);
+        
+        read_obj_file(obj_file, &o->model_mat);
         render_object(o);
     }
     if(post_processing == ON)
@@ -504,6 +519,10 @@ static void Key(unsigned char key, int x, int y)
         case 'x':       curr_object->rotation[X] += 10;                 break;
         case 'y':       curr_object->rotation[Y] += 10;                 break;
         case 'z':       curr_object->rotation[Z] += 10;                 break;
+        case 'X':       curr_object->rotation[X] -= 10;                 break;
+        case 'Y':       curr_object->rotation[Y] -= 10;                 break;
+        case 'Z':       curr_object->rotation[Z] -= 10;                 break;
+
 
         case 'R':       rot_mode = 1 - rot_mode;                        break;
         /* flowing mesh animation */
