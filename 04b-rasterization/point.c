@@ -209,7 +209,6 @@ void draw_point (POINT *p)
             {
                 vector_multiply(light_ambient, material_ambient, ambient);
             }
-
             vector_add(p->color, ambient, p->color);
         }
     }

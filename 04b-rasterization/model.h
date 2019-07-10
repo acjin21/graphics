@@ -34,14 +34,10 @@ void init_cone (float radius, float scale, float cx, float cy, float cz);
 void init_sphere (float radius, float cx, float cy, float cz);
 void init_torus (float tube_r, float hole_r, float cx, float cy, float cz);
 
-void read_obj_file (char *file_name, MAT4 *model);
-void write_obj_file (char *file_name);
-
 void insert_normal_coords(void);
 void insert_coord_axes (float cx, float cy, float cz, float scale);
 
 void xform_model(float scale);
-void draw_model(int mode);
 void rotate_model(float cx, float cy, float cz,
                   float x_angle, float y_angle, float z_angle);
 void calculate_face_normals (void);
@@ -51,6 +47,11 @@ void translate_model (float distance);
 void perspective_xform(float near, float far);
 void viewport_xform(float scale);
 
+void draw_model(int mode);
+
 void draw_2D_select_box (void);
 void get_tex_coords (void);
+
+void read_obj_file (char *file_name, MAT4 *model);
+void write_obj_file (char *file_name);
 #endif

@@ -424,6 +424,8 @@ void display(void)
      * clear color and depth buffers
      */
     clear_color_buffer(1, 1, 1, 1);
+//    clear_color_buffer(0, 0, 0, 1);
+
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -551,11 +553,13 @@ static void Key(unsigned char key, int x, int y)
         case 'd':       depth_test = 1 - depth_test;                    break;
             
         case 'm':       modulate = 1 - modulate;                        break;
-        case 'M':       modulate_type = 1 - modulate_type;              break;
+        case 'M':       if(modulate) modulate_type = 1 - modulate_type; break;
+            
         case 'n':       normal_type = (normal_type + 1) % 3;            break;
         case 's':       shading_mode = (shading_mode + 1) % 3;          break;
         case 'F':       fog = 1 - fog;                                  break;
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
+        
             
         /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                      break;
@@ -585,7 +589,7 @@ static void Key(unsigned char key, int x, int y)
         
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         
-        case '\r': debugging_mode = 1 - debugging_mode;                   break;
+        case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }

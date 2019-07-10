@@ -32,6 +32,8 @@ extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
 extern int draw_coord_axes;
+extern int material;
+
 /* data */
 extern float depth_buffer[WIN_H][WIN_W];
 extern float material_ambient[4];
@@ -218,24 +220,33 @@ void init_cube (MAT4 *model)
     num_face_normals = num_triangles;
 }
 
-void add_mesh_faces (int width, int height)
+/* reset num_tris for all vertices, and add mesh faces to face_list */
+/*      called in init functions built ontop of init_mesh           */
+void add_mesh_faces (int w, int h)
 {
     reset_num_tris(num_vertices);
     
     /* add triangles/faces */
     num_triangles = 0;
-    
-    for(int r = 0; r < height - 1; r++) // height - 2 for mesh
+    int v0, v1, v2, c0, c1, c2;
+
+    for(int r = 0; r < h - 1; r++) // height - 2 for mesh
     {
-        for(int c = 0; c < width - 1; c++) // width - 2 for mesh
+        for(int c = 0; c < w - 1; c++) // width - 2 for mesh
         {
-            add_face(r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //v
-                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //c
-                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //vt
-                     0, 0, 0);                                          //vn
-            add_face(r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
-                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
-                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
+            v0 = r * w + c;
+            v1 = (r + 1) * w + (c + 1);
+            v2 = (r + 1) * w + c;
+            add_face(v0, v1, v2, //v
+                     v0, v1, v2, //c
+                     v0, v1, v2, //vt
+                     0, 0, 0);  //vn -- only used if reading in obj w/ vn
+            v0 = r * w + c;
+            v1 = r * w + (c + 1);
+            v2 = (r + 1) * w + (c + 1);
+            add_face(v0, v1, v2,
+                     v0, v1, v2,
+                     v0, v1, v2,
                      0, 0, 0);
         }
     }
@@ -340,8 +351,6 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
 /* init a sphere */
 void init_sphere (float radius, float cx, float cy, float cz)
 {
-
-
     int n = 32;
     int width = n;
     int height = n;
@@ -365,8 +374,6 @@ void init_sphere (float radius, float cx, float cy, float cz)
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
             set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
-            set_vec4(color_list[1], 0, 0, 0, 1);
-
         }
     }
     reset_num_tris(num_vertices);
@@ -430,10 +437,11 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
 /*************************************************************************/
 /* insert additional coordinates into vertex_list (normals, axes coords) */
 /*************************************************************************/
-//call after calculate_face_normals()
-//insert normals into vertex_list for a specific 3d model
-    //(2 * num_normals extra points added by this function)
-//call before 3D transformations; actually draw the normals in draw_model
+/* inserts FACE normals centers and endpoints after vertices in vertex_list */
+/*  NOTE: - call after calculate_face_normals()                             */
+/*        - this function adds 2 * num_normals extra points to vertex_list  */
+/*        - call before 3D transformations so the normals are transformed   */
+/*              along with model vertices                                   */
 void insert_normal_coords(void)
 {
     float tmp[4], color[4];
@@ -465,6 +473,7 @@ void insert_normal_coords(void)
     }
 }
 
+/* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
     if(normal_type == F_NORMALS)
@@ -481,11 +490,12 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
     set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 1);
 }
 
-//mode == F_NORMALS, V_NORMALS, NO_NORMALS, COORD_AXES (TODO)
-int get_max_idx (int mode)
+/* return the greatest index that points to relevant data in vertex_list */
+/*    dep on if drawing F_NORMALS and if drawing local axes              */
+int get_max_idx (int normal_mode)
 {
     int max_idx = 0;
-    switch(mode)
+    switch(normal_mode)
     {
         case F_NORMALS:
             max_idx = num_vertices + 2 * num_face_normals;
@@ -494,8 +504,6 @@ int get_max_idx (int mode)
         case V_NORMALS:
             max_idx = num_vertices;
             break;
-            
-        
     }
     if(axes_start_idx != 0) max_idx += 4;
     return max_idx;
@@ -649,8 +657,8 @@ void perspective_xform(float near, float far)
     }
 }
 
-/* scale normalized view coordinates to screen coordinates
- *  (for perspective proj) */
+/* scale normalized view coordinates to screen coordinates */
+/*  (for perspective proj)                                 */
 void viewport_xform(float scale)
 {
     int max_idx = get_max_idx (normal_type);
@@ -664,11 +672,10 @@ void viewport_xform(float scale)
     }
 }
 
-
 /****************************************************************/
 /* draw model into color buffer */
 /****************************************************************/
-/* draw wire-frame or filled in model */
+/* draw wire-frame or filled in model (mode = FRAME or FILL) */
 void draw_model(int mode)
 {
 //    printf("num_triangles: %i\n", num_triangles);
@@ -734,8 +741,12 @@ void draw_model(int mode)
                         vector_add(tmp_spec, p1.color, p1.color);
                         vector_add(tmp_spec, p2.color, p2.color);
                     }
-                    float ambient[4] = {0, 0 , 0 , 0};
-                    vector_multiply(light_ambient, material_ambient, ambient);
+                    
+                    float ambient[4] = {0.5 , 0.5 , 0.5 , 0};
+                    if(material)
+                    {
+                        vector_multiply(light_ambient, material_ambient, ambient);
+                    }
                     
                     vector_add(p0.color, ambient, p0.color);
                     vector_add(p1.color, ambient, p1.color);
@@ -823,6 +834,7 @@ void draw_model(int mode)
 
 }
 
+/* for SCENE mode to draw a red 2D box around the object being modified */
 void draw_2D_select_box (void)
 {
     POINT top_left, bottom_right;
