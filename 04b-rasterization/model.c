@@ -152,6 +152,7 @@ void init_quad (void)
 
 }
 
+/* object space -> world space transform using model matrix */
 void model_xform (MAT4 *model)
 {
     for(int i = 0; i < num_vertices; i++)
@@ -161,6 +162,7 @@ void model_xform (MAT4 *model)
         mat_vec_mul(model, local_coord, vertex_list[i].world);
     }
 }
+
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
 void init_cube (MAT4 *model)
@@ -179,7 +181,6 @@ void init_cube (MAT4 *model)
     
     /* transform from local to world coordinates */
     model_xform(model);
-    
     
     /* set tex coordinates to four corners of texture */
     //0.1, 0.9 for the rock bump map
@@ -226,9 +227,12 @@ void add_mesh_faces (int w, int h)
 {
     reset_num_tris(num_vertices);
     
+    // for grayscale; comment out if want interpolated colors
+    set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+
     /* add triangles/faces */
     num_triangles = 0;
-    int v0, v1, v2, c0, c1, c2;
+    int v0, v1, v2;
 
     for(int r = 0; r < h - 1; r++) // height - 2 for mesh
     {
@@ -237,20 +241,19 @@ void add_mesh_faces (int w, int h)
             v0 = r * w + c;
             v1 = (r + 1) * w + (c + 1);
             v2 = (r + 1) * w + c;
-            add_face(v0, v1, v2, //v
-                     v0, v1, v2, //c
-                     v0, v1, v2, //vt
-                     0, 0, 0);  //vn -- only used if reading in obj w/ vn
-            v0 = r * w + c;
+            add_face(v0, v1, v2, /* v */
+                     0, 0, 0,    /* c; v0, v1, v2 if want interp color */
+                     v0, v1, v2, /* vt */
+                     0, 0, 0);   /* vn -- only used if reading in obj w/ vn */
+
             v1 = r * w + (c + 1);
             v2 = (r + 1) * w + (c + 1);
             add_face(v0, v1, v2,
-                     v0, v1, v2,
+                     0, 0, 0,
                      v0, v1, v2,
                      0, 0, 0);
         }
     }
-    
     num_face_normals = num_triangles;
 }
 
@@ -360,6 +363,7 @@ void init_sphere (float radius, float cx, float cy, float cz)
     {
         for(int c = 0; c < n; c++)
         {
+            int i = r * n + c;
             float u = (float) c / (width - 1);
             float v = (float) r / (height - 1);
             
@@ -372,31 +376,11 @@ void init_sphere (float radius, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-    
-    for(int r = 0; r < n - 1; r++)
-    {
-        for(int c = 0; c < n - 1; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0);
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0,
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0);
-        }
-    }
-    
-    num_face_normals = num_triangles;
+    add_mesh_faces(width, height);
 }
 
 /* init a torus */
