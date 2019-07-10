@@ -218,7 +218,7 @@ void init_cube (MAT4 *model)
     num_face_normals = num_triangles;
 }
 
-
+/* read a .obj file and transform vertices to world space */
 void read_obj_file (char *file_name, MAT4 *model)
 {
     /* r, g, b color options */
@@ -269,11 +269,15 @@ void read_obj_file (char *file_name, MAT4 *model)
         
         /* local to world space */
         model_xform(model);
+        
         /* reset num_tris for each vertex */
         reset_num_tris(num_vertices);
         
-//        printf("%i vertices read\n", num_vertices);
-//        printf("NEXT: %s\n", next_line);
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i vertices read\n", num_vertices);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
         while(next_line[0] == '\n')
         {
 
@@ -292,8 +296,11 @@ void read_obj_file (char *file_name, MAT4 *model)
             fgets(next_line, 500, fp);
         }
         fputs(next_line, fp);
-//        printf("%i textures read\n", num_tex_coords);
-//        printf("NEXT: %s\n", next_line);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i textures read\n", num_tex_coords);
+        printf("NEXT: %s\n", next_line);
+#endif
 
         while(next_line[0] == '\n')
         {
@@ -314,8 +321,11 @@ void read_obj_file (char *file_name, MAT4 *model)
             
         }
         fputs(next_line, fp);
-//        printf("%i normals read\n", num_vertex_normals);
-//        printf("NEXT: %s\n", next_line);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i normals read\n", num_vertex_normals);
+        printf("NEXT: %s\n", next_line);
+#endif
         
         while(next_line[0] != 'f')
         {
@@ -327,63 +337,48 @@ void read_obj_file (char *file_name, MAT4 *model)
         /******************/
         /* add faces/triangles */
         /******************/
-        num_triangles = 0; // reset num of triangles
+        num_triangles = 0; /* reset num of triangles */
         while(!strncmp(next_line, "f", 1))
         {
-//            printf("NEXT: %s\n", next_line);
-
             if(num_tex_coords > 0 && num_vertex_normals > 0)
-                // obj file has vt, vn
+                /* obj file has vt, vn */
             {
-//                printf("vt and vn\n");
                 obj_has_vnorms = TRUE;
                 sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
                        &i, &vt1, &vn1,
                        &j, &vt2, &vn2,
                        &k, &vt3, &vn3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
-
             }
             else if (num_tex_coords > 0)
-                // obj file has vt, no vn
+                /* obj file has vt, no vn */
             {
-//                printf("no vn\n");
-
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
                        &i, &vt1, &j, &vt2, &k, &vt3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
             }
             else if (num_vertex_normals > 0)
-                // obj has vn, no vt
+                /* obj has vn, no vt */
             {
                 obj_has_vnorms = TRUE;
-//                printf("no vt\n");
                 sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
                        &i, &vn1, &j, &vn2, &k, &vn3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
             }
             else {
-                // obj has neither vt nor vn
-//                printf("neither vt nor vn\n");
+                /* obj has neither vt nor vn */
                 obj_has_vnorms = FALSE;
                 sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
             }
-            add_face(i - 1, j - 1, k - 1,       //vtx indices
-                     3, 3, 3,                   //colors
-                     vt1 - 1, vt2 - 1, vt3 - 1, //tex coord indices
-                     vn1, vn2, vn3);            //normal indices
             
-            if(fgets(next_line, 500, fp) == NULL) {
+            vt1 = i;
+            vt2 = j;
+            vt3 = k;
+            add_face(i - 1,     j - 1,      k - 1,      //vtx indices
+                     3,         3,          3,          //colors
+                     vt1 - 1,   vt2 - 1,    vt3 - 1,    //tex coord indices
+                     vn1,       vn2,        vn3);       //normal indices
+            
+            if(fgets(next_line, 500, fp) == NULL)
+            {
                 break; // reach end of file
             }
             while(next_line[0] != 'f')
@@ -394,10 +389,13 @@ void read_obj_file (char *file_name, MAT4 *model)
                  }
             }
         }
-//        printf("%i faces read\n", num_triangles);
-//        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i faces read\n", num_triangles);
+        printf("obj has vnorms: %s\n", obj_has_vnorms ? "YES" : "NO");
+#endif
         fclose(fp);
     }
+    /* in order to establish proper spacing in vertex_list */
     num_face_normals = num_triangles;
 }
 
