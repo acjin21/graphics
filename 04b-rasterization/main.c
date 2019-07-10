@@ -566,7 +566,7 @@ static void Key(unsigned char key, int x, int y)
         
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         
-        case 13: debugging_mode = 1 - debugging_mode;                 break;
+        case '\r': debugging_mode = 1 - debugging_mode;                   break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }
