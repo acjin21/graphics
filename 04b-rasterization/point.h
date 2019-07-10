@@ -9,6 +9,8 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 
+#include "math_lib/mat4.h"
+
 #define ON 1
 #define OFF 0
 
@@ -28,6 +30,8 @@ typedef struct point {
     int tri_list[100]; // indices of neighboring triangles
     int num_tris; // number of neighboring triangles
     float v_normal[4];
+    
+    MAT4 tbn;
 } POINT;
 
 void set_diffuse_term (float normal[4], float diffuse_term[4]);

@@ -133,6 +133,8 @@ int normal_type = NO_NORMALS;
 int obj_has_vnorms = FALSE;
 int reading_obj = FALSE;
 
+int debugging_mode = OFF;
+
 int draw_coord_axes = OFF;    // draw object space coord axes
 /*************************************************************************/
 /* helper functions                                                    */
@@ -180,9 +182,12 @@ void print_settings(void)
     printf(".....................\n");
     printf("Drawing Coord Axes (a):\t%s\n",
            draw_coord_axes ? "ON" : "OFF");
-    printf("\n============================\n");
     printf("Tex Gen mode (0):\t%s\n",
            tex_gen_name(tex_gen_mode));
+    printf("Debugging Mode ([enter]):\t%s\n",
+           debugging_mode ? "ON" : "OFF");
+    printf("\n============================\n");
+
 }
 
 /*******************************************************/
@@ -405,6 +410,9 @@ void display(void)
     if(bump_mapping)
     {
         read_ppm("ppm/rocks_bump.ppm", &bump_map);
+//        read_ppm("ppm/metal_plate_rough.ppm", &bump_map);
+//        read_ppm("ppm/swirl_bump.ppm", &bump_map);
+
     }
 
     print_settings();
@@ -557,7 +565,8 @@ static void Key(unsigned char key, int x, int y)
         case '5': bump_mapping = 1 - bump_mapping;                      break;
         
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
-            
+        
+        case 13: debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }
@@ -633,19 +642,19 @@ int main(int argc, char **argv)
     
     if( 1 )//tex_gen_mode == CUBE_MAP)
     {
-        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
-        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
-        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
-        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
-        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
-        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
+//        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
+//        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
+//        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
+//        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
+//        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
+//        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
         
-//        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
-//        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
-//        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
-//        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
-//        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
-//        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
+        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
+        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
+        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
+        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
+        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
+        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
         
 //        read_ppm("ppm/right.ppm", &cube_map[0]);
 //        read_ppm("ppm/left.ppm", &cube_map[1]);

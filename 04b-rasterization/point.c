@@ -14,7 +14,7 @@ extern int modulate_type;
 extern int normal_type;
 extern int drawing_backside;
 extern int tex_gen_mode;
-
+extern int debugging_mode;
 /* data */
 extern IMAGE texture;
 extern float color_buffer[WIN_H][WIN_W][4];
@@ -168,12 +168,18 @@ void draw_point (POINT *p)
         
         bump[X] = bump_map.data[v][u][R] / 255.0;
         bump[Y] = bump_map.data[v][u][G] / 255.0;
-        bump[Z] = bump_map.data[v][u][B] / 255.0;
+        bump[Z] = (bump_map.data[v][u][B] / 255.0);
         bump[W] = 1;
-        
-        scalar_add(-0.5, bump, bump);
+        scalar_multiply(2, bump, bump);
+        scalar_add(-1, bump, bump);
+        if(debugging_mode)
+        {
+            bump[Z] = -1 * bump[Z]; //flip for our left-handed coord system
+        }
         normalize(bump);
-        vector_multiply(bump, p->v_normal, p->v_normal);
+        cpy_vec4(p->v_normal, bump);
+//        vector_add(bump, p->v_normal, p->v_normal);
+//        normalize(p->v_normal);
     }
     
     /* phong shading */
