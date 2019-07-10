@@ -37,7 +37,7 @@
 
 #define INIT_DZ 5
 
-#define N_TYPES 10
+#define N_TYPES 11
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -48,6 +48,7 @@
 #define TEAPOT 7
 #define CAT 8
 #define DEER 9
+#define BUNNY 10
 
 #define NA -1
 
@@ -296,6 +297,8 @@ void render_object(OBJECT *o)
         case TEAPOT:    read_obj_file("obj/teapot.obj", &o->model_mat);     break;
         case CAT:       read_obj_file("obj/cat.obj", &o->model_mat);        break;
         case DEER:      read_obj_file("obj/deer.obj", &o->model_mat);       break;
+        case BUNNY:     read_obj_file("obj/bunnyNV.obj", &o->model_mat);    break;
+
     }
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
     {
@@ -312,9 +315,13 @@ void render_object(OBJECT *o)
         reading_obj = FALSE;
     }
     
+ 
     if(draw_coord_axes)
     {
-        insert_coord_axes(cx, cy, cz, scale);
+        if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
+        {
+            insert_coord_axes(cx, cy, cz, scale);
+        }
     }
 
 
@@ -365,6 +372,7 @@ void render_object(OBJECT *o)
     draw_model(draw_mode);
     if(input_type == SCENE && o->ID == curr_objectID)
     {
+        draw_local_axes();
         draw_2D_select_box();
     }
 

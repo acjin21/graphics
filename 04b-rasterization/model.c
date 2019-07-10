@@ -28,6 +28,7 @@ extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
 extern int drawing_normals;
 extern int drawing_2D_select_box;
+extern int drawing_axes;
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
@@ -242,14 +243,14 @@ void add_mesh_faces (int w, int h)
             v1 = (r + 1) * w + (c + 1);
             v2 = (r + 1) * w + c;
             add_face(v0, v1, v2, /* v */
-                     0, 0, 0,    /* c; v0, v1, v2 if want interp color */
+                     v0, v1, v2, //0, 0, 0,    /* c; v0, v1, v2 if want interp color */
                      v0, v1, v2, /* vt */
                      0, 0, 0);   /* vn -- only used if reading in obj w/ vn */
 
             v1 = r * w + (c + 1);
             v2 = (r + 1) * w + (c + 1);
             add_face(v0, v1, v2,
-                     0, 0, 0,
+                     v0, v1, v2, //0, 0, 0,
                      v0, v1, v2,
                      0, 0, 0);
         }
@@ -792,8 +793,15 @@ void draw_model(int mode)
             }
         }
     }
+
+
+}
+
+void draw_local_axes (void)
+{
     if(axes_start_idx != 0 && draw_coord_axes)
     {
+        drawing_axes = ON;
         //draw coord axes of model
         set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);
         set_vec4(vertex_list[axes_start_idx + 1].color, 1, 0, 0, 1);
@@ -809,8 +817,8 @@ void draw_model(int mode)
         set_vec4(vertex_list[axes_start_idx + 3].color, 0, 0, 1, 1);
         draw_line(&vertex_list[axes_start_idx],
                   &vertex_list[axes_start_idx + 3], DRAW);
+        drawing_axes = OFF;
     }
-
 }
 
 /* for SCENE mode to draw a red 2D box around the object being modified */
