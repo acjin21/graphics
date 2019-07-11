@@ -553,7 +553,7 @@ static void Key(unsigned char key, int x, int y)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 1;
+                curr_object->scale += 0.5;
                 printf("new scale: %f\n", curr_object->scale);
             }
             break;
@@ -569,7 +569,7 @@ static void Key(unsigned char key, int x, int y)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 1;
+                curr_object->scale += 0.5;
             }
             break;
         }
@@ -585,7 +585,7 @@ static void Key(unsigned char key, int x, int y)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 1;
+                curr_object->scale += 0.5;
             }
             break;
         }
