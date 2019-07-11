@@ -6,7 +6,7 @@
 TIMER sw_renderer_timer;
 TIMER gl_timer;
 
-TIMER vtx_timer;        
+TIMER vtx_timer;
 TIMER px_timer;
 
 /*************************************************************************/
@@ -26,5 +26,5 @@ double elapsed_time (TIMER *timer)
 {
     double usec = (timer->end.tv_sec - timer->start.tv_sec) * MILLION;
     usec += (timer->end.tv_usec - timer->start.tv_usec);
-    return usec;
+    return usec / MILLION;
 }

@@ -404,7 +404,7 @@ void render_object(OBJECT *o)
     /* for detecting mouse clicks */
     set_click_frame (o);
     stop_timer(&vtx_timer);
-    printf("vtx_timer: %.2f\n", elapsed_time(&vtx_timer));
+    printf("vtx_timer: %.5f\n", elapsed_time(&vtx_timer));
     /*-------------------------------*/         /* end vertex processing */
    
     /*-------------------------------*/         /* start pixel processing */
@@ -417,7 +417,7 @@ void render_object(OBJECT *o)
         draw_3D_bb();
     }
     stop_timer(&px_timer);
-    printf("px_timer: %.2f\n", elapsed_time(&px_timer));
+    printf("px_timer: %.5f\n", elapsed_time(&px_timer));
     /*-------------------------------*/         /* end pixel processing */
 }
 
@@ -540,13 +540,15 @@ void display(void)
     }
 
     stop_timer(&sw_renderer_timer);         /* STOP SW_RENDERER_TIMER */
-    printf("sw_renderer: %.2f\n", elapsed_time(&sw_renderer_timer));
+    double time = elapsed_time(&sw_renderer_timer);
+    printf("sw_renderer: %.5f\n", time);
+    printf("framerate: %.5f\n", 1.0 / time);
     start_timer(&gl_timer);
     
     //draw color or depth buffer            /* START GL_TIMER */
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                  /* STOP GL_TIMER */
-    printf("gl: %.2f\n", elapsed_time(&gl_timer));
+    printf("gl: %.5f\n", elapsed_time(&gl_timer));
     
     /*
      * show results
@@ -554,9 +556,6 @@ void display(void)
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
     draw_one_frame = 0;
-    
-
-
 }
 
 /*
