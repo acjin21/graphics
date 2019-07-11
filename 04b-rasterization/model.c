@@ -430,7 +430,7 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
 }
 
 /*************************************************************************/
-/* insert additional coordinates into vertex_list (normals, axes coords) */
+/* insert add'l coordinates into vertex_list (normals, axes, bb) */
 /*************************************************************************/
 /* inserts FACE normals centers and endpoints after vertices in vertex_list */
 /*  NOTE: - call after calculate_face_normals()                             */
@@ -485,6 +485,74 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
     set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 1);
 }
 
+// do this in world space
+void insert_bb_coords (void)
+{
+    //set 2D select/bounding box
+    float max_x, max_y, max_z, min_x, min_y, min_z;
+    max_x = -FLT_MAX;
+    max_y = -FLT_MAX;
+    max_z = -FLT_MAX;
+    
+    min_x = FLT_MAX;
+    min_y = FLT_MAX;
+    min_z = FLT_MAX;
+    
+    for(int i = 0; i < num_vertices; i++)
+    {
+        if(vertex_list[i].world[X] < min_x)
+        {
+            min_x = vertex_list[i].world[X];
+        }
+        else if(vertex_list[i].world[X] > max_x)
+        {
+            max_x = vertex_list[i].world[X];
+        }
+        if(vertex_list[i].world[Y] < min_y)
+        {
+            min_y = vertex_list[i].world[Y];
+        }
+        else if(vertex_list[i].world[Y] > max_y)
+        {
+            max_y = vertex_list[i].world[Y];
+        }
+        if(vertex_list[i].world[Z] < min_z)
+        {
+            min_z = vertex_list[i].world[Z];
+        }
+        else if(vertex_list[i].world[Z] > max_z)
+        {
+            max_z = vertex_list[i].world[Z];
+        }
+    }
+    // get offset in vertex_list
+    if(normal_type == F_NORMALS && draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals + 4;
+    }
+    else if(normal_type == F_NORMALS)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals;
+    }
+    else if(draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 4;
+    }
+    else
+    {
+        bb_start_idx = num_vertices;
+    }
+    
+    set_vec4(vertex_list[bb_start_idx].world, min_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
+}
+
 /* return the greatest index that points to relevant data in vertex_list */
 /*    dep on if drawing F_NORMALS and if drawing local axes              */
 int get_max_idx (int normal_mode)
@@ -506,21 +574,8 @@ int get_max_idx (int normal_mode)
 }
 
 /****************************************************************/
-/* model transformations */
+/* model world space transformations */
 /****************************************************************/
-/* transform model from world space to screen space */
-void xform_model(float scale)
-{
-    int max_idx = get_max_idx (normal_type);
-    for(int i = 0; i < max_idx; i++)
-    {
-        vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
-        vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z] / 20; // temp for near/far plane
-        vertex_list[i].position[W] = 1.0;
-    }
-}
-
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
 void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, float z_angle)
@@ -606,6 +661,21 @@ void calculate_vertex_normals (void)
         }
     }
 }
+/****************************************************************/
+/* for orthographic projections */
+/****************************************************************/
+/* transform model from world space to screen space */
+void xform_model(float scale)
+{
+    int max_idx = get_max_idx (normal_type);
+    for(int i = 0; i < max_idx; i++)
+    {
+        vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
+        vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
+        vertex_list[i].position[Z] = vertex_list[i].world[Z] / 20; // temp for near/far plane
+        vertex_list[i].position[W] = 1.0;
+    }
+}
 
 /****************************************************************/
 /* for perspective projections */
@@ -664,7 +734,7 @@ void viewport_xform(float scale)
 }
 
 /****************************************************************/
-/* draw model into color buffer */
+/* draw functions */
 /****************************************************************/
 /* draw wire-frame or filled in model (mode = FRAME or FILL) */
 void draw_model(int mode)
@@ -806,6 +876,7 @@ void draw_model(int mode)
     }
 }
 
+/* draw object space coord axes */
 void draw_local_axes (void)
 {
     if(axes_start_idx != 0 && draw_coord_axes)
@@ -830,79 +901,7 @@ void draw_local_axes (void)
     }
 }
 
-// do this in world space
-void insert_bb_coords (void)
-{
-    //set 2D select/bounding box
-    float max_x, max_y, max_z, min_x, min_y, min_z;
-    max_x = -FLT_MAX;
-    max_y = -FLT_MAX;
-    max_z = -FLT_MAX;
-    
-    min_x = FLT_MAX;
-    min_y = FLT_MAX;
-    min_z = FLT_MAX;
-    
-    for(int i = 0; i < num_vertices; i++)
-    {
-        if(vertex_list[i].world[X] < min_x)
-        {
-            min_x = vertex_list[i].world[X];
-        }
-        else if(vertex_list[i].world[X] > max_x)
-        {
-            max_x = vertex_list[i].world[X];
-        }
-        if(vertex_list[i].world[Y] < min_y)
-        {
-            min_y = vertex_list[i].world[Y];
-        }
-        else if(vertex_list[i].world[Y] > max_y)
-        {
-            max_y = vertex_list[i].world[Y];
-        }
-        if(vertex_list[i].world[Z] < min_z)
-        {
-            min_z = vertex_list[i].world[Z];
-        }
-        else if(vertex_list[i].world[Z] > max_z)
-        {
-            max_z = vertex_list[i].world[Z];
-        }
-    }
-    // get offset in vertex_list
-    if(normal_type == F_NORMALS && draw_coord_axes)
-    {
-        bb_start_idx = num_vertices + 2 * num_face_normals + 4;
-    }
-    else if(normal_type == F_NORMALS)
-    {
-        bb_start_idx = num_vertices + 2 * num_face_normals;
-    }
-    else if(draw_coord_axes)
-    {
-        bb_start_idx = num_vertices + 4;
-    }
-    else
-    {
-        bb_start_idx = num_vertices;
-    }
-    
-    set_vec4(vertex_list[bb_start_idx].world, min_x, max_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
-    
-//    printf("bottom left: (%.2f, %.2f), top right: (%.2f, %.2f)\n",
-//           o->bb_bl.position[X], o->bb_bl.position[Y],
-//           o->bb_tr.position[X], o->bb_tr.position[Y]);
-    
-}
-
+/* set 2D click frame for sensing mouse clicks in main.c */
 void set_click_frame (OBJECT *o)
 {
     cpy_vec4(o->bb_tr.position, vertex_list[bb_start_idx + 1].position);
@@ -949,6 +948,9 @@ void draw_3D_bb (void)
     }
 }
 
+/****************************************************************/
+/* Texture Generation */
+/****************************************************************/
 /* go through all vertices and generate texture coordinates from normals */
 void get_tex_coords (void)
 {
