@@ -740,7 +740,6 @@ static void Key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-/* TODO: FIX */
 int click_in_bb (int x, int y, OBJECT *o)
 {
     return (x > o->bb_bl.position[X] &&
@@ -775,11 +774,65 @@ void mouse (int button, int state, int x, int y)
     
     
 }
+
+/*
+ * gl_printf
+ */
+void gl_printf( int x, int y, char *s )
+{
+//    int len = strlen( s );
+    
+//    glDisable( GL_LIGHTING );
+    
+//    glColor4f( 0, 0, 0, 1 );
+//
+//    glMatrixMode( GL_PROJECTION );
+//    glPushMatrix();
+//    glLoadIdentity();
+//
+//    gluOrtho2D( 0, WIN_W, 0, WIN_H );
+//
+//    glMatrixMode( GL_MODELVIEW );
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glRasterPos2i( x, y );
+//    printf("hi\n");
+//
+//    for( int i = 0; i < len; i++ )
+//    {
+//        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
+//    }
+    char *str = "The quick god jumps over the lazy brown fox.";
+//    int w;
+//    w = glutBitmapLength(GLUT_BITMAP_HELVETICA_10, str);
+    glRasterPos2f(0., 0.);
+    
+    glColor4f(1., 0., 0., 1.);
+
+    
+    int len = strlen(str);
+    for (int i = 0; i < len; i++) {
+        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
+    }
+    
+//    glPopMatrix();
+//    glMatrixMode( GL_PROJECTION );
+//    glPopMatrix();
+//    glMatrixMode( GL_MODELVIEW );
+    
+//    if( per_vertex_lighting || per_pixel_lighting )
+//    {
+//        glEnable( GL_LIGHTING );
+//    }
+}
+
 /*
  * main function
  */
 int main(int argc, char **argv)
 {
+    char *s = "hello";
+    gl_printf(100, 100, s);
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
         input_type = BASIC;
