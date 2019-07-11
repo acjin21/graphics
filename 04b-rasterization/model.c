@@ -854,6 +854,9 @@ void set_2D_bb (OBJECT *o)
     o->bb_bl.position[Y] = min_y - 5;
     o->bb_tr.position[X] = max_x + 5;
     o->bb_tr.position[Y] = max_y + 5;
+//    printf("bottom left: (%.2f, %.2f), top right: (%.2f, %.2f)\n",
+//           o->bb_bl.position[X], o->bb_bl.position[Y],
+//           o->bb_tr.position[X], o->bb_tr.position[Y]);
 }
 
 /* for SCENE mode to draw a red 2D box around the object being modified */

@@ -293,9 +293,9 @@ void render_object(OBJECT *o)
     
     switch (o->type)
     {
+        case QUAD:      init_quad();                                        break;
         case CUBE:      init_cube (&o->model_mat);                          break;
         case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
-        case QUAD:      init_quad();                                        break;
         case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
         case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
@@ -525,15 +525,7 @@ static void Key(unsigned char key, int x, int y)
         case 'f':       draw_mode = 1 - draw_mode;                      break;
         
         /* toggle object_type or curr_object */
-        case ' ':       if(input_type == BASIC)
-                        {
-                            object_type = (object_type + 1) % N_TYPES;
-                        }
-                        else if(input_type == SCENE)
-                        {
-                            curr_objectID = (curr_objectID + 1) % num_objects;
-                        }
-                        break;
+        case ' ':       object_type = (object_type + 1) % N_TYPES;      break;
         
         /* rotations */
         case 'x':       curr_object->rotation[X] += 10;                 break;
@@ -615,14 +607,33 @@ static void Key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+int click_in_bb (int x, int y, OBJECT *o)
+{
+    return (x > o->bb_bl.position[X] && x < o->bb_tr.position[X] &&
+            y > o->bb_bl.position[Y] && y < o->bb_tr.position[Y]);
+}
+
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
 void mouse (int button, int state, int x, int y)
 {
+    int screen_x = x - 400;
+    int screen_y = y - 400;
+    screen_y *= -1; // (flip)
     if(state == GLUT_DOWN)
     {
-        printf("mouse click: (%i, %i)\n", x, y);
-
+//        printf("mouse click: (%i, %i)\n", screen_x, screen_y);
+        for(int i = 0; i < num_objects; i++)
+        {
+            if(click_in_bb(screen_x, screen_y, &objects[i]))
+            {
+                curr_objectID = i;
+//                printf("curr_objectID: %i\n", i);
+            }
+        }
+        draw_one_frame = 1;
+        glutPostRedisplay();
     }
+    
 }
 /*
  * main function
@@ -700,12 +711,12 @@ int main(int argc, char **argv)
 //        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
 //        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
         
-        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
-        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
-        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
-        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
-        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
-        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
+//        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
+//        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
+//        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
+//        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
+//        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
+//        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
         
 //        read_ppm("ppm/right.ppm", &cube_map[0]);
 //        read_ppm("ppm/left.ppm", &cube_map[1]);
@@ -714,12 +725,12 @@ int main(int argc, char **argv)
 //        read_ppm("ppm/back.ppm", &cube_map[4]);
 //        read_ppm("ppm/front.ppm", &cube_map[5]);
         
-//        read_ppm("ppm/test_right.ppm", &cube_map[0]);
-//        read_ppm("ppm/test_left.ppm", &cube_map[1]);
-//        read_ppm("ppm/test_top.ppm", &cube_map[2]);
-//        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
-//        read_ppm("ppm/test_back.ppm", &cube_map[4]);
-//        read_ppm("ppm/test_front.ppm", &cube_map[5]);
+        read_ppm("ppm/test_right.ppm", &cube_map[0]);
+        read_ppm("ppm/test_left.ppm", &cube_map[1]);
+        read_ppm("ppm/test_top.ppm", &cube_map[2]);
+        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
+        read_ppm("ppm/test_back.ppm", &cube_map[4]);
+        read_ppm("ppm/test_front.ppm", &cube_map[5]);
     }
 
     
