@@ -821,8 +821,7 @@ void draw_local_axes (void)
     }
 }
 
-/* for SCENE mode to draw a red 2D box around the object being modified */
-void draw_2D_select_box (void)
+void set_2D_bb (OBJECT *o)
 {
     POINT top_left, bottom_right;
     float max_x, max_y, min_x, min_y;
@@ -830,7 +829,7 @@ void draw_2D_select_box (void)
     max_y = INT_MIN;
     min_x = INT_MAX;
     min_y = INT_MAX;
-
+    
     for(int i = 0; i < num_vertices; i++)
     {
         if(vertex_list[i].position[X] < min_x)
@@ -850,30 +849,36 @@ void draw_2D_select_box (void)
             max_y = vertex_list[i].position[Y];
         }
     }
+    
+    o->bb_bl.position[X] = min_x - 5;
+    o->bb_bl.position[Y] = min_y - 5;
+    o->bb_tr.position[X] = max_x + 5;
+    o->bb_tr.position[Y] = max_y + 5;
+}
 
-    bottom_left.position[X] = min_x - 5;
-    bottom_left.position[Y] = min_y - 5;
-    top_right.position[X] = max_x + 5;
-    top_right.position[Y] = max_y + 5;
-
-    top_left.position[X] = bottom_left.position[X];
-    top_left.position[Y] = top_right.position[Y];
+/* for SCENE mode to draw a red 2D box around the object being modified */
+void draw_2D_bb (OBJECT *o)
+{
+    POINT top_left, bottom_right;
+    
+    top_left.position[X] = o->bb_bl.position[X];
+    top_left.position[Y] = o->bb_tr.position[Y];
     top_left.position[Z] = 0;
     
-    bottom_right.position[X] = top_right.position[X];
-    bottom_right.position[Y] = bottom_left.position[Y];
+    bottom_right.position[X] = o->bb_tr.position[X];
+    bottom_right.position[Y] = o->bb_bl.position[Y];
     bottom_right.position[Z] = 0;
- 
+    
     set_vec4(bottom_right.color, 1, 0, 0, 1);
     set_vec4(top_left.color, 1, 0, 0, 1);
-    set_vec4(bottom_left.color, 1, 0, 0, 1);
-    set_vec4(top_right.color, 1, 0, 0, 1);
+    set_vec4(o->bb_bl.color, 1, 0, 0, 1);
+    set_vec4(o->bb_tr.color, 1, 0, 0, 1);
 
     drawing_2D_select_box = ON;
-    draw_line(&top_left, &top_right, DRAW);
-    draw_line(&top_right, &bottom_right, DRAW);
-    draw_line(&bottom_right, &bottom_left, DRAW);
-    draw_line(&bottom_left, &top_left, DRAW);
+    draw_line(&top_left, &o->bb_tr, DRAW);
+    draw_line(&o->bb_tr, &bottom_right, DRAW);
+    draw_line(&bottom_right, &o->bb_bl, DRAW);
+    draw_line(&o->bb_bl, &top_left, DRAW);
     drawing_2D_select_box = OFF;
 }
 

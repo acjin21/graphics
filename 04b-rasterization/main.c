@@ -379,10 +379,11 @@ void render_object(OBJECT *o)
     }
 
     draw_model(draw_mode);
+    set_2D_bb(o);
     if(input_type == SCENE && o->ID == curr_objectID)
     {
         draw_local_axes();
-        draw_2D_select_box();
+        draw_2D_bb(o);
     }
 
 }

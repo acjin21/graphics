@@ -2,6 +2,7 @@
 #define MODEL_H
 
 #include "math_lib/mat4.h"
+#include "scene.h"
 
 /****************************************************************/
 /* defines */
@@ -50,7 +51,8 @@ void viewport_xform(float scale);
 void draw_model(int mode);
 
 void draw_local_axes (void);
-void draw_2D_select_box (void);
+void set_2D_bb (OBJECT *o);
+void draw_2D_bb (OBJECT *o);
 void get_tex_coords (void);
 
 void read_obj_file (char *file_name, MAT4 *model);

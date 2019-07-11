@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include "math_lib/mat4.h"
+#include "point.h"
 
 #define MAX_N_OBJECTS 10
 
@@ -21,7 +22,10 @@ typedef struct object {
     
     float init_orientation[3]; //dx_angle, dy_angle, dz_angle
     float rotation[3]; // for rotating objects individually
-
+    
+    POINT bb_bl;
+    POINT bb_tr;
+    
     MAT4 model_mat;
     MAT4 ws_transform; // holds transformations within world space (i.e. rotation, etc)
     
