@@ -184,7 +184,7 @@ void draw_point (POINT *p)
     }
     
     /* phong shading */
-    if(normal_type != V_NORMALS && shading_mode == PHONG)
+    if(!drawing_normals && !drawing_2D_select_box && !drawing_axes && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         set_diffuse_term(p->v_normal, tmp_diff);

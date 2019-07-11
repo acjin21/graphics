@@ -544,14 +544,19 @@ static void Key(unsigned char key, int x, int y)
                         curr_object->rotation[X] = 0;
                         curr_object->rotation[Y] = 0;
                         curr_object->rotation[Z] = 0;
-                        dz = INIT_DZ;
                         mesh_da = 0;                                    break;
         
         /* Z translation */
-        case '+':       if(proj_mode == PERSPECT) dz -= 0.20;
+        case '+':       if(proj_mode == PERSPECT)
+                        {
+                            curr_object->center[Z] -= 0.20;
+                        }
                         if(proj_mode == ORTHO) ortho_scale += 10;
                         break;
-        case '-':       if(proj_mode == PERSPECT) dz += 0.20;
+        case '-':       if(proj_mode == PERSPECT)
+                        {
+                            curr_object->center[Z] += 0.20;
+                        }
                         if(proj_mode == ORTHO) ortho_scale -= 10;
                         break;
         
