@@ -123,8 +123,19 @@ void reset_num_tris (int num_verts)
 /****************************************************************/
 /* model init functions */
 /****************************************************************/
+/* object space -> world space transform using model matrix */
+void model_xform (MAT4 *model)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        float local_coord[4];
+        cpy_vec4(local_coord, vertex_list[i].world);
+        mat_vec_mul(model, local_coord, vertex_list[i].world);
+    }
+}
+
 /* init a 2D quad of two right triangles */
-void init_quad (void)
+void init_quad(MAT4 *model)
 {
     num_vertices = 4;
     
@@ -133,6 +144,9 @@ void init_quad (void)
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
     set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
 
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
@@ -151,17 +165,6 @@ void init_quad (void)
     
     num_face_normals = num_triangles;
 
-}
-
-/* object space -> world space transform using model matrix */
-void model_xform (MAT4 *model)
-{
-    for(int i = 0; i < num_vertices; i++)
-    {
-        float local_coord[4];
-        cpy_vec4(local_coord, vertex_list[i].world);
-        mat_vec_mul(model, local_coord, vertex_list[i].world);
-    }
 }
 
 /* set vertices of a unit cube with world space coordinates and

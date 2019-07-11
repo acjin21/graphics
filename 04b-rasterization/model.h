@@ -27,7 +27,7 @@ typedef struct face
 /****************************************************************/
 /* functions */
 /****************************************************************/
-void init_quad (void);
+void init_quad(MAT4 *model);
 void init_cube (MAT4 *model);
 void init_mesh (float scale, float cx, float cy, float cz, float mesh_da);
 void init_cylinder (float radius, float scale, float cx, float cy, float cz);

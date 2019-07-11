@@ -301,7 +301,7 @@ void render_object(OBJECT *o)
     
     switch (o->type)
     {
-        case QUAD:      init_quad();                                        break;
+        case QUAD:      init_quad(&o->model_mat);                           break;
         case CUBE:      init_cube (&o->model_mat);                          break;
         case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
         case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
