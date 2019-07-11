@@ -28,14 +28,17 @@ extern int perspective_correct; // for perspective correct interpolation
 extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
 
+/* from point.c */              // to avoid texturing the non-model vertices
 extern int drawing_normals;
 extern int drawing_axes;
 extern int drawing_bounding_box;
 
+/* from main.c */
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
 extern int draw_coord_axes;
+extern int draw_bounding_box;
 extern int material;
 
 /* data */
@@ -828,7 +831,7 @@ void draw_local_axes (void)
 }
 
 // do this in world space
-void set_2D_bb (OBJECT *o)
+void insert_bb_coords (void)
 {
     //set 2D select/bounding box
     float max_x, max_y, max_z, min_x, min_y, min_z;
@@ -906,41 +909,44 @@ void set_click_frame (OBJECT *o)
     cpy_vec4(o->bb_bl.position, vertex_list[bb_start_idx + 3].position);
 }
 
-/* for SCENE mode to draw a red 2D box around the object being modified */
-void draw_2D_bb (OBJECT *o)
+/* for SCENE mode to draw a black 3D box around the object being modified */
+void draw_3D_bb (void)
 {
-    for(int i = 0; i < 8; i++)
+    if(bb_start_idx != 0 && draw_bounding_box)
     {
-        set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+        for(int i = 0; i < 8; i++)
+        {
+            set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+        }
+        drawing_bounding_box = ON;
+        draw_line(&vertex_list[bb_start_idx + 0],
+                  &vertex_list[bb_start_idx + 1], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 1],
+                  &vertex_list[bb_start_idx + 2], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 2],
+                  &vertex_list[bb_start_idx + 3], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 3],
+                  &vertex_list[bb_start_idx + 0], DRAW);
+        
+        draw_line(&vertex_list[bb_start_idx + 0],
+                  &vertex_list[bb_start_idx + 4], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 1],
+                  &vertex_list[bb_start_idx + 5], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 2],
+                  &vertex_list[bb_start_idx + 6], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 3],
+                  &vertex_list[bb_start_idx + 7], DRAW);
+        
+        draw_line(&vertex_list[bb_start_idx + 4],
+                  &vertex_list[bb_start_idx + 5], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 5],
+                  &vertex_list[bb_start_idx + 6], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 6],
+                  &vertex_list[bb_start_idx + 7], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 7],
+                  &vertex_list[bb_start_idx + 4], DRAW);
+        drawing_bounding_box = OFF;
     }
-    drawing_bounding_box = ON;
-    draw_line(&vertex_list[bb_start_idx + 0],
-              &vertex_list[bb_start_idx + 1], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 1],
-              &vertex_list[bb_start_idx + 2], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 2],
-              &vertex_list[bb_start_idx + 3], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 3],
-              &vertex_list[bb_start_idx + 0], DRAW);
-    
-    draw_line(&vertex_list[bb_start_idx + 0],
-              &vertex_list[bb_start_idx + 4], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 1],
-              &vertex_list[bb_start_idx + 5], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 2],
-              &vertex_list[bb_start_idx + 6], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 3],
-              &vertex_list[bb_start_idx + 7], DRAW);
-    
-    draw_line(&vertex_list[bb_start_idx + 4],
-              &vertex_list[bb_start_idx + 5], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 5],
-              &vertex_list[bb_start_idx + 6], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 6],
-              &vertex_list[bb_start_idx + 7], DRAW);
-    draw_line(&vertex_list[bb_start_idx + 7],
-              &vertex_list[bb_start_idx + 4], DRAW);
-    drawing_bounding_box = OFF;
 }
 
 /* go through all vertices and generate texture coordinates from normals */

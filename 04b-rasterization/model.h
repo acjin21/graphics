@@ -52,8 +52,9 @@ void draw_model(int mode);
 
 void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
-void set_2D_bb (OBJECT *o);
-void draw_2D_bb (OBJECT *o);
+void insert_bb_coords (void);
+void draw_3D_bb (void);
+
 void get_tex_coords (void);
 
 void read_obj_file (char *file_name, MAT4 *model);

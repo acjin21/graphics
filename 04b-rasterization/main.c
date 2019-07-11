@@ -90,7 +90,6 @@ extern IMAGE cube_map[6];
 /* from model.c */
 extern int modulate_type;
 extern int tex_gen_mode;
-extern int bb_start_idx;
 
 /* from scene.c */              // for drawing multiple 3d objects on screen
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -140,13 +139,15 @@ int curr_objectID = 0;            //ID of current object
 IMAGE texture;                  // final display texture
 int texture_idx = 0;            // determine which texture to read from
 int material_type = EMERALD;    // material type for each object
-int normal_type = NO_NORMALS;
 int obj_has_vnorms = FALSE;
 int reading_obj = FALSE;
 
 int debugging_mode = OFF;
 
+int normal_type = NO_NORMALS; // whether or not to draw normals (and which type)
+
 int draw_coord_axes = OFF;    // draw object space coord axes
+int draw_bounding_box = OFF;
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -373,7 +374,11 @@ void render_object(OBJECT *o)
 
         insert_normal_coords();
     }
-    set_2D_bb(o);
+    
+    if(draw_bounding_box)
+    {
+        insert_bb_coords();
+    }
 
     switch(proj_mode)
     {
@@ -394,7 +399,7 @@ void render_object(OBJECT *o)
     if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
-        draw_2D_bb(o);
+        draw_3D_bb();
     }
 
 }
@@ -470,7 +475,7 @@ void display(void)
         {
             o->scale = 1;
         }
-        o->center[X] = -3.0;
+        o->center[X] = -2.0;
         o->radii[0] = 0.5;
         o->radii[1] = 1;
         render_object(o);
@@ -681,7 +686,7 @@ static void Key(unsigned char key, int x, int y)
         case 'B':       buffer = 1 - buffer;                            break;
             
         case 'a':       draw_coord_axes = 1 - draw_coord_axes;          break;
-
+        case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;
         
         /* write out scene objects with initial orientation to a scene file */
         case 'W':
