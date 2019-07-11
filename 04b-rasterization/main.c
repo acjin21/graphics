@@ -35,7 +35,7 @@
 /* defines                                                               */
 /*************************************************************************/
 
-#define INIT_DZ 5
+#define INIT_DZ 10
 
 #define N_TYPES 14
 #define QUAD 0
@@ -375,10 +375,7 @@ void render_object(OBJECT *o)
         insert_normal_coords();
     }
     
-    if(draw_bounding_box)
-    {
-        insert_bb_coords();
-    }
+    insert_bb_coords();
 
     switch(proj_mode)
     {
@@ -387,7 +384,12 @@ void render_object(OBJECT *o)
             break;
         case PERSPECT:
             translate_model(dz);
-            perspective_xform(3.0, 40.0);
+            int skip = cull_model(-5.0, 40.0);
+            if(skip)
+            {
+                return;
+            }
+            perspective_xform(-5.0, 40.0);
             viewport_xform(30);
             break;
     }
@@ -475,7 +477,6 @@ void display(void)
         {
             o->scale = 1;
         }
-        o->center[X] = -2.0;
         o->radii[0] = 0.5;
         o->radii[1] = 1;
         render_object(o);
