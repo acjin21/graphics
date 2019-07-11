@@ -27,7 +27,6 @@ typedef struct object {
     
     POINT bb_bl;
     POINT bb_tr;
-    
     MAT4 model_mat;
     MAT4 ws_transform; // holds transformations within world space (i.e. rotation, etc)
     

@@ -3,7 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
+//#include <limits.h>
+#include <float.h>
 
 #include "raster.h"
 #include "vector.h"
@@ -26,9 +27,11 @@ extern int texturing;           // whether texturing or not
 extern int perspective_correct; // for perspective correct interpolation
 extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
+
 extern int drawing_normals;
-extern int drawing_2D_select_box;
 extern int drawing_axes;
+extern int drawing_bounding_box;
+
 extern int modulate;
 extern int specular_highlight;
 extern int obj_has_vnorms;
@@ -65,6 +68,7 @@ int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by in
 int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 
+int bb_start_idx = 0;               // starting index of bounding box vertices in vertex_list
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -494,6 +498,7 @@ int get_max_idx (int normal_mode)
             break;
     }
     if(axes_start_idx != 0) max_idx += 4;
+    if(bb_start_idx != 0) max_idx += 8;
     return max_idx;
 }
 
@@ -796,8 +801,6 @@ void draw_model(int mode)
             }
         }
     }
-
-
 }
 
 void draw_local_axes (void)
@@ -824,68 +827,121 @@ void draw_local_axes (void)
     }
 }
 
+// do this in world space
 void set_2D_bb (OBJECT *o)
 {
-    POINT top_left, bottom_right;
-    float max_x, max_y, min_x, min_y;
-    max_x = INT_MIN;
-    max_y = INT_MIN;
-    min_x = INT_MAX;
-    min_y = INT_MAX;
+    //set 2D select/bounding box
+    float max_x, max_y, max_z, min_x, min_y, min_z;
+    max_x = FLT_MIN;
+    max_y = FLT_MIN;
+    max_z = FLT_MIN;
+    
+    min_x = FLT_MAX;
+    min_y = FLT_MAX;
+    min_z = FLT_MAX;
     
     for(int i = 0; i < num_vertices; i++)
     {
-        if(vertex_list[i].position[X] < min_x)
+        if(vertex_list[i].world[X] < min_x)
         {
-            min_x = vertex_list[i].position[X];
+            min_x = vertex_list[i].world[X];
         }
-        else if(vertex_list[i].position[X] > max_x)
+        else if(vertex_list[i].world[X] > max_x)
         {
-            max_x = vertex_list[i].position[X];
+            max_x = vertex_list[i].world[X];
         }
-        if(vertex_list[i].position[Y] < min_y)
+        if(vertex_list[i].world[Y] < min_y)
         {
-            min_y = vertex_list[i].position[Y];
+            min_y = vertex_list[i].world[Y];
         }
-        else if(vertex_list[i].position[Y] > max_y)
+        else if(vertex_list[i].world[Y] > max_y)
         {
-            max_y = vertex_list[i].position[Y];
+            max_y = vertex_list[i].world[Y];
+        }
+        if(vertex_list[i].world[Z] < min_z)
+        {
+            min_z = vertex_list[i].world[Z];
+        }
+        else if(vertex_list[i].world[Z] > max_z)
+        {
+            max_z = vertex_list[i].world[Z];
         }
     }
+    // get offset in vertex_list
+    if(normal_type == F_NORMALS && draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals + 4;
+    }
+    else if(normal_type == F_NORMALS)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals;
+    }
+    else if(draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 4;
+    }
+    else
+    {
+        printf("ah\n");
+        bb_start_idx = num_vertices;
+    }
     
-    o->bb_bl.position[X] = min_x - 5;
-    o->bb_bl.position[Y] = min_y - 5;
-    o->bb_tr.position[X] = max_x + 5;
-    o->bb_tr.position[Y] = max_y + 5;
+    set_vec4(vertex_list[bb_start_idx].world, min_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
+    
 //    printf("bottom left: (%.2f, %.2f), top right: (%.2f, %.2f)\n",
 //           o->bb_bl.position[X], o->bb_bl.position[Y],
 //           o->bb_tr.position[X], o->bb_tr.position[Y]);
+    
+}
+
+void set_click_frame (OBJECT *o)
+{
+    cpy_vec4(o->bb_tr.position, vertex_list[bb_start_idx + 1].position);
+    cpy_vec4(o->bb_bl.position, vertex_list[bb_start_idx + 3].position);
 }
 
 /* for SCENE mode to draw a red 2D box around the object being modified */
 void draw_2D_bb (OBJECT *o)
 {
-    POINT top_left, bottom_right;
+    for(int i = 0; i < 8; i++)
+    {
+        set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+    }
+    drawing_bounding_box = ON;
+    draw_line(&vertex_list[bb_start_idx + 0],
+              &vertex_list[bb_start_idx + 1], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 1],
+              &vertex_list[bb_start_idx + 2], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 2],
+              &vertex_list[bb_start_idx + 3], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 3],
+              &vertex_list[bb_start_idx + 0], DRAW);
     
-    top_left.position[X] = o->bb_bl.position[X];
-    top_left.position[Y] = o->bb_tr.position[Y];
-    top_left.position[Z] = 0;
+    draw_line(&vertex_list[bb_start_idx + 0],
+              &vertex_list[bb_start_idx + 4], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 1],
+              &vertex_list[bb_start_idx + 5], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 2],
+              &vertex_list[bb_start_idx + 6], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 3],
+              &vertex_list[bb_start_idx + 7], DRAW);
     
-    bottom_right.position[X] = o->bb_tr.position[X];
-    bottom_right.position[Y] = o->bb_bl.position[Y];
-    bottom_right.position[Z] = 0;
-    
-    set_vec4(bottom_right.color, 1, 0, 0, 1);
-    set_vec4(top_left.color, 1, 0, 0, 1);
-    set_vec4(o->bb_bl.color, 1, 0, 0, 1);
-    set_vec4(o->bb_tr.color, 1, 0, 0, 1);
-
-    drawing_2D_select_box = ON;
-    draw_line(&top_left, &o->bb_tr, DRAW);
-    draw_line(&o->bb_tr, &bottom_right, DRAW);
-    draw_line(&bottom_right, &o->bb_bl, DRAW);
-    draw_line(&o->bb_bl, &top_left, DRAW);
-    drawing_2D_select_box = OFF;
+    draw_line(&vertex_list[bb_start_idx + 4],
+              &vertex_list[bb_start_idx + 5], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 5],
+              &vertex_list[bb_start_idx + 6], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 6],
+              &vertex_list[bb_start_idx + 7], DRAW);
+    draw_line(&vertex_list[bb_start_idx + 7],
+              &vertex_list[bb_start_idx + 4], DRAW);
+    drawing_bounding_box = OFF;
 }
 
 /* go through all vertices and generate texture coordinates from normals */

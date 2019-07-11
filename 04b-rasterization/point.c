@@ -36,9 +36,11 @@ int texturing = OFF;
 int modulate = OFF;
 int perspective_correct = OFF;
 int shading_mode = FLAT;
+
 int drawing_normals = OFF;
-int drawing_2D_select_box = OFF;
+int drawing_bounding_box = OFF;
 int drawing_axes = OFF;
+
 int bump_mapping = OFF;         // bump mapping for specular lighting
 int material = OFF;             // material properties
 int specular_highlight = OFF;
@@ -184,7 +186,7 @@ void draw_point (POINT *p)
     }
     
     /* phong shading */
-    if(!drawing_normals && !drawing_2D_select_box && !drawing_axes && shading_mode == PHONG)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         set_diffuse_term(p->v_normal, tmp_diff);
@@ -216,7 +218,7 @@ void draw_point (POINT *p)
     texture_ptr = &texture;
 
     /* texture mapping */
-    if(!drawing_normals && !drawing_2D_select_box && !drawing_axes && tex_gen_mode == CUBE_MAP)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && tex_gen_mode == CUBE_MAP)
     {
         normalize(p->v_normal);
         cube_map_vec(p->v_normal, p->tex, &cube_map_index);
@@ -224,7 +226,7 @@ void draw_point (POINT *p)
 
     }
     
-    if(!drawing_normals && !drawing_2D_select_box && !drawing_axes && texturing)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && texturing)
     {
         float s, t;
         int u, v;

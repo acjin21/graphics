@@ -51,6 +51,7 @@ void viewport_xform(float scale);
 void draw_model(int mode);
 
 void draw_local_axes (void);
+void set_click_frame (OBJECT *o);
 void set_2D_bb (OBJECT *o);
 void draw_2D_bb (OBJECT *o);
 void get_tex_coords (void);

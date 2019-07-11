@@ -90,6 +90,7 @@ extern IMAGE cube_map[6];
 /* from model.c */
 extern int modulate_type;
 extern int tex_gen_mode;
+extern int bb_start_idx;
 
 /* from scene.c */              // for drawing multiple 3d objects on screen
 extern OBJECT objects[MAX_N_OBJECTS];
@@ -373,6 +374,7 @@ void render_object(OBJECT *o)
 
         insert_normal_coords();
     }
+    set_2D_bb(o);
 
     switch(proj_mode)
     {
@@ -385,12 +387,14 @@ void render_object(OBJECT *o)
             viewport_xform(30);
             break;
     }
+    set_click_frame (o);
 
     draw_model(draw_mode);
-    set_2D_bb(o);
     if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
+        draw_2D_bb(o);
+
         if(input_type == SCENE)
         {
             draw_2D_bb(o);
@@ -708,10 +712,13 @@ static void Key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+/* TODO: FIX */
 int click_in_bb (int x, int y, OBJECT *o)
 {
-    return (x > o->bb_bl.position[X] && x < o->bb_tr.position[X] &&
-            y > o->bb_bl.position[Y] && y < o->bb_tr.position[Y]);
+    return (x > o->bb_bl.position[X] &&
+            x < o->bb_tr.position[X] &&
+            y > o->bb_bl.position[Y] &&
+            y < o->bb_tr.position[Y]);
 }
 
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
