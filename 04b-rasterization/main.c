@@ -18,8 +18,8 @@
 
 #include "macros.h"
 #include "vector.h"
-#include "texture.h"    //IMAGE typedef, texture and ppm functions
-#include "util.h"       //random_float
+#include "texture.h"    // IMAGE typedef, texture and ppm functions
+#include "util.h"       // random_float
 #include "color.h" 
 #include "depth.h"
 #include "raster.h"
@@ -30,12 +30,12 @@
 #include "image.h"
 
 #include "post-processing.h"
-
+#include "time.h"
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
 
-#define INIT_DZ 10
+#define INIT_DZ 8
 
 #define N_TYPES 14
 #define QUAD 0
@@ -95,6 +95,11 @@ extern int tex_gen_mode;
 extern OBJECT objects[MAX_N_OBJECTS];
 extern int num_objects;
 
+/* from time.c */
+extern TIMER sw_renderer_timer;
+extern TIMER gl_timer;
+extern TIMER vtx_timer;          // start and end in render_object()
+extern TIMER px_timer;           // start and end in model.c
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -148,6 +153,7 @@ int normal_type = NO_NORMALS; // whether or not to draw normals (and which type)
 
 int draw_coord_axes = OFF;    // draw object space coord axes
 int draw_bounding_box = OFF;
+
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -272,6 +278,8 @@ char *tex_gen_name (int mode)
 /*******************************************************/
 void render_object(OBJECT *o)
 {
+    /*-------------------------------*/         /* start vertex processing */
+    start_timer(&vtx_timer);
     float cx, cy, cz, scale, r0, r1;
     cx = o->center[X];
     cy = o->center[Y];
@@ -316,7 +324,6 @@ void render_object(OBJECT *o)
         case BUDDHA:    read_obj_file("obj/buddha.obj", &o->model_mat);     break;
         case WOLF:      read_obj_file("obj/wolf.obj", &o->model_mat);       break;
         case TREE:      read_obj_file("obj/tree.obj", &o->model_mat);       break;
-
     }
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
     {
@@ -384,26 +391,34 @@ void render_object(OBJECT *o)
             break;
         case PERSPECT:
             translate_model(dz);
-            int skip = cull_model(-5.0, 40.0);
+            int skip = cull_model(-15.0, 40.0);
             if(skip)
             {
                 return;
             }
-            perspective_xform(-5.0, 40.0);
+            perspective_xform(-15.0, 40.0);
             viewport_xform(30);
             break;
     }
     
     /* for detecting mouse clicks */
     set_click_frame (o);
-
+    stop_timer(&vtx_timer);
+    printf("vtx_timer: %.2f\n", elapsed_time(&vtx_timer));
+    /*-------------------------------*/         /* end vertex processing */
+   
+    /*-------------------------------*/         /* start pixel processing */
+    start_timer(&px_timer);
     draw_model(draw_mode);
+
     if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
         draw_3D_bb();
     }
-
+    stop_timer(&px_timer);
+    printf("px_timer: %.2f\n", elapsed_time(&px_timer));
+    /*-------------------------------*/         /* end pixel processing */
 }
 
 /*************************************************************************/
@@ -465,10 +480,13 @@ void display(void)
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
+    
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-
+    
+    start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
+    
     if(input_type == BASIC)
     {
         OBJECT *o = &objects[0];
@@ -492,7 +510,6 @@ void display(void)
     }
     else //OBJ
     {
-//        printf("FROM OBJ\n");
         OBJECT *o = &objects[0];
         o->type = NA;
         o->scale = init_scale;
@@ -511,6 +528,7 @@ void display(void)
         read_obj_file(obj_file, &o->model_mat);
         render_object(o);
     }
+    
     if(post_processing == ON)
     {
         apply_post_processing();
@@ -521,15 +539,24 @@ void display(void)
 
     }
 
-    //draw color or depth buffer
+    stop_timer(&sw_renderer_timer);         /* STOP SW_RENDERER_TIMER */
+    printf("sw_renderer: %.2f\n", elapsed_time(&sw_renderer_timer));
+    start_timer(&gl_timer);
+    
+    //draw color or depth buffer            /* START GL_TIMER */
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
-   
+    stop_timer(&gl_timer);                  /* STOP GL_TIMER */
+    printf("gl: %.2f\n", elapsed_time(&gl_timer));
+    
     /*
      * show results
      */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
     draw_one_frame = 0;
+    
+
+
 }
 
 /*
