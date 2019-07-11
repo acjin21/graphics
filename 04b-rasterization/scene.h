@@ -17,6 +17,7 @@ typedef struct object {
     int type;
     int ID;
     
+    /* current status during edit mode */
     float center[3];
     float scale;
     float radii[2];

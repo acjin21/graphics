@@ -505,7 +505,7 @@ void xform_model(float scale)
     {
         vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
         vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z];
+        vertex_list[i].position[Z] = vertex_list[i].world[Z] / 20; // temp for near/far plane
         vertex_list[i].position[W] = 1.0;
     }
 }

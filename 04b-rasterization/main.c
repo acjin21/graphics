@@ -55,6 +55,12 @@
 
 #define NA -1
 
+/* manipulator modes */
+#define NUM_MANIP_MODES 3
+#define ROTATE      0
+#define TRANSLATE   1
+#define SCALE       2
+
 #define GLOBAL 0
 #define LOCAL 1
 
@@ -115,11 +121,11 @@ int rot_mode = LOCAL;
 //float dz_angle = 0;             // init 3D rotation angle about the z axis
 
 int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
-float ortho_scale = 50;
+float ortho_vp_scale = 50;
 float dz = INIT_DZ;             // init dz in world space for perspective projection
 
 int draw_mode = FRAME;          // draw model as wireframe or filled (FRAME/FILL)
-
+int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
 
 /* for post processing */
 int post_processing = OFF;
@@ -155,6 +161,8 @@ void print_settings(void)
            perspective_correct ? "ON" : "OFF");
     printf("Buffer (B):\t\t%s\n",
            buffer ? "COLOR" : "DEPTH");
+    printf("Manipulator Mode ([\t]):\t%s\n",
+           manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
     printf("Rotation Mode (R):\t%s\n",
            rot_mode ? "LOCAL" : "GLOBAL");
     printf(".....................\n");
@@ -274,7 +282,7 @@ void render_object(OBJECT *o)
     ry = o->init_orientation[Y];// + o->rotation[Y];
     rz = o->init_orientation[Z];// + o->rotation[Z];
     
-
+    printf("scale: %.2f\n", scale);
     switch (o->type)
     {
         case CAT:
@@ -369,7 +377,7 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(ortho_scale);
+            xform_model(ortho_vp_scale);
             break;
         case PERSPECT:
             translate_model(dz);
@@ -380,10 +388,13 @@ void render_object(OBJECT *o)
 
     draw_model(draw_mode);
     set_2D_bb(o);
-    if(input_type == SCENE && o->ID == curr_objectID)
+    if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
-        draw_2D_bb(o);
+        if(input_type == SCENE)
+        {
+            draw_2D_bb(o);
+        }
     }
 
 }
@@ -455,7 +466,10 @@ void display(void)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
-        o->scale = 1;
+        if(o->scale == 0)
+        {
+            o->scale = 1;
+        }
         o->radii[0] = 0.5;
         o->radii[1] = 1;
         render_object(o);
@@ -518,7 +532,7 @@ static void Key(unsigned char key, int x, int y)
 {
     char scene_name[MAX_FILE_NAME - 4] = "";
     OBJECT *curr_object = get_curr_object(curr_objectID);
-    
+
     switch (key)
     {
         /* draw wire frame or fill */
@@ -528,12 +542,99 @@ static void Key(unsigned char key, int x, int y)
         case ' ':       object_type = (object_type + 1) % N_TYPES;      break;
         
         /* rotations */
-        case 'x':       curr_object->rotation[X] += 10;                 break;
-        case 'y':       curr_object->rotation[Y] += 10;                 break;
-        case 'z':       curr_object->rotation[Z] += 10;                 break;
-        case 'X':       curr_object->rotation[X] -= 10;                 break;
-        case 'Y':       curr_object->rotation[Y] -= 10;                 break;
-        case 'Z':       curr_object->rotation[Z] -= 10;                 break;
+        case 'x':
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[X] += 10;
+            }
+            else if(manip_mode == TRANSLATE)
+            {
+                curr_object->center[X] += 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale += 1;
+                printf("new scale: %f\n", curr_object->scale);
+            }
+            break;
+        case 'y':
+        {
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[Y] += 10;
+            }
+            else if(manip_mode == TRANSLATE)
+            {
+                curr_object->center[Y] += 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale += 1;
+            }
+            break;
+        }
+        case 'z':
+        {
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[Z] += 10;
+            }
+            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
+            {
+                curr_object->center[Z] += 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale += 1;
+            }
+            break;
+        }
+        case 'X':
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[X] -= 10;
+            }
+            else if(manip_mode == TRANSLATE)
+            {
+                curr_object->center[X] -= 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale -= 0.5;
+            }
+            break;
+        case 'Y':
+        {
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[Y] -= 10;
+            }
+            else if(manip_mode == TRANSLATE)
+            {
+                curr_object->center[Y] -= 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale -= 0.5;
+            }
+            break;
+        }
+        case 'Z':
+        {
+            if(manip_mode == ROTATE)
+            {
+                curr_object->rotation[Z] -= 10;
+            }
+            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
+            {
+                curr_object->center[Z] -= 1;
+            }
+            else if(manip_mode == SCALE)
+            {
+                curr_object->scale -= 0.5;
+            }
+            break;
+        }
 
 
         case 'R':       rot_mode = 1 - rot_mode;                        break;
@@ -544,20 +645,15 @@ static void Key(unsigned char key, int x, int y)
                         curr_object->rotation[X] = 0;
                         curr_object->rotation[Y] = 0;
                         curr_object->rotation[Z] = 0;
+                        dz = INIT_DZ;
                         mesh_da = 0;                                    break;
         
-        /* Z translation */
-        case '+':       if(proj_mode == PERSPECT)
-                        {
-                            curr_object->center[Z] -= 0.20;
-                        }
-                        if(proj_mode == ORTHO) ortho_scale += 10;
+        /* zooming: in (+) /out (-) */
+        case '+':       if(proj_mode == PERSPECT) dz -= 0.20;
+                        if(proj_mode == ORTHO) ortho_vp_scale += 10;
                         break;
-        case '-':       if(proj_mode == PERSPECT)
-                        {
-                            curr_object->center[Z] += 0.20;
-                        }
-                        if(proj_mode == ORTHO) ortho_scale -= 10;
+        case '-':       if(proj_mode == PERSPECT) dz += 0.20;
+                        if(proj_mode == ORTHO) ortho_vp_scale -= 10;
                         break;
         
         /* point drawing modes */
@@ -594,7 +690,8 @@ static void Key(unsigned char key, int x, int y)
             break;
        /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
-        
+            
+        case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
         case '3': post_processing = 1 - post_processing;                break;
@@ -602,8 +699,7 @@ static void Key(unsigned char key, int x, int y)
 
         case '5': bump_mapping = 1 - bump_mapping;                      break;
         
-        case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
-        
+        case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
@@ -621,23 +717,27 @@ int click_in_bb (int x, int y, OBJECT *o)
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
 void mouse (int button, int state, int x, int y)
 {
-    int screen_x = x - 400;
-    int screen_y = y - 400;
-    screen_y *= -1; // (flip)
-    if(state == GLUT_DOWN)
+    if(input_type == SCENE)
     {
-//        printf("mouse click: (%i, %i)\n", screen_x, screen_y);
-        for(int i = 0; i < num_objects; i++)
+        int screen_x = x - 400;
+        int screen_y = y - 400;
+        screen_y *= -1; // (flip)
+        if(state == GLUT_DOWN)
         {
-            if(click_in_bb(screen_x, screen_y, &objects[i]))
+            //        printf("mouse click: (%i, %i)\n", screen_x, screen_y);
+            for(int i = 0; i < num_objects; i++)
             {
-                curr_objectID = i;
-//                printf("curr_objectID: %i\n", i);
+                if(click_in_bb(screen_x, screen_y, &objects[i]))
+                {
+                    curr_objectID = i;
+                    //                printf("curr_objectID: %i\n", i);
+                }
             }
+            draw_one_frame = 1;
+            glutPostRedisplay();
         }
-        draw_one_frame = 1;
-        glutPostRedisplay();
     }
+    
     
 }
 /*
