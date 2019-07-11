@@ -283,7 +283,6 @@ void render_object(OBJECT *o)
     ry = o->init_orientation[Y];// + o->rotation[Y];
     rz = o->init_orientation[Z];// + o->rotation[Z];
     
-    printf("scale: %.2f\n", scale);
     switch (o->type)
     {
         case CAT:
@@ -387,6 +386,8 @@ void render_object(OBJECT *o)
             viewport_xform(30);
             break;
     }
+    
+    /* for detecting mouse clicks */
     set_click_frame (o);
 
     draw_model(draw_mode);
@@ -394,11 +395,6 @@ void render_object(OBJECT *o)
     {
         draw_local_axes();
         draw_2D_bb(o);
-
-        if(input_type == SCENE)
-        {
-            draw_2D_bb(o);
-        }
     }
 
 }
@@ -474,6 +470,7 @@ void display(void)
         {
             o->scale = 1;
         }
+        o->center[X] = -3.0;
         o->radii[0] = 0.5;
         o->radii[1] = 1;
         render_object(o);
@@ -558,7 +555,6 @@ static void Key(unsigned char key, int x, int y)
             else if(manip_mode == SCALE)
             {
                 curr_object->scale += 0.5;
-                printf("new scale: %f\n", curr_object->scale);
             }
             break;
         case 'y':

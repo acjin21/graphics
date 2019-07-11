@@ -832,9 +832,9 @@ void set_2D_bb (OBJECT *o)
 {
     //set 2D select/bounding box
     float max_x, max_y, max_z, min_x, min_y, min_z;
-    max_x = FLT_MIN;
-    max_y = FLT_MIN;
-    max_z = FLT_MIN;
+    max_x = -FLT_MAX;
+    max_y = -FLT_MAX;
+    max_z = -FLT_MAX;
     
     min_x = FLT_MAX;
     min_y = FLT_MAX;
@@ -882,7 +882,6 @@ void set_2D_bb (OBJECT *o)
     }
     else
     {
-        printf("ah\n");
         bb_start_idx = num_vertices;
     }
     
