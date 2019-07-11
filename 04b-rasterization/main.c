@@ -37,7 +37,7 @@
 
 #define INIT_DZ 5
 
-#define N_TYPES 11
+#define N_TYPES 14
 #define QUAD 0
 #define CUBE 1
 #define MESH 2
@@ -49,6 +49,9 @@
 #define CAT 8
 #define DEER 9
 #define BUNNY 10
+#define BUDDHA 11
+#define WOLF 12
+#define TREE 13
 
 #define NA -1
 
@@ -271,13 +274,16 @@ void render_object(OBJECT *o)
     ry = o->init_orientation[Y];// + o->rotation[Y];
     rz = o->init_orientation[Z];// + o->rotation[Z];
     
-    if(o->type == CAT)
+
+    switch (o->type)
     {
-        scale *= 0.01;
-    }
-    else if (o->type == DEER)
-    {
-        scale *= 0.005;
+        case CAT:
+        case WOLF:
+            scale *= 0.01;
+            break;
+        case DEER:
+            scale *= 0.005;
+            break;
     }
     /* construct model matrix */
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
@@ -298,6 +304,9 @@ void render_object(OBJECT *o)
         case CAT:       read_obj_file("obj/cat.obj", &o->model_mat);        break;
         case DEER:      read_obj_file("obj/deer.obj", &o->model_mat);       break;
         case BUNNY:     read_obj_file("obj/bunnyNV.obj", &o->model_mat);    break;
+        case BUDDHA:    read_obj_file("obj/buddha.obj", &o->model_mat);     break;
+        case WOLF:      read_obj_file("obj/wolf.obj", &o->model_mat);       break;
+        case TREE:      read_obj_file("obj/tree.obj", &o->model_mat);       break;
 
     }
     if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
@@ -605,6 +614,15 @@ static void Key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+//void glutMouseFunc(void (*func)(int button, int state, int x, int y));
+void mouse (int button, int state, int x, int y)
+{
+    if(state == GLUT_DOWN)
+    {
+        printf("mouse click: (%i, %i)\n", x, y);
+
+    }
+}
 /*
  * main function
  */
@@ -635,6 +653,7 @@ int main(int argc, char **argv)
      */
     glutDisplayFunc(display);
     glutKeyboardFunc(Key);
+    glutMouseFunc(mouse);
 
     /*
      * setup OpenGL state
