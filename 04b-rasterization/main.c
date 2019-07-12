@@ -47,9 +47,11 @@
 #define LOCAL 1
 
 #define MAX_FILE_NAME 100
+/* program types */
 #define OBJ 0
 #define SCENE 1
 #define BASIC 2
+#define ANIMATE 3
 
 /*************************************************************************/
 /* externs                                                               */
@@ -133,6 +135,10 @@ int normal_type = NO_NORMALS;   // if drawing normals (and which type)
 int draw_coord_axes = OFF;      // draw object space coord axes
 int draw_bounding_box = OFF;    // draw 3D bounding box
 
+//time_t start;
+//int last_sec = 0;
+int display_timer = 0;
+//TIMER animation_timer;
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -392,7 +398,7 @@ void render_object(OBJECT *o)
     /* for detecting mouse clicks */
     set_click_frame (o);
     stop_timer(&vtx_timer);
-    printf("vtx_timer: %.5f\n", elapsed_time(&vtx_timer));
+//    printf("vtx_timer: %.5f\n", elapsed_time(&vtx_timer));
     /*-------------------------------*/         /* end vertex processing */
    
     /*-------------------------------*/         /* start pixel processing */
@@ -405,7 +411,7 @@ void render_object(OBJECT *o)
         draw_3D_bb();
     }
     stop_timer(&px_timer);
-    printf("px_timer: %.5f\n", elapsed_time(&px_timer));
+//    printf("px_timer: %.5f\n", elapsed_time(&px_timer));
     /*-------------------------------*/         /* end pixel processing */
 }
 
@@ -420,12 +426,25 @@ void display(void)
     if( Mojave_WorkAround )
     {
         glutReshapeWindow(2 * window_size,2 * window_size);
-        //  Necessary for Mojave.
-        //  Has to be different dimensions than in glutInitWindowSize();
         Mojave_WorkAround = 0;
     }
     if( draw_one_frame == 0 ) return;
     
+    /*******************************************************/
+    /* animation switching */
+    /*******************************************************/
+    if(program_type == ANIMATE)
+    {
+        display_timer++;
+        if(display_timer % 15 == 0)
+        {
+            object_type = (object_type + 1) % N_TYPES;
+            draw_one_frame = 1;
+            glutPostRedisplay();
+            print_settings();
+        }
+    }
+
     /*******************************************************/
     /* adjustments to make demos work */
     /*******************************************************/
@@ -453,17 +472,15 @@ void display(void)
         read_ppm("ppm/rocks_bump.ppm", &bump_map);
 //        read_ppm("ppm/metal_plate_rough.ppm", &bump_map);
 //        read_ppm("ppm/swirl_bump.ppm", &bump_map);
-
     }
 
-    print_settings();
+//    print_settings();
     
     /*
      * clear color and depth buffers
      */
     clear_color_buffer(1, 1, 1, 1);
 //    clear_color_buffer(0, 0, 0, 1);
-
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -474,7 +491,7 @@ void display(void)
     
     start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
     
-    if(program_type == BASIC)
+    if(program_type == BASIC || program_type == ANIMATE)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
@@ -528,21 +545,21 @@ void display(void)
 
     stop_timer(&sw_renderer_timer);         /* STOP SW_RENDERER_TIMER */
     double time = elapsed_time(&sw_renderer_timer);
-    printf("sw_renderer: %.5f\n", time);
-    printf("framerate: %.5f\n", 1.0 / time);
+//    printf("sw_renderer: %.5f\n", time);
+//    printf("framerate: %.5f\n", 1.0 / time);
     start_timer(&gl_timer);
     
     //draw color or depth buffer            /* START GL_TIMER */
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                  /* STOP GL_TIMER */
-    printf("gl: %.5f\n", elapsed_time(&gl_timer));
+//    printf("gl: %.5f\n", elapsed_time(&gl_timer));
     
     /*
      * show results
      */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
-    draw_one_frame = 0;
+//    draw_one_frame = 0;
 }
 
 /*
@@ -758,47 +775,6 @@ void mouse (int button, int state, int x, int y)
             glutPostRedisplay();
         }
     }
-    
-    
-}
-
-/*
- * gl_printf
- */
-void gl_printf( int x, int y, char *s )
-{
-//    int len = strlen( s );
-    
-//    glDisable( GL_LIGHTING );
-    
-    glColor4f( 0, 0, 0, 1 );
-//
-//    glMatrixMode( GL_PROJECTION );
-//    glPushMatrix();
-//    glLoadIdentity();
-//
-    gluOrtho2D( 0, WIN_W, 0, WIN_H );
-//
-//    glMatrixMode( GL_MODELVIEW );
-//    glPushMatrix();
-//    glLoadIdentity();
-//    glRasterPos2i( x, y );
-//    printf("hi\n");
-//
-//    for( int i = 0; i < len; i++ )
-//    {
-//        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
-//    }
-    
-//    glPopMatrix();
-//    glMatrixMode( GL_PROJECTION );
-//    glPopMatrix();
-//    glMatrixMode( GL_MODELVIEW );
-    
-//    if( per_vertex_lighting || per_pixel_lighting )
-//    {
-//        glEnable( GL_LIGHTING );
-//    }
 }
 
 /*
@@ -806,11 +782,13 @@ void gl_printf( int x, int y, char *s )
  */
 int main(int argc, char **argv)
 {
-//    char s[] = "hello";
-//    gl_printf(100, 100, s);
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
         program_type = BASIC;
+    }
+    else if(argc == 2 && !strcmp("ANIMATE", argv[1]))
+    {
+        program_type = ANIMATE;
     }
     else if(argc < 3)
     {
@@ -844,7 +822,7 @@ int main(int argc, char **argv)
     //reading in scenes from command line argument
     
     //get type of file we're reading from (obj vs scene file)
-    if(program_type != BASIC)
+    if(program_type != BASIC && program_type != ANIMATE)
     {
         if(!strcmp("OBJ", argv[1]))
         {
@@ -905,6 +883,9 @@ int main(int argc, char **argv)
     /*
      * start loop that calls display() and Key() routines
      */
+//    start_timer(&animation_timer);
+    
+//    start = time(NULL);
     glutMainLoop();
 
 

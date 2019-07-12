@@ -13,5 +13,5 @@ typedef struct timer {
 void start_timer (TIMER *timer);
 void stop_timer (TIMER *timer);
 double elapsed_time (TIMER *timer);
-
+double seconds_passed (TIMER *timer);
 #endif

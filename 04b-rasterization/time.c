@@ -29,3 +29,15 @@ double elapsed_time (TIMER *timer)
     usec += (timer->end.tv_usec - timer->start.tv_usec);
     return usec / MILLION;
 }
+
+/* without stopping timer */
+double seconds_passed (TIMER *timer)
+{
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    
+    double usec = (now.tv_sec - timer->start.tv_sec) * MILLION;
+    usec += (now.tv_usec - timer->start.tv_usec);
+    return usec / MILLION;
+    
+}
