@@ -7,6 +7,7 @@
 #include "util.h"
 #include "model.h"
 #include "math_lib/mat4.h"
+
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -31,47 +32,30 @@ int num_objects = 0;
 /*************************************************************************/
 /* custom init scene functions                                          */
 /*************************************************************************/
-//void set_object (OBJECT *o_ptr,
-//                 int type, float cx, float cy, float cz,
-//                 float scale, float r0, float r1)
-//{
-//    o_ptr->type = type;
-//    o_ptr->center[X] = cx;
-//    o_ptr->center[Y] = cy;
-//    o_ptr->center[Z] = cz;
-//    o_ptr->scale = scale;
-//    o_ptr->radii[0] = r0;
-//    o_ptr->radii[1] = r1;
-//}
-//
-///* randomly drawn 3d objects */
-//void init_objects_random (void)
-//{
-//    for(int i = 0; i < MAX_N_OBJECTS; i++)
-//    {
-//        float rand_x, rand_y, rand_z, rand_scale;
-//        rand_x = random_float(-2, 0);
-//        rand_y = random_float(-3, 3);
-//        rand_z = random_float(0, 3);
-//        rand_scale = random_float(1, 5);
-//
-//        set_object(&objects[i], CUBE, rand_x, rand_y, rand_z, rand_scale, NA, NA);
-//    }
-//    num_objects = MAX_N_OBJECTS;
-//}
-//
-///* non-overlapping objects */
-//void init_objects(void)
-//{                                     //cx, cy, cz, scale, r0, r1
-//    set_object(&objects[0], CUBE,       -3, 3,  0, 1,   NA,     NA);
-//    set_object(&objects[1], CYLINDER,   0,  3,  0, 1,   0.5,    NA);
-//    set_object(&objects[2], CONE,       3,  3,  0, 1,   0.5,    NA);
-//    set_object(&objects[3], SPHERE,     -3, -3, 0, NA,  1,      NA);
-//    set_object(&objects[4], TORUS,      0,  -3, 0, NA,  0.5,    1);
-//    set_object(&objects[5], MESH,       3,  -3, 0, 0.7, NA,     NA);
-//    set_object(&objects[6], TEAPOT,     0,  0,  0, 0.5,  NA,     NA);
-//    num_objects = 7;
-//}
+void set_object (OBJECT *o_ptr,
+                 int type, float cx, float cy, float cz,
+                 float scale, float r0, float r1,
+                 float init_rx, float init_ry, float init_rz)
+{
+    o_ptr->type = type;
+    o_ptr->center[X] = cx;
+    o_ptr->center[Y] = cy;
+    o_ptr->center[Z] = cz;
+    o_ptr->scale = scale;
+    o_ptr->radii[0] = r0;
+    o_ptr->radii[1] = r1;
+    o_ptr->init_orientation[X] = init_rx;
+    o_ptr->init_orientation[Y] = init_ry;
+    o_ptr->init_orientation[Z] = init_rz;
+}
+
+
+/* non-overlapping objects */
+void init_benchmark_scene (void)
+{                                     //cx, cy, cz, scale,  r0, r1
+    set_object(&objects[0], QUAD,       -3, 3,  0,  1,      NA, NA, 0, 0, 0);
+    num_objects = 1;
+}
 
 
 /*************************************************************************/
@@ -148,16 +132,17 @@ void read_scene (char *file_name)
         fscanf(fp, "%i %i %i %i %i %i %i\n", &depth_test, &texturing, &modulate,
                &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
 
-        int type;
+        int type, texturing, tex_idx, cube_map;
         float cx, cy, cz, scale, r0, r1, init_orient_x, init_orient_y, init_orient_z, rot_x, rot_y, rot_z;
+        
         for(int i = 0 ; i < num_objects; i++)
         {
             //iterate through lines in file
-            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f\tr0: %f\tr1: %f\tinit_orientation: %f, %f, %f\trotation: %f, %f, %f\n",
+            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f\tr0: %f\tr1: %f\tinit_orientation: %f, %f, %f\trotation: %f, %f, %f\ttex: [%i, %i, %i]\n",
                              &type, &cx, &cy, &cz, &scale, &r0, &r1,
                              &init_orient_x, &init_orient_y, &init_orient_z,
-                             &rot_x, &rot_y, &rot_z);
-            if(ret != 13)
+                             &rot_x, &rot_y, &rot_z, &texturing, &tex_idx, &cube_map);
+            if(ret != 16)
             {
                 printf("Error while reading %s\n", file_name);
                 return;
@@ -181,7 +166,11 @@ void read_scene (char *file_name)
             o->rotation[X] = rot_x;
             o->rotation[Y] = rot_y;
             o->rotation[Z] = rot_z;
-                  
+            
+            o->texturing = texturing;
+            o->texture_idx = tex_idx;
+            o->cube_map = cube_map;
+
         }
         printf("Done reading scene file from %s\n", file_name);
         fclose(fp);

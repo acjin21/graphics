@@ -934,6 +934,10 @@ void set_click_frame (OBJECT *o)
 {
     cpy_vec4(o->bb_tr.position, vertex_list[bb_start_idx + 1].position);
     cpy_vec4(o->bb_bl.position, vertex_list[bb_start_idx + 3].position);
+    printf("type: %i | ID: %i | tr: (%.2f, %.2f) | bl: (%.2f, %.2f)\n",
+           o->type, o->ID,
+           o->bb_tr.position[X], o->bb_tr.position[Y],
+           o->bb_bl.position[X], o->bb_bl.position[Y]);
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */

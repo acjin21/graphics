@@ -19,12 +19,31 @@
 #define S 0
 #define T 1
 
+/* OBJECT TYPES */
+#define N_TYPES 14
+#define QUAD 0
+#define CUBE 1
+#define MESH 2
+#define CYLINDER 3
+#define CONE 4
+#define SPHERE 5
+#define TORUS 6
+#define TEAPOT 7
+#define CAT 8
+#define DEER 9
+#define BUNNY 10
+#define BUDDHA 11
+#define WOLF 12
+#define TREE 13
+
 /* general */
 #define PI 3.1415926
 #define EPSILON 0.0001
 #define FALSE 0
 #define TRUE 1
+#define NA -1
 
+/* functions */
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
 #define MAX(_a,_l) (_a < _l ? _l : _a)
 #define CLAMP(a,l,h) ((a) < (l) ? (l) : ((a) > (h) ? (h) : (a)))

@@ -37,24 +37,6 @@
 
 #define INIT_DZ 8
 
-#define N_TYPES 14
-#define QUAD 0
-#define CUBE 1
-#define MESH 2
-#define CYLINDER 3
-#define CONE 4
-#define SPHERE 5
-#define TORUS 6
-#define TEAPOT 7
-#define CAT 8
-#define DEER 9
-#define BUNNY 10
-#define BUDDHA 11
-#define WOLF 12
-#define TREE 13
-
-#define NA -1
-
 /* manipulator modes */
 #define NUM_MANIP_MODES 3
 #define ROTATE      0
@@ -285,6 +267,14 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
+    
+    /* set draw state */
+    texturing = o->texturing;
+    texture_idx = o->texture_idx;
+    tex_gen_mode = (o->cube_map ? CUBE_MAP : OFF);
+
+    set_texture();
+
     float rx, ry, rz;
     rx = o->init_orientation[X];// + o->rotation[X];
     ry = o->init_orientation[Y];// + o->rotation[Y];
@@ -389,12 +379,12 @@ void render_object(OBJECT *o)
             break;
         case PERSPECT:
             translate_model(dz);
-            int skip = cull_model(-15.0, 40.0);
+            int skip = cull_model(5.0, 40.0);
             if(skip)
             {
                 return;
             }
-            perspective_xform(-15.0, 40.0);
+            perspective_xform(5.0, 40.0);
             viewport_xform(30);
             break;
     }
@@ -467,7 +457,6 @@ void display(void)
     }
 
     print_settings();
-    set_texture();
     
     /*
      * clear color and depth buffers
@@ -687,7 +676,7 @@ static void Key(unsigned char key, int x, int y)
                         break;
         
         /* point drawing modes */
-        case 't':       texturing = 1 - texturing;                      break;
+        case 't':       curr_object->texturing = 1 - curr_object->texturing;    break;
         case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
             
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
@@ -756,13 +745,13 @@ void mouse (int button, int state, int x, int y)
         screen_y *= -1; // (flip)
         if(state == GLUT_DOWN)
         {
-            //        printf("mouse click: (%i, %i)\n", screen_x, screen_y);
+            printf("mouse click: (%i, %i)\n", screen_x, screen_y);
             for(int i = 0; i < num_objects; i++)
             {
                 if(click_in_bb(screen_x, screen_y, &objects[i]))
                 {
                     curr_objectID = i;
-                    //                printf("curr_objectID: %i\n", i);
+                    printf("curr_objectID: %i\n", i);
                 }
             }
             draw_one_frame = 1;

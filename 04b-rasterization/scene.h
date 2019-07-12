@@ -30,6 +30,10 @@ typedef struct object {
     MAT4 model_mat;
     MAT4 ws_transform; // holds transformations within world space (i.e. rotation, etc)
     
+    int texturing;
+    int texture_idx;
+    int cube_map;
+    
 } OBJECT;
 
 OBJECT *get_curr_object (int object_ID);
