@@ -42,6 +42,12 @@
 #define FALSE 0
 #define TRUE 1
 #define NA -1
+#define ON 1
+#define OFF 0
+
+#define BENCH_ROTATE 0
+#define BENCH_SCALE 1
+
 
 /* functions */
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))

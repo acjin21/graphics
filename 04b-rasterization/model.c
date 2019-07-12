@@ -900,6 +900,7 @@ void draw_model(int mode)
                 drawing_normals = OFF;
 
             }
+
         }
     }
 }

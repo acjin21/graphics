@@ -31,6 +31,8 @@
 
 #include "post-processing.h"
 #include "time.h"
+#include "command.h"
+
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -83,6 +85,9 @@ extern TIMER sw_renderer_timer;
 extern TIMER gl_timer;
 extern TIMER vtx_timer;          // start and end in render_object()
 extern TIMER px_timer;           // start and end in model.c
+
+/* from command.c */
+extern DISPLAY_MODE benchmark;
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -135,10 +140,12 @@ int normal_type = NO_NORMALS;   // if drawing normals (and which type)
 int draw_coord_axes = OFF;      // draw object space coord axes
 int draw_bounding_box = OFF;    // draw 3D bounding box
 
-//time_t start;
-//int last_sec = 0;
+int calculate_all_vns = OFF;
 int display_timer = 0;
-//TIMER animation_timer;
+//OBJECT *anim_curr_obj;
+FILE *cb_file;
+
+
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -196,6 +203,64 @@ void print_settings(void)
 
 }
 
+void set_display_mode (DISPLAY_MODE *display_mode)
+{
+    draw_mode =             display_mode->raster_mode;
+    proj_mode =             display_mode->projection;
+    alpha_blend =           display_mode->alpha_blend;
+    depth_test =            display_mode->depth_test;
+    texturing =             display_mode->texturing;
+    modulate =              display_mode->modulate;
+    modulate_type =         display_mode->modulate_mode;
+    perspective_correct =   display_mode->perspective_correct;
+    texture_idx =           display_mode->texture_idx;
+    tex_gen_mode =          display_mode->uv_generation;
+    bump_mapping =          display_mode->bump_map;
+    shading_mode =          display_mode->shading;
+    specular_highlight =    display_mode->lighting;
+    fog =                   display_mode->fog;
+    material =              display_mode->material;
+    post_processing =       display_mode->post_processing;
+    dof_mode =              display_mode->depth_of_field;
+    calculate_all_vns =     display_mode->calculate_all_vns;
+}
+
+char *object_name (int object_type)
+{
+    switch (object_type)
+    {
+        case QUAD:
+            return "qd";
+        case CUBE:
+            return "cb";
+        case MESH:
+            return "ms";
+        case CYLINDER:
+            return "cl";
+        case CONE:
+            return "cn";
+        case SPHERE:
+            return "sr";
+        case TORUS:
+            return "tr";
+        case TEAPOT:
+            return "tp";
+        case CAT:
+            return "ct";
+        case DEER:
+            return "de";
+        case BUNNY :
+            return "bn";
+        case BUDDHA :
+            return "bd";
+        case WOLF :
+            return "wl";
+        case TREE :
+            return "tr";
+        default:
+            return "ERROR";
+    }
+}
 /*******************************************************/
 /* Reading in texture files */
 /*******************************************************/
@@ -274,12 +339,15 @@ void render_object(OBJECT *o)
     r0 = o->radii[0];
     r1 = o->radii[1];
     
-    /* set draw state */
-    texturing = o->texturing;
-    texture_idx = o->texture_idx;
-    tex_gen_mode = (o->cube_map ? CUBE_MAP : OFF);
-
-    set_texture();
+    if(program_type == SCENE)
+    {
+        /* set draw state */
+        texturing = o->texturing;
+        texture_idx = o->texture_idx;
+        tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
+        set_texture();
+        printf("%i, %i, %i\n", texturing, texture_idx, tex_gen_mode);
+    }
 
     float rx, ry, rz;
     rx = o->init_orientation[X];// + o->rotation[X];
@@ -319,14 +387,17 @@ void render_object(OBJECT *o)
         case WOLF:      read_obj_file("obj/wolf.obj", &o->model_mat);       break;
         case TREE:      read_obj_file("obj/tree.obj", &o->model_mat);       break;
     }
-    if(o->type == TEAPOT || o->type == CAT || o->type == DEER)
+    if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == BUNNY
+       || o->type == BUDDHA || o->type == WOLF || o->type == TREE)
     {
         reading_obj = TRUE;
         calculate_face_normals();
-        if(!reading_obj || (reading_obj && !obj_has_vnorms))
-        {
-            calculate_vertex_normals();
-        }
+        calculate_vertex_normals();
+
+//        if(!obj_has_vnorms)
+//        {
+//            calculate_vertex_normals();
+//        }
         get_tex_coords();
     }
     else
@@ -361,15 +432,15 @@ void render_object(OBJECT *o)
     }
 
     calculate_face_normals();
+    calculate_vertex_normals();
 
-    if(!reading_obj || (reading_obj && !obj_has_vnorms))
-    {
-        calculate_vertex_normals();
-
-    }
-    else {
-        printf("not calculating vertex normals\n");
-    }
+//    if( !reading_obj || (reading_obj && !obj_has_vnorms))
+//    {
+//
+//    }
+//    else {
+//        printf("not calculating vertex normals\n");
+//    }
     if(normal_type == F_NORMALS)
     {
 
@@ -436,51 +507,62 @@ void display(void)
     if(program_type == ANIMATE)
     {
         display_timer++;
-        if(display_timer % 15 == 0)
+        if(display_timer % 360 == 0)
         {
+            OBJECT *o = &objects[0];
             object_type = (object_type + 1) % N_TYPES;
+            if(object_type == 0 && display_timer > 360)
+            {
+                return;
+            }
+            o->rotation[Y] = 0;
             draw_one_frame = 1;
             glutPostRedisplay();
             print_settings();
         }
     }
+    if(program_type != ANIMATE)
+    {
+        print_settings();
 
+    }
     /*******************************************************/
     /* adjustments to make demos work */
     /*******************************************************/
 
     /* if drawing depth buffer, turn on depth testing
         so there's something to look at. */
-    if(buffer == DEPTH)
-    {
-        depth_test = ON;
-    }
+//    if(buffer == DEPTH)
+//    {
+//        depth_test = ON;
+//    }
 
     /* since alpha blending does not blend textures, if alpha blending is on,
         turn off texturing and fill the model. */
-    if(alpha_blend == ON)
-    {
-        draw_mode = FILL;
-        texturing = OFF;
-    }
-    if(proj_mode == ORTHO)
-    {
-        perspective_correct = OFF;
-    }
-    if(bump_mapping)
-    {
-        read_ppm("ppm/rocks_bump.ppm", &bump_map);
-//        read_ppm("ppm/metal_plate_rough.ppm", &bump_map);
-//        read_ppm("ppm/swirl_bump.ppm", &bump_map);
-    }
+//    if(alpha_blend == ON)
+//    {
+//        draw_mode = FILL;
+//        texturing = OFF;
+//    }
+//    if(proj_mode == ORTHO)
+//    {
+//        perspective_correct = OFF;
+//    }
 
 //    print_settings();
     
     /*
      * clear color and depth buffers
      */
-    clear_color_buffer(1, 1, 1, 1);
-//    clear_color_buffer(0, 0, 0, 1);
+    
+    if(program_type == ANIMATE)
+    {
+        clear_color_buffer(0.5, 0.5, 0.5, 1);
+    }
+    else
+    {
+        clear_color_buffer(1, 1, 1, 1);
+    }
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -494,6 +576,11 @@ void display(void)
     if(program_type == BASIC || program_type == ANIMATE)
     {
         OBJECT *o = &objects[0];
+        if(program_type == ANIMATE)
+        {
+            o->rotation[Y] += 1;
+            printf("orientation: %f\n", o->rotation[Y]);
+        }
         o->type = object_type;
         if(o->scale == 0)
         {
@@ -501,6 +588,7 @@ void display(void)
         }
         o->radii[0] = 0.5;
         o->radii[1] = 1;
+        
         render_object(o);
     }
     
@@ -544,22 +632,25 @@ void display(void)
     }
 
     stop_timer(&sw_renderer_timer);         /* STOP SW_RENDERER_TIMER */
-    double time = elapsed_time(&sw_renderer_timer);
-//    printf("sw_renderer: %.5f\n", time);
-//    printf("framerate: %.5f\n", 1.0 / time);
+    fprintf(cb_file, "%s ", object_name(object_type));
+    fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
     start_timer(&gl_timer);
     
     //draw color or depth buffer            /* START GL_TIMER */
     buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                  /* STOP GL_TIMER */
-//    printf("gl: %.5f\n", elapsed_time(&gl_timer));
-    
+    fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
+
     /*
      * show results
      */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
-//    draw_one_frame = 0;
+    if(program_type != ANIMATE)
+    {
+        draw_one_frame = 0;
+
+    }
 }
 
 /*
@@ -567,6 +658,23 @@ void display(void)
  */
 static void Key(unsigned char key, int x, int y)
 {
+    if(program_type == ANIMATE)
+    {
+        switch (key)
+        {
+            case 'q':
+                printf("Quit writing file\n");
+                fclose(cb_file);
+                exit(0);
+                break;
+            case '\033':
+                printf("Quit writing file\n");
+                fclose(cb_file);
+                exit(0);
+                break;
+        }
+        return;
+    }
     char scene_name[MAX_FILE_NAME - 4] = "";
     OBJECT *curr_object = get_curr_object(curr_objectID);
 
@@ -693,8 +801,19 @@ static void Key(unsigned char key, int x, int y)
                         break;
         
         /* point drawing modes */
-        case 't':       curr_object->texturing = 1 - curr_object->texturing;    break;
-        case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;   break;
+        case 't':
+            if(program_type == SCENE)
+            {
+                curr_object->texturing = 1 - curr_object->texturing;
+            }
+            else
+            {
+                texturing = 1 - texturing;
+            }
+            break;
+        case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;
+                        set_texture();
+                        break;
             
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
         case 'd':       depth_test = 1 - depth_test;                    break;
@@ -847,8 +966,13 @@ int main(int argc, char **argv)
             return -1;
         }
     }
-    
-    if( 1 )//tex_gen_mode == CUBE_MAP)
+    if(program_type == ANIMATE)
+    {
+        set_display_mode(&benchmark);
+    }
+
+    /* load necessary resources */
+    if(1)//tex_gen_mode == CUBE_MAP)
     {
         read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
         read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
@@ -878,17 +1002,34 @@ int main(int argc, char **argv)
 //        read_ppm("ppm/test_back.ppm", &cube_map[4]);
 //        read_ppm("ppm/test_front.ppm", &cube_map[5]);
     }
-
+    if(bump_mapping || program_type == BASIC)
+    {
+        read_ppm("ppm/rocks_bump.ppm", &bump_map);
+        //        read_ppm("ppm/metal_plate_rough.ppm", &bump_map);
+        //        read_ppm("ppm/swirl_bump.ppm", &bump_map);
+    }
     
+    set_texture();
+//    char file_name[MAX_FILE_NAME];
+    char file_name[MAX_FILE_NAME] = "rotate_cb1.txt";
+    cb_file = fopen(file_name, "w");
+    
+    if (cb_file == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        glutMainLoop();
+
+    }
     /*
      * start loop that calls display() and Key() routines
      */
-//    start_timer(&animation_timer);
-    
-//    start = time(NULL);
-    glutMainLoop();
 
 
+    printf("Done writing obj file to %s\n", file_name);
+    fclose(cb_file);
     return 0;
 }
 

@@ -175,7 +175,7 @@ void draw_point (POINT *p)
         bump[W] = 1;
         scalar_multiply(2, bump, bump);
         scalar_add(-1, bump, bump);
-        if(debugging_mode)
+        if(1)//debugging_mode)
         {
             bump[Z] = -1 * bump[Z]; //flip for our left-handed coord system
         }
