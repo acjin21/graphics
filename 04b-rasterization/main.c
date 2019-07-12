@@ -79,7 +79,6 @@ extern int texturing;           // whether texturing is turned on (OFF/ON)
 extern int modulate;            // whether modulating is turned on (OFF/ON)
 extern int perspective_correct;
 extern int shading_mode;        // FLAT / PHONG / NONE
-extern int drawing_normals;     // TODO: this may belong here or in model.c
 extern int bump_mapping;
 extern int material;
 extern int specular_highlight;
@@ -111,26 +110,28 @@ int counter = 0;
 int buffer = COLOR;             // which buffer to draw from (COLOR/DEPTH)
 
 /* reading in different inputs: OBJ, SCENE (persistence) */
-int input_type = 0;
-char scene_file[MAX_FILE_NAME]; // when input_type == SCENE, "scene_name.txt"
-char obj_file[MAX_FILE_NAME];   // when input_type == OBJ, "obj_name.obj"
+int program_type = 0;
+char scene_file[MAX_FILE_NAME]; // when program_type == SCENE, "scene_name.txt"
+char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 
 /* for render pipeline */
+/* -- vtx stage */
 int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
 float init_scale = 1.0;         // for obj files from the internet
 float mesh_da = 0;              // flowing mesh animation
 
+int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
 int rot_mode = LOCAL;
-//float dx_angle = 0;             // init 3D rotation angle about the x axis
-//float dy_angle = 0;             // init 3D rotation angle about the y axis
-//float dz_angle = 0;             // init 3D rotation angle about the z axis
 
 int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
 float ortho_vp_scale = 50;
 float dz = INIT_DZ;             // init dz in world space for perspective projection
 
+/* -- pixel stage (drawing) */
 int draw_mode = FRAME;          // draw model as wireframe or filled (FRAME/FILL)
-int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
+IMAGE texture;                  // final display texture
+int texture_idx = 0;            // determine which texture to read from
+int material_type = EMERALD;    // material type for each object
 
 /* for post processing */
 int post_processing = OFF;
@@ -141,18 +142,14 @@ int curr_objectID = 0;            //ID of current object
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
-IMAGE texture;                  // final display texture
-int texture_idx = 0;            // determine which texture to read from
-int material_type = EMERALD;    // material type for each object
-int obj_has_vnorms = FALSE;
-int reading_obj = FALSE;
+int obj_has_vnorms = FALSE;     // whether obj supplies vn's
+int reading_obj = FALSE;        // whether reading in an OBJ file
+int debugging_mode = OFF;       // for testing different features, one at a time
 
-int debugging_mode = OFF;
-
-int normal_type = NO_NORMALS; // whether or not to draw normals (and which type)
-
-int draw_coord_axes = OFF;    // draw object space coord axes
-int draw_bounding_box = OFF;
+/* for drawing peripheral components */
+int normal_type = NO_NORMALS;   // if drawing normals (and which type)
+int draw_coord_axes = OFF;      // draw object space coord axes
+int draw_bounding_box = OFF;    // draw 3D bounding box
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -167,9 +164,7 @@ void print_settings(void)
            proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
     printf("Perspect. Correct (c):\t%s\n",
            perspective_correct ? "ON" : "OFF");
-    printf("Buffer (B):\t\t%s\n",
-           buffer ? "COLOR" : "DEPTH");
-    printf("Manipulator Mode ([\t]):\t%s\n",
+    printf("Manip Mode ([tab]):\t%s\n",
            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
     printf("Rotation Mode (R):\t%s\n",
            rot_mode ? "LOCAL" : "GLOBAL");
@@ -177,34 +172,37 @@ void print_settings(void)
     printf("Alpha Blending (b):\t%s\n",
            alpha_blend ? "ON" : "OFF");
     printf("Depth Testing (d):\t%s\n",
-           depth_test ? "ON" : "OFF");
+           depth_test ? "ON" : "OFF");\
+    printf(".....................\n");
+    printf("......TEXTURING......\n");
     printf("Texturing (t/P):\t%s\n",
            texturing ? "ON" : "OFF");
-    printf("Modulate Type (M):\t%s\n",
+    printf("Tex Gen mode (0):\t%s\n",
+           tex_gen_name(tex_gen_mode));
+    printf("Modulate Type (m/M):\t%s\n",
            modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
-    printf("Normals Type (n):\t%s\n",
-           normal_type ? (normal_type == 1 ? "FACE" : "VTX") : "NONE" );
+    printf("Bump Mapping (5):\t%s\n",
+           bump_mapping ? "ON" : "OFF");
+    printf(".....................\n");
+    printf(".......LIGHTING......\n");
     printf("Shading Type (s):\t%s\n",
            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
-    printf("Fog Mode (F):\t%s\n",
-           fog ? "ON" : "OFF");
     printf("Spec Highlight (S):\t%s\n",
            specular_highlight ? "ON" : "OFF");
     printf(".....................\n");
+    printf(".........MISC........\n");
+    printf("Fog Mode (F):\t\t%s\n",
+           fog ? "ON" : "OFF");
     printf("Material Type (1/2):\t%s\n",
            material ? material_name(material_type) : "OFF");
     printf("Post-Processing (3):\t%s\n",
            post_processing ? "ON" : "OFF");
-    printf("DOF (4):\t%s\n",
+    printf("DOF (4):\t\t%s\n",
            dof_mode ? "ON" : "OFF");
-    printf("Bump Mapping (5):\t%s\n",
-           bump_mapping ? "ON" : "OFF");
+    printf("Buffer (B):\t\t%s\n",
+           buffer ? "COLOR" : "DEPTH");
     printf(".....................\n");
-    printf("Drawing Coord Axes (a):\t%s\n",
-           draw_coord_axes ? "ON" : "OFF");
-    printf("Tex Gen mode (0):\t%s\n",
-           tex_gen_name(tex_gen_mode));
-    printf("Debugging Mode ([enter]):\t%s\n",
+    printf("Debug Mode ([enter]):\t%s\n",
            debugging_mode ? "ON" : "OFF");
     printf("\n============================\n");
 
@@ -343,7 +341,7 @@ void render_object(OBJECT *o)
  
     if(draw_coord_axes)
     {
-        if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
+        if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
         {
             insert_coord_axes(cx, cy, cz, scale);
         }
@@ -411,7 +409,7 @@ void render_object(OBJECT *o)
     start_timer(&px_timer);
     draw_model(draw_mode);
 
-    if(input_type != SCENE || (input_type == SCENE && o->ID == curr_objectID))
+    if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
         draw_3D_bb();
@@ -487,7 +485,7 @@ void display(void)
     
     start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
     
-    if(input_type == BASIC)
+    if(program_type == BASIC)
     {
         OBJECT *o = &objects[0];
         o->type = object_type;
@@ -500,7 +498,7 @@ void display(void)
         render_object(o);
     }
     
-    else if(input_type == SCENE)
+    else if(program_type == SCENE)
     {
         printf("scene: %i objects\n", num_objects);
         for(int i = 0; i < num_objects; i++)
@@ -751,7 +749,7 @@ int click_in_bb (int x, int y, OBJECT *o)
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
 void mouse (int button, int state, int x, int y)
 {
-    if(input_type == SCENE)
+    if(program_type == SCENE)
     {
         int screen_x = x - 400;
         int screen_y = y - 400;
@@ -784,13 +782,13 @@ void gl_printf( int x, int y, char *s )
     
 //    glDisable( GL_LIGHTING );
     
-//    glColor4f( 0, 0, 0, 1 );
+    glColor4f( 0, 0, 0, 1 );
 //
 //    glMatrixMode( GL_PROJECTION );
 //    glPushMatrix();
 //    glLoadIdentity();
 //
-//    gluOrtho2D( 0, WIN_W, 0, WIN_H );
+    gluOrtho2D( 0, WIN_W, 0, WIN_H );
 //
 //    glMatrixMode( GL_MODELVIEW );
 //    glPushMatrix();
@@ -802,18 +800,6 @@ void gl_printf( int x, int y, char *s )
 //    {
 //        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
 //    }
-    char *str = "The quick god jumps over the lazy brown fox.";
-//    int w;
-//    w = glutBitmapLength(GLUT_BITMAP_HELVETICA_10, str);
-    glRasterPos2f(0., 0.);
-    
-    glColor4f(1., 0., 0., 1.);
-
-    
-    int len = strlen(str);
-    for (int i = 0; i < len; i++) {
-        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
-    }
     
 //    glPopMatrix();
 //    glMatrixMode( GL_PROJECTION );
@@ -831,11 +817,11 @@ void gl_printf( int x, int y, char *s )
  */
 int main(int argc, char **argv)
 {
-    char *s = "hello";
-    gl_printf(100, 100, s);
+//    char s[] = "hello";
+//    gl_printf(100, 100, s);
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
-        input_type = BASIC;
+        program_type = BASIC;
     }
     else if(argc < 3)
     {
@@ -869,7 +855,7 @@ int main(int argc, char **argv)
     //reading in scenes from command line argument
     
     //get type of file we're reading from (obj vs scene file)
-    if(input_type != BASIC)
+    if(program_type != BASIC)
     {
         if(!strcmp("OBJ", argv[1]))
         {
@@ -879,14 +865,14 @@ int main(int argc, char **argv)
                 return -1;
             }
             strcat(obj_file, argv[2]); //get .obj file name
-            input_type = OBJ;
+            program_type = OBJ;
             init_scale = atof(argv[3]);
         }
         else if(!strcmp("SCENE", argv[1]))
         {
             strcat(scene_file, argv[2]);
             read_scene(scene_file);
-            input_type = SCENE;
+            program_type = SCENE;
         }
         else
         {
@@ -897,12 +883,12 @@ int main(int argc, char **argv)
     
     if( 1 )//tex_gen_mode == CUBE_MAP)
     {
-//        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
-//        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
-//        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
-//        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
-//        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
-//        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
+        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
+        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
+        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
+        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
+        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
+        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
         
 //        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
 //        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
@@ -918,12 +904,12 @@ int main(int argc, char **argv)
 //        read_ppm("ppm/back.ppm", &cube_map[4]);
 //        read_ppm("ppm/front.ppm", &cube_map[5]);
         
-        read_ppm("ppm/test_right.ppm", &cube_map[0]);
-        read_ppm("ppm/test_left.ppm", &cube_map[1]);
-        read_ppm("ppm/test_top.ppm", &cube_map[2]);
-        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
-        read_ppm("ppm/test_back.ppm", &cube_map[4]);
-        read_ppm("ppm/test_front.ppm", &cube_map[5]);
+//        read_ppm("ppm/test_right.ppm", &cube_map[0]);
+//        read_ppm("ppm/test_left.ppm", &cube_map[1]);
+//        read_ppm("ppm/test_top.ppm", &cube_map[2]);
+//        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
+//        read_ppm("ppm/test_back.ppm", &cube_map[4]);
+//        read_ppm("ppm/test_front.ppm", &cube_map[5]);
     }
 
     

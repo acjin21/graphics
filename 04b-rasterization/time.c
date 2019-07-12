@@ -22,6 +22,7 @@ void stop_timer (TIMER *timer)
     gettimeofday(&timer->end, NULL);
 }
 
+/* elapsed time of *timer in seconds */
 double elapsed_time (TIMER *timer)
 {
     double usec = (timer->end.tv_sec - timer->start.tv_sec) * MILLION;
