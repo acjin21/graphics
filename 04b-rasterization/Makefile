@@ -7,4 +7,4 @@ debug:
 	gcc -g -framework OpenGL -framework GLUT $(OBJECTS) -o model-debug && lldb model-debug
 
 print-debug:
-	gcc -DPRINT_DEBUG -framework OpenGL -framework GLUT $(OBJECTS) -o model_print-debug
+	gcc -DPRINT_DEBUG_OBJ -framework OpenGL -framework GLUT $(OBJECTS) -o model_print-debug
