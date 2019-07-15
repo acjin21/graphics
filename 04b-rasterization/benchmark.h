@@ -1,5 +1,7 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef BENCHMARK_H
+#define BENCHMARK_H
+
+#include "scene.h"
 
 typedef struct display_mode {
     int raster_mode;
@@ -26,5 +28,12 @@ typedef struct display_mode {
     int calculate_all_vns;
 } DISPLAY_MODE;
 
+typedef struct benchmark_context {
+    OBJECT object_list[10]; //objects to cycle through
+    DISPLAY_MODE *display_mode;
+    int num_samples; //num samples per object
+} BENCHMARK_CONTEXT;
 
+void init_bench_ctx (BENCHMARK_CONTEXT *bench_ctx, DISPLAY_MODE *display_m,
+                     int num_samples);
 #endif

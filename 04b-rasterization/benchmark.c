@@ -1,7 +1,7 @@
 
-#include "command.h"
+#include "benchmark.h"
+
 #include "macros.h" // ON/OFF, PHONG/FLAT/NO_SHADING
-#include "scene.h" // projection #defines
 #include "model.h" // FILL vs FRAME
 #include "point.h" // uv_generation
 
@@ -30,3 +30,16 @@ DISPLAY_MODE benchmark =
     .calculate_all_vns = ON
 };
 #define N_MODES 13
+
+BENCHMARK_CONTEXT bench_rot1;
+
+void init_bench_ctx (BENCHMARK_CONTEXT *bench_ctx, DISPLAY_MODE *display_m, int num_samples)
+{
+    bench_ctx->display_mode = display_m;
+    bench_ctx->num_samples = num_samples;
+}
+
+//void init_object_list (void)
+//{
+//
+//}

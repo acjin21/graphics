@@ -15,16 +15,15 @@
 #include <string.h>
 #include <math.h>
 
-#include "scene.h" //OBJECT
-#include "time.h"
-#include "command.h"
-#include "app.h"
 #include "color.h"
 #include "depth.h"
 #include "macros.h"
-#include "texture.h"
-#include "post-processing.h"
-#include "model.h"
+#include "texture.h" // IMAGE typedef and read_ppm
+#include "time.h"
+
+#include "scene.h" //OBJECT
+#include "benchmark.h"
+#include "app.h"
 
 /* from app.c */
 extern int program_type;
@@ -48,9 +47,8 @@ extern int bump_mapping;
 /* for animating / benchmarking */
 int display_timer = 0;
 FILE *cb_file;
-
 int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
-
+int num_samples = 360;
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -77,13 +75,14 @@ void display(void)
     /*******************************************************/
     /* animation switching */
     /*******************************************************/
-    if(program_type == ANIMATE)
+    if(program_type == BENCHMARK)
     {
         display_timer++;
-        if(display_timer % 360 == 0) /* every 360 display() calls */
+        
+        if(display_timer % num_samples == 0) /* every 360 display() calls */
         {
             OBJECT *o = &objects[0]; /* get one object */
-            object_type = (object_type + 1) % N_TYPES; /* cycle through object types for ANIMATE program */
+            object_type = (object_type + 1) % N_TYPES; /* cycle through object types for BENCHMARK program */
             if(object_type == 0 && display_timer > 360)
             {
                 draw_one_frame = 0;
@@ -96,12 +95,12 @@ void display(void)
             print_settings();
         }
     }
-    if(program_type != ANIMATE)
+    if(program_type != BENCHMARK)
     {
         print_settings();
     }
 
-    if(program_type == ANIMATE)
+    if(program_type == BENCHMARK)
     {
         clear_color_buffer(0.5, 0.5, 0.5, 1);
     }
@@ -118,7 +117,7 @@ void display(void)
     /*******************************************************/
     start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
     
-    if(program_type == BASIC || program_type == ANIMATE)
+    if(program_type == BASIC || program_type == BENCHMARK)
     {
         display_basic_mode();
     }
@@ -147,7 +146,7 @@ void display(void)
      */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
-    if(program_type != ANIMATE)
+    if(program_type != BENCHMARK)
     {
         draw_one_frame = 0;
     }
@@ -203,9 +202,9 @@ int main(int argc, char **argv)
     {
         program_type = BASIC;
     }
-    else if(argc == 2 && !strcmp("ANIMATE", argv[1]))
+    else if(argc == 2 && !strcmp("BENCHMARK", argv[1]))
     {
-        program_type = ANIMATE;
+        program_type = BENCHMARK;
     }
     else if(argc < 3)
     {
@@ -236,7 +235,7 @@ int main(int argc, char **argv)
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
     
     /* get type of file we're reading from (obj vs scene file) */
-    if(program_type != BASIC && program_type != ANIMATE)
+    if(program_type != BASIC && program_type != BENCHMARK)
     {
         if(!strcmp("OBJ", argv[1]))
         {
@@ -255,7 +254,7 @@ int main(int argc, char **argv)
     /************************/
     /* pre-renderloop setup */
     /************************/
-    if(program_type == ANIMATE)
+    if(program_type == BENCHMARK)
     {
         set_display_mode(&benchmark);
     }
@@ -280,6 +279,7 @@ int main(int argc, char **argv)
     char file_name[MAX_FILE_NAME] = "rotate_cb1.txt";
     cb_file = fopen(file_name, "w");
     
+    fprintf(cb_file, "CB1\n");
     if (cb_file == NULL)
     {
         printf("Unable to open file %s\n", file_name);

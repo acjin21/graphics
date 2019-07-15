@@ -1,7 +1,7 @@
 #ifndef APP_H
 #define APP_H
 
-#include "command.h"
+#include "benchmark.h"
 #include "scene.h"
 
 #define INIT_DZ 8
@@ -25,7 +25,7 @@ enum Rotation_Mode {GLOBAL = 0, LOCAL = 1};
 //#define BASIC 2
 //#define ANIMATE 3
 
-enum Program {BASIC = 0, SCENE, OBJ, ANIMATE};
+enum Program {BASIC = 0, SCENE, OBJ, BENCHMARK};
 
 
 /*************/
@@ -43,6 +43,8 @@ void set_texture (void);
 
 /* rendering */
 void render_object(OBJECT *o);
+
+void display_benchmark_mode (int num_samples);
 void display_basic_mode (void);
 void display_scene_mode (void);
 void display_obj_mode (void);

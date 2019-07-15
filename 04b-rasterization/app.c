@@ -406,23 +406,48 @@ void render_object(OBJECT *o)
     /*-------------------------------*/         /* end pixel processing */
 }
 
-/* for BASIC and ANIMATE mode */
-void display_basic_mode (void)
+/********************************************/
+/* for BENCHMARK mode */
+/********************************************/
+/* apply specific benchmark function (called once per frame) */
+void apply_benchmark_animation (OBJECT *o, int num_samples)
+{
+    o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
+}
+
+void display_benchmark_mode (int num_samples)
 {
     OBJECT *o = &objects[0];
-    if(program_type == ANIMATE)
-    {
-        o->rotation[Y] += 1;
-    }
+    apply_benchmark_animation(o, num_samples);
     o->type = object_type;
-    if(o->scale == 0)
-    {
-        o->scale = 1;
-    }
+    o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
     o->radii[0] = 0.5;
     o->radii[1] = 1;
     
     render_object(o);
+}
+/********************************************/
+/* for BASIC mode */
+/********************************************/
+void display_basic_mode (void)
+{
+    OBJECT *o = &objects[0];
+    o->type = object_type;
+    o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
+    o->radii[0] = 0.5;
+    o->radii[1] = 1;
+    
+    render_object(o);
+}
+/********************************************/
+/* for SCENE mode */
+/********************************************/
+int init_scene_program (int argc, char **argv)
+{
+    strcat(scene_file, argv[2]);
+    read_scene(scene_file);
+    program_type = SCENE;
+    return 0;
 }
 
 void display_scene_mode (void)
@@ -431,6 +456,21 @@ void display_scene_mode (void)
     {
         render_object(&objects[i]);
     }
+}
+/********************************************/
+/* for OBJ mode */
+/********************************************/
+int init_obj_program (int argc, char **argv)
+{
+    if(argc < 4)
+    {
+        printf("Please specify scale for OBJ file.\n");
+        return -1;
+    }
+    strcat(obj_file, argv[2]); //get .obj file name
+    program_type = OBJ;
+    init_scale = atof(argv[3]);
+    return 0;
 }
 
 void display_obj_mode (void)
@@ -453,12 +493,13 @@ void display_obj_mode (void)
     read_obj_file(obj_file, &o->model_mat);
     render_object(o);
 }
-/******************/
+
+/********************************************/
 /* IO */
-/******************/
+/********************************************/
 void key_callback (unsigned char key)
 {
-    if(program_type == ANIMATE)
+    if(program_type == BENCHMARK)
     {
         switch (key)
         {
@@ -662,28 +703,7 @@ void key_callback (unsigned char key)
     }
 }
 
-int init_obj_program (int argc, char **argv)
-{
-    if(argc < 4)
-    {
-        printf("Please specify scale for OBJ file.\n");
-        return -1;
-    }
-    strcat(obj_file, argv[2]); //get .obj file name
-    program_type = OBJ;
-    init_scale = atof(argv[3]);
-    return 0;
-}
-
-int init_scene_program (int argc, char **argv)
-{
-    strcat(scene_file, argv[2]);
-    read_scene(scene_file);
-    program_type = SCENE;
-    return 0;
-}
-
-
+/* after render pipeline */
 void apply_post_pipeline_fx (void)
 {
     if(post_processing == ON)
