@@ -45,6 +45,7 @@ extern float depth_buffer[WIN_H][WIN_W];
 extern float material_ambient[4];
 extern float light_ambient[4];
 
+extern float light_pos[4];
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -808,8 +809,9 @@ void draw_model(int mode)
             {
                 float diffuse, tmp_diff[4], tmp_spec[4];
 
-                set_diffuse_term (f.f_normal, tmp_diff);
-                set_specular_term (f.f_normal, tmp_spec);
+                /* using one of vertices' light vecs instead of global light dir */
+                set_diffuse_term (f.f_normal, p0.light, tmp_diff);
+                set_specular_term (f.f_normal, p0.light, tmp_spec);
                 
                 //modulate interpolated color * texture
                 if(!modulate || (modulate && modulate_type == MOD_COLOR))
@@ -1039,6 +1041,19 @@ char *tex_gen_name (int mode)
             return "CUBE MAP";
         default:
             return "ERROR";
+    }
+}
+/****************************************************************/
+/* lighting */
+/****************************************************************/
+void calculate_light_vectors (void)
+{
+    POINT *p;
+    for(int i = 0; i < num_vertices; i++)
+    {
+        p = &vertex_list[i];
+        vector_subtract(light_pos, p->world, p->light);
+        normalize(p->light);
     }
 }
 

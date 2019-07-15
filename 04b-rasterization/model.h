@@ -66,6 +66,10 @@ void draw_3D_bb (void);
 void get_tex_coords (void);
 char *tex_gen_name (int mode);
 
+/* lighting */
+void calculate_light_vectors (void);
+
+
 /* obj io */
 void read_obj_file (char *file_name, MAT4 *model);
 void write_obj_file (char *file_name);

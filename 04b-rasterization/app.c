@@ -369,6 +369,9 @@ void render_object(OBJECT *o)
     
     insert_bb_coords();
     
+    /* lighting */
+    calculate_light_vectors(); /* generate all world points' light vecs */
+    
     switch(proj_mode)
     {
         case ORTHO:

@@ -123,6 +123,7 @@ void display(void)
     }
     else if(program_type == SCENE)
     {
+        printf("scene mode display\n");
         display_scene_mode();
     }
     else if(program_type == OBJ)

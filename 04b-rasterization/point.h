@@ -26,13 +26,15 @@ typedef struct point {
     
     int tri_list[100]; // indices of neighboring triangles
     int num_tris; // number of neighboring triangles
+    
     float v_normal[4];
+    float light[4]; // direction to light
     
 //    MAT4 tbn;
 } POINT;
 
-void set_diffuse_term (float normal[4], float diffuse_term[4]);
-void set_specular_term (float normal[4], float spec_term[4]);
+void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4]);
+void set_specular_term (float normal[4], float light[4], float spec_term[4]);
 void shade_point (float diffuse[4], float spec[4], POINT *p);
 
 void draw_point (POINT *p);

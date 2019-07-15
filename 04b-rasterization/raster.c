@@ -35,6 +35,7 @@ void draw_line( POINT *start, POINT *end, int mode )
     vector_subtract(end->color, start->color, delta.color);
     vector_subtract(end->tex, start->tex, delta.tex);
     
+    
     /*
      * determine whether line is x-major or y-major
      */
@@ -281,6 +282,16 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                 p.v_normal[Z] = w[0] * v0->v_normal[Z] +
                                 w[1] * v1->v_normal[Z] +
                                 w[2] * v2->v_normal[Z];
+                
+                p.light[X] = w[0] * v0->light[X] +
+                             w[1] * v1->light[X] +
+                             w[2] * v2->light[X];
+                p.light[Y] = w[0] * v0->light[Y] +
+                             w[1] * v1->light[Y] +
+                             w[2] * v2->light[Y];
+                p.light[Z] = w[0] * v0->light[Z] +
+                             w[1] * v1->light[Z] +
+                             w[2] * v2->light[Z];
                 
                 draw_point(&p);
             }

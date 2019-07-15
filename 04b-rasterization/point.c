@@ -61,7 +61,7 @@ int cube_map_index;
     calculate diffuse term for current material and light types, and
         store vector result in diffuse_term
  */
-void set_diffuse_term (float normal[4], float diffuse_term[4])
+void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
 {
     float diffuse;
     normalize(light);
@@ -84,7 +84,7 @@ void set_diffuse_term (float normal[4], float diffuse_term[4])
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float spec_term[4])
+void set_specular_term (float normal[4], float light[4], float spec_term[4])
 {
     float specular, refl[4];
     normalize(light);
@@ -189,8 +189,8 @@ void draw_point (POINT *p)
     if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
-        set_diffuse_term(p->v_normal, tmp_diff);
-        set_specular_term(p->v_normal, tmp_spec);
+        set_diffuse_term(p->v_normal, p->light, tmp_diff);
+        set_specular_term(p->v_normal, p->light, tmp_spec);
         
         //modulate texture with color and brightness
         if(!modulate || (modulate && modulate_type == MOD_COLOR))
