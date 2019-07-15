@@ -153,7 +153,7 @@ void mat_vec_mul (MAT4 *m, float in[4], float out[4])
     temp[X] = m->data[0]  * in[X] + m->data[1]  * in[Y] + m->data[2]  * in[Z] + m->data[3]  * in[W];
     temp[Y] = m->data[4]  * in[X] + m->data[5]  * in[Y] + m->data[6]  * in[Z] + m->data[7]  * in[W];
     temp[Z] = m->data[8]  * in[X] + m->data[9]  * in[Y] + m->data[10] * in[Z] + m->data[11] * in[W];
-    temp[W] = 1;
+    temp[W] = m->data[12]  * in[X] + m->data[13]  * in[Y] + m->data[14] * in[Z] + m->data[15] * in[W];
     cpy_vec4(out, temp);
 //    printf("(%f, %f, %f, %f)\n", out[X], out[Y], out[Z], out[W]);
 }
@@ -266,8 +266,8 @@ void set_ortho_mat (MAT4 *ortho,
 void set_viewport_mat (MAT4 *viewport, int view_w, int view_h)
 {
     set(viewport,
-        view_w / 2, 0, 0, view_w / 2,
-        0, view_h / 2, 0, view_h / 2,
+        view_w / 2, 0, 0, 0, //view_w / 2,
+        0, view_h / 2, 0, 0, //view_h / 2,
         0, 0, 1, 0,
         0, 0, 0, 1);
 }

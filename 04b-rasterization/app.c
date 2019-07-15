@@ -381,13 +381,17 @@ void render_object(OBJECT *o)
             
         case PERSPECT:
             translate_model(dz);
-            int skip = cull_model(5.0, 40.0);
+            float near =  3.0;
+            float far = 40.0;
+            int skip = cull_model(near, far);
             if(skip)
             {
                 return;
             }
-            perspective_xform(5.0, 40.0);
-            viewport_xform(30);
+            perspective_xform(near, far);
+            viewport_mat_xform(WIN_W, WIN_H);
+
+//            viewport_xform(200);
             break;
     }
     
