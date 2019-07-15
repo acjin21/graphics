@@ -1021,6 +1021,27 @@ void get_tex_coords (void)
     }
 }
 
+char *tex_gen_name (int mode)
+{
+    switch (mode)
+    {
+        case OFF:
+            return "NONE";
+        case NAIVE:
+            return "NAIVE";
+        case CYLINDRICAL:
+            return "CYLINDRICAL";
+        case SPHERICAL:
+            return "SPHERICAL";
+        case REFLECTION:
+            return "REFLECTION";
+        case CUBE_MAP:
+            return "CUBE MAP";
+        default:
+            return "ERROR";
+    }
+}
+
 /****************************************************************/
 /* OBJ I/O */
 /****************************************************************/

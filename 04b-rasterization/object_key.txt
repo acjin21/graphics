@@ -1,0 +1,14 @@
+qd: QUAD
+cb: CUBE
+ms: MESH
+cl: CYLINDER
+cn: CONE
+sr: SPHERE
+tr: TORUS
+tp: TEAPOT
+ct: CAT
+de: DEER
+bn: BUNNY
+bd: BUDDHA
+wl: WOLF
+tr: TREE

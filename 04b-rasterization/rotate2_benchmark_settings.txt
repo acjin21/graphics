@@ -1,0 +1,20 @@
+rasterization: FILL
+projection: PERSPECTIVE
+alpha blending: OFF
+depth testing: ON
+
+texturing: ON
+modulating: ON
+mod. mode: MOD_LIGHT
+perspective correct texturing: ON
+texture index: 0 (rocks_color.ppm)
+bump mapping: ON
+
+shading: PHONG
+lighting: SPECULAR
+
+fog: OFF
+material properties: OFF
+post processing: OFF
+depth of field: OFF
+calculating vertex normals: ON

@@ -64,6 +64,7 @@ void draw_3D_bb (void);
 
 /* texture generation */
 void get_tex_coords (void);
+char *tex_gen_name (int mode);
 
 /* obj io */
 void read_obj_file (char *file_name, MAT4 *model);

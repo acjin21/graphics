@@ -8,7 +8,7 @@
 DISPLAY_MODE benchmark =
 {
     .raster_mode = FILL,
-    .projection = ORTHO,
+    .projection = PERSPECT,
     .alpha_blend = OFF,
     .depth_test = ON,
     
