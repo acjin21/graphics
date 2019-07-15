@@ -207,6 +207,10 @@ int main(int argc, char **argv)
     {
         program_type = BENCHMARK;
     }
+    else if(argc > 2 && !strcmp("SCENE", argv[1]))
+    {
+        program_type = SCENE;
+    }
     else if(argc < 3)
     {
         printf("Too few arguments.\n");
@@ -234,16 +238,19 @@ int main(int argc, char **argv)
      */
     glClearColor(0.7, 0.7, 0.7, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
-    
+
     /* get type of file we're reading from (obj vs scene file) */
     if(program_type != BASIC && program_type != BENCHMARK)
     {
+        printf("hi\n");
+
         if(!strcmp("OBJ", argv[1]))
         {
             init_obj_program(argc, argv);
         }
         else if(!strcmp("SCENE", argv[1]))
         {
+            printf("SCENE\n");
             init_scene_program(argc, argv);
         }
         else

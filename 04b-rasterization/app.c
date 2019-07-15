@@ -286,7 +286,7 @@ void render_object(OBJECT *o)
         texture_idx = o->texture_idx;
         tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
         set_texture();
-        printf("%i, %i, %i\n", texturing, texture_idx, tex_gen_mode);
+//        printf("%i, %i, %i\n", texturing, texture_idx, tex_gen_mode);
     }
     
     float rx, ry, rz;

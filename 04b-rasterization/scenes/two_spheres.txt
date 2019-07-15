@@ -2,8 +2,8 @@ SCENE FILE: two_spheres.txt
 2
 1 0 1
 1 0 0 0 0 0 0
-type: 5	cx: -3.00	cy: 0.00	cz: 0.00	scale: 0.50	r0: 0.50	r1: 0.00	init_orientation: 0, 0, 0	rotation: 0, 0, 0
-type: 5	cx: 3.00	cy: 0.00	cz: 0.00	scale: 0.50	r0: 0.50	r1: 0.00	init_orientation: 0, 0, 0	rotation: 0, 0, 0
+type: 5	cx: -3.00	cy: 0.00	cz: 0.00	scale: 0.50	r0: 2	r1: 0.00	init_orientation: 0, 0, 0	rotation: 0, 0, 0	tex: [0, 0, 0]
+type: 5	cx: 3.00	cy: 0.00	cz: 0.00	scale: 0.50	r0: 2	r1: 0.00	init_orientation: 0, 0, 0	rotation: 0, 0, 0	tex: [0, 0, 0]
 
 
 
