@@ -149,10 +149,12 @@ void set_rot_Z (MAT4 *out, float angle){
 /* tranforms vector in and writes the resulting vector to out */
 void mat_vec_mul (MAT4 *m, float in[4], float out[4])
 {
-    out[X] = m->data[0]  * in[X] + m->data[1]  * in[Y] + m->data[2]  * in[Z] + m->data[3]  * in[W];
-    out[Y] = m->data[4]  * in[X] + m->data[5]  * in[Y] + m->data[6]  * in[Z] + m->data[7]  * in[W];
-    out[Z] = m->data[8]  * in[X] + m->data[9]  * in[Y] + m->data[10] * in[Z] + m->data[11] * in[W];
-    out[W] = 1;
+    float temp[4];
+    temp[X] = m->data[0]  * in[X] + m->data[1]  * in[Y] + m->data[2]  * in[Z] + m->data[3]  * in[W];
+    temp[Y] = m->data[4]  * in[X] + m->data[5]  * in[Y] + m->data[6]  * in[Z] + m->data[7]  * in[W];
+    temp[Z] = m->data[8]  * in[X] + m->data[9]  * in[Y] + m->data[10] * in[Z] + m->data[11] * in[W];
+    temp[W] = 1;
+    cpy_vec4(out, temp);
 //    printf("(%f, %f, %f, %f)\n", out[X], out[Y], out[Z], out[W]);
 }
 
@@ -183,34 +185,34 @@ float inner_prod (MAT4* left, MAT4* right, int r, int c)
     float row[4], col[4];
     get_row(row, left, r);
     get_col(col, right, c);
-    float dotProduct = 0;
+    float dot_product = 0;
     for(int i = 0; i < 4; i++)
     {
-        dotProduct += (row[i] * col[i]);
+        dot_product += (row[i] * col[i]);
     }
-    return dotProduct;
+    return dot_product;
 }
 
 // left * right
 void mat_mul (MAT4 *out, MAT4 *left, MAT4 *right)
 {
-    return set(out,
-               inner_prod(left, right, 0, 0),
-               inner_prod(left, right, 0, 1),
-               inner_prod(left, right, 0, 2),
-               inner_prod(left, right, 0, 3),
-               inner_prod(left, right, 1, 0),
-               inner_prod(left, right, 1, 1),
-               inner_prod(left, right, 1, 2),
-               inner_prod(left, right, 1, 3),
-               inner_prod(left, right, 2, 0),
-               inner_prod(left, right, 2, 1),
-               inner_prod(left, right, 2, 2),
-               inner_prod(left, right, 2, 3),
-               inner_prod(left, right, 3, 0),
-               inner_prod(left, right, 3, 1),
-               inner_prod(left, right, 3, 2),
-               inner_prod(left, right, 3, 3));
+    set(out,
+       inner_prod(left, right, 0, 0),
+       inner_prod(left, right, 0, 1),
+       inner_prod(left, right, 0, 2),
+       inner_prod(left, right, 0, 3),
+       inner_prod(left, right, 1, 0),
+       inner_prod(left, right, 1, 1),
+       inner_prod(left, right, 1, 2),
+       inner_prod(left, right, 1, 3),
+       inner_prod(left, right, 2, 0),
+       inner_prod(left, right, 2, 1),
+       inner_prod(left, right, 2, 2),
+       inner_prod(left, right, 2, 3),
+       inner_prod(left, right, 3, 0),
+       inner_prod(left, right, 3, 1),
+       inner_prod(left, right, 3, 2),
+       inner_prod(left, right, 3, 3));
 }
 // RyRxRz
 void set_3d_rot (MAT4 *out, float rx, float ry, float rz)
@@ -234,6 +236,40 @@ void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
     mat_mul (model, &tmp, model);
     set_transl (&tmp, tx, ty, tz);
     mat_mul (model, &tmp, model);
+}
+
+void set_perspective_mat (MAT4 *perspective,
+                          float near, float far,
+                          float x_min, float x_max,
+                          float y_min, float y_max)
+{
+    set(perspective,
+        2.0 * near / (x_max - x_min), 0, (x_max + x_min) / (x_min - x_max), 0,
+        0, 2.0 * near / (y_max - y_min), (y_max + y_min) / (y_min - y_max), 0,
+        0, 0, (near + far) / (far - near), - (2.0 * far * near) / (far - near),
+        0, 0, 1, 0);
+}
+
+void set_ortho_mat (MAT4 *ortho,
+                    float x_min, float x_max,
+                    float y_min, float y_max,
+                    float z_min, float z_max)
+{
+    set(ortho,
+       2.0 / (x_max - x_min), 0, 0, (x_max + x_min) / (x_min - x_max),
+       0, 2.0 / (y_max - y_min), 0, (y_max + y_min) / (y_min - y_max),
+       0, 0, 2.0 / (z_max - z_min), (z_max + z_min) / (z_min - z_max),
+       0, 0, 0, 1);
+}
+
+//TODO: what to do if view_w and/or view_h are odd numbers?
+void set_viewport_mat (MAT4 *viewport, int view_w, int view_h)
+{
+    set(viewport,
+        view_w / 2, 0, 0, view_w / 2,
+        0, view_h / 2, 0, view_h / 2,
+        0, 0, 1, 0,
+        0, 0, 0, 1);
 }
 
 

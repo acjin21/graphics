@@ -665,15 +665,35 @@ void calculate_vertex_normals (void)
 /* for orthographic projections */
 /****************************************************************/
 /* transform model from world space to screen space */
-void xform_model(float scale)
+void xform_model(float x_min, float x_max,
+                 float y_min, float y_max,
+                 float z_min, float z_max)
 {
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
     {
-        vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
-        vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z] / 20; // temp for near/far plane
+        MAT4 ortho;
+        set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
+        mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
         vertex_list[i].position[W] = 1.0;
+    }
+}
+void viewport_mat_xform (int vp_w, int vp_h)
+{
+    int max_idx = get_max_idx (normal_type);
+    for(int i = 0; i < max_idx; i++)
+    {
+        MAT4 viewport;
+        set_viewport_mat (&viewport, vp_w, vp_h);
+        mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
+//        vertex_list[i].position[W] = 1.0;
+        
+//        printf("(%.2f, %.2f, %.2f, %.2f)\n",
+//               vertex_list[i].position[X],
+//               vertex_list[i].position[Y],
+//               vertex_list[i].position[Z],
+//               vertex_list[i].position[W]);
+        
     }
 }
 

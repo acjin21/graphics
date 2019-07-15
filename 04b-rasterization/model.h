@@ -49,13 +49,18 @@ void rotate_model(float cx, float cy, float cz,
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
+/* orthographic transformations */
+void xform_model(float x_min, float x_max,
+                 float y_min, float y_max,
+                 float z_min, float z_max);
+
 /* perspective transformations */
-void xform_model(float scale);
 void translate_model (float distance);
 int cull_model (float near, float far);
 void perspective_xform(float near, float far);
 void viewport_xform(float scale);
 
+void viewport_mat_xform (int vp_w, int vp_h);
 /* draw functions */
 void draw_model(int mode);
 void draw_local_axes (void);

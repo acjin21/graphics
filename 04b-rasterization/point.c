@@ -131,8 +131,8 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + WIN_H / 2);
-    int c = (int) (p->position[X] + WIN_W / 2);
+    int r = (int) (p->position[Y]);// + WIN_H / 2);
+    int c = (int) (p->position[X]);// + WIN_W / 2);
     
     /* if not within window size, do not draw */
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;

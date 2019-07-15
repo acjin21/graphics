@@ -375,8 +375,10 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(ortho_vp_scale);
+            xform_model(-5, 5, -5, 5, -5, 5);
+            viewport_mat_xform(WIN_W, WIN_H);
             break;
+            
         case PERSPECT:
             translate_model(dz);
             int skip = cull_model(5.0, 40.0);
