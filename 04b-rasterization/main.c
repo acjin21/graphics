@@ -290,11 +290,11 @@ int main(int argc, char **argv)
     set_texture();
     
     /* open output file for benchmarking */
-    char file_name[MAX_FILE_NAME] = "benchmark/rotate_cb1.txt";
+    char file_name[MAX_FILE_NAME] = "benchmarking/rotate2_cb1.txt";
     cb_file = fopen(file_name, "w");
     
     fprintf(cb_file, "CB1\n");
-    fprintf(cb_file, "%i\n", num_samples);
+    fprintf(cb_file, "%i\n\n", num_samples);
     if (cb_file == NULL)
     {
         printf("Unable to open file %s\n", file_name);

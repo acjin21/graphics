@@ -8,14 +8,14 @@
 DISPLAY_MODE benchmark =
 {
     .raster_mode = FILL,
-    .projection = ORTHO,
+    .projection = PERSPECT,
     .alpha_blend = OFF,
     .depth_test = ON,
     
     .texturing = ON,
     .modulate = ON,
     .modulate_mode = MOD_LIGHT,
-    .perspective_correct = OFF,
+    .perspective_correct = ON,
     .texture_idx = 0,
     .uv_generation = NAIVE, // only for OBJ files
     .bump_map = ON,

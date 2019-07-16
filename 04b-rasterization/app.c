@@ -207,7 +207,7 @@ char *object_name (int object_type)
         case SPHERE:
             return "sr";
         case TORUS:
-            return "tr";
+            return "to";
         case TEAPOT:
             return "tp";
         case CAT:
