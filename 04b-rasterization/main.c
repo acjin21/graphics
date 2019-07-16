@@ -246,8 +246,6 @@ int main(int argc, char **argv)
     /* get type of file we're reading from (obj vs scene file) */
     if(program_type != BASIC && program_type != BENCHMARK)
     {
-        printf("hi\n");
-
         if(!strcmp("OBJ", argv[1]))
         {
             init_obj_program(argc, argv);

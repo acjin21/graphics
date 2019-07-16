@@ -45,7 +45,7 @@ void insert_bb_coords (void);
 void rotate_model(float cx, float cy, float cz,
                   float x_angle, float y_angle, float z_angle);
 void translate_model_mat (float tx, float ty, float tz);
-
+void scale_model_mat (float sx, float sy, float sz);
 
 /* calculate/set normals */
 void calculate_face_normals (void);

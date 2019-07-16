@@ -25,6 +25,7 @@ typedef struct object {
     float init_orientation[3]; //dx_angle, dy_angle, dz_angle
     float rotation[3]; // for rotating objects individually
     float translate[3];
+    float scale_vec[3];
     
     POINT bb_bl;
     POINT bb_tr;

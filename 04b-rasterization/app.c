@@ -362,6 +362,9 @@ void render_object(OBJECT *o)
         rotate_model(0, 0, 0, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     }
     
+    scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
+
+    
     //scale
     
     calculate_face_normals();
@@ -451,7 +454,10 @@ void display_basic_mode (void)
     o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
     o->radii[0] = 0.5;
     o->radii[1] = 1;
-    
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1); //prevent scale from being 0
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1); //prevent scale from being 0
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1); //prevent scale from being 0
+
     render_object(o);
 }
 /********************************************/
@@ -554,7 +560,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 0.5;
+                curr_object->scale_vec[X] += 0.25;
             }
             break;
         case 'y':
@@ -569,7 +575,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 0.5;
+                curr_object->scale_vec[Y] += 0.25;
             }
             break;
         }
@@ -585,7 +591,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale += 0.5;
+                curr_object->scale_vec[Z] += 0.25;
             }
             break;
         }
@@ -600,7 +606,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale -= 0.5;
+                curr_object->scale_vec[X] -= 0.25;
             }
             break;
         case 'Y':
@@ -615,7 +621,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale -= 0.5;
+                curr_object->scale_vec[Y] -= 0.25;
             }
             break;
         }
@@ -631,7 +637,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == SCALE)
             {
-                curr_object->scale -= 0.5;
+                curr_object->scale_vec[Z] -= 0.25;
             }
             break;
         }

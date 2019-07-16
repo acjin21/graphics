@@ -634,6 +634,25 @@ void translate_model_mat (float tx, float ty, float tz)
     }
 }
 
+void scale_model_mat (float sx, float sy, float sz)
+{
+    float nx, ny, nz;
+    int max_idx = get_max_idx (normal_type);
+    
+    for(int i = 0; i < max_idx; i++)
+    {
+        POINT *p = &vertex_list[i];
+        float in_vec[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 scale;
+        
+        set_scale_nonuniform (&scale, sx, sy, sz);
+        mat_vec_mul (&scale, in_vec, vertex_list[i].world);
+    }
+}
+
 /****************************************************************/
 /* generate face normals */
 /****************************************************************/
