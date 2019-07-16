@@ -31,7 +31,7 @@ void checkerboard_texture (IMAGE *img)
     img->width = 256;
     img->height = 256;
     
-    int num_squares = 16;
+    int num_squares = 8;
     int px_per_sq = img->width / num_squares;
     
     int color;

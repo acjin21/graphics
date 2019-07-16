@@ -181,14 +181,23 @@ void init_cube (MAT4 *model)
     /* add vertices */
     num_vertices = 8;
     
-    set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
+    
+    set_vec4(vertex_list[0].world, 1, 1, -1, 1.0);
+    set_vec4(vertex_list[1].world, 1, 1, 1, 1.0);
+    set_vec4(vertex_list[2].world, 1, -1, 1, 1.0);
+    set_vec4(vertex_list[3].world, 1, -1, -1, 1.0);
+    set_vec4(vertex_list[4].world, -1, 1, -1, 1.0);
+    set_vec4(vertex_list[5].world, -1, 1, 1, 1.0);
+    set_vec4(vertex_list[6].world, -1, -1, 1, 1.0);
+    set_vec4(vertex_list[7].world, -1, -1, -1, 1.0);
     
     /* transform from local to world coordinates */
     model_xform(model);
@@ -770,10 +779,21 @@ void perspective_xform(float near, float far)
                vertex_list[i].world[Z],
                vertex_list[i].world[W]);
         MAT4 perspective;
-        set_perspective_mat (&perspective, near, far, -5, 5, -5, 5);
+        set_perspective_mat (&perspective, near, far, -1, 1, -1, 1);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
         scalar_divide (vertex_list[i].position[W], vertex_list[i].position, vertex_list[i].position);
         
+        if(perspective_correct && texturing)
+        {
+            vertex_list[i].position[Z] = (float) 1.0 / vertex_list[i].position[Z] ;
+        }
+        printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
+               vertex_list[i].position[X],
+               vertex_list[i].position[Y],
+               vertex_list[i].position[Z],
+               vertex_list[i].position[W]);
+
+    
         printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
                vertex_list[i].position[X],
                vertex_list[i].position[Y],

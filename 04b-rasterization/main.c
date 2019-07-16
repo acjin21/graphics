@@ -165,6 +165,8 @@ static void key(unsigned char key, int x, int y)
 
 int click_in_bb (int x, int y, OBJECT *o)
 {
+    printf("bl: %.2f, %.2f || tr: %.2f, %.2f\n", o->bb_bl.position[X], o->bb_bl.position[Y],
+           o->bb_tr.position[X], o->bb_tr.position[Y]);
     return (x > o->bb_bl.position[X] &&
             x < o->bb_tr.position[X] &&
             y > o->bb_bl.position[Y] &&
@@ -176,14 +178,13 @@ void mouse (int button, int state, int x, int y)
 {
     if(program_type == SCENE)
     {
-        int screen_x = x - 400;
-        int screen_y = y - 400;
-        screen_y *= -1; // (flip)
+        y = WIN_H - y;// (flip)
         if(state == GLUT_DOWN)
         {
+            printf("%i, %i\n", x, y);
             for(int i = 0; i < num_objects; i++)
             {
-                if(click_in_bb(screen_x, screen_y, &objects[i]))
+                if(click_in_bb(x, y, &objects[i]))
                 {
                     curr_objectID = i;
                 }

@@ -380,9 +380,9 @@ void render_object(OBJECT *o)
             break;
             
         case PERSPECT:
-            translate_model(4);
+            translate_model(dz);
             float near =  3.0;
-            float far = 40.0;
+            float far = 20.0;
             int skip = cull_model(near, far);
             if(skip)
             {
