@@ -3,13 +3,18 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-//#include <limits.h>
 #include <float.h>
 
 #include "raster.h"
 #include "vector.h"
 #include "macros.h"
+
 #include "point.h"
+#include "app.h"
+#include "depth.h"
+#include "light.h"
+#include "material.h"
+
 /****************************************************************/
 /* defines */
 /****************************************************************/
@@ -18,36 +23,6 @@
 
 #define V_NORM_SCALE 10
 
-/****************************************************************/
-/* externs */
-/****************************************************************/
-/* modes */
-extern int texturing;           // whether texturing or not
-extern int perspective_correct; // for perspective correct interpolation
-extern int normal_type;         // whether drawing normals or not
-extern int shading_mode;
-extern int light_type;
-
-/* from point.c */              // to avoid texturing the non-model vertices
-extern int drawing_normals;
-extern int drawing_axes;
-extern int drawing_bounding_box;
-
-/* from main.c */
-extern int modulate;
-extern int specular_highlight;
-extern int obj_has_vnorms;
-extern int draw_coord_axes;
-extern int draw_bounding_box;
-extern int material;
-
-/* data */
-extern float depth_buffer[WIN_H][WIN_W];
-extern float material_ambient[4];
-extern float light_ambient[4];
-
-extern float light_pos[4];
-extern float light[4];
 /****************************************************************/
 /* global variables */
 /****************************************************************/

@@ -15,40 +15,13 @@
 #include <string.h>
 #include <math.h>
 
+//#include "macros.h"
+#include "time.h"
 #include "color.h"
 #include "depth.h"
-#include "macros.h"
-#include "texture.h" // IMAGE typedef and read_ppm
-#include "time.h"
 
-#include "scene.h" //OBJECT
-#include "benchmark.h"
 #include "app.h"
-
-/* from app.c */
-extern int program_type;
-extern int buffer;
-extern int curr_objectID;
-
-/* from scene.c */              // for drawing multiple 3d objects on screen
-extern OBJECT objects[MAX_N_OBJECTS];
-extern int num_objects;
-
-/* from time.c */
-extern TIMER sw_renderer_timer;
-extern TIMER gl_timer;
-
-/* from command.c */
-extern DISPLAY_MODE benchmark;
-extern IMAGE cube_map[6];
-extern IMAGE bump_map;
-extern int bump_mapping;
-
-/* for animating / benchmarking */
-int display_timer = 0;
-FILE *cb_file;
-int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
-int num_samples = 360;
+#include "benchmark.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -57,6 +30,12 @@ int window_size = 400;
 int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 int counter = 0;
+
+/* for animating / benchmarking */
+int display_timer = 0;
+FILE *cb_file;
+int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
+int num_samples = 360;
 
 /*************************************************************************/
 /* GLUT functions                                                        */
@@ -93,7 +72,6 @@ void display(void)
             
             draw_one_frame = 1;
             glutPostRedisplay();
-//            print_settings();
         }
     }
     if(program_type != BENCHMARK)
@@ -143,7 +121,7 @@ void display(void)
     start_timer(&gl_timer);
     
     //draw color or depth buffer            /* START GL_TIMER */
-    buffer == COLOR ? draw_color_buffer() : draw_depth_buffer();
+    framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                  /* STOP GL_TIMER */
     fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
 

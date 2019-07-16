@@ -5,12 +5,6 @@
 #include "scene.h"
 
 /****************************************************************/
-/* defines */
-/****************************************************************/
-#define FRAME 0
-#define FILL 1
-
-/****************************************************************/
 /* types */
 /****************************************************************/
 typedef struct face
@@ -23,6 +17,18 @@ typedef struct face
     
     float f_normal[4]; //face normal in world coordinates
 } FACE;
+
+/****************************************************************/
+/* variable externs */
+/****************************************************************/
+/* for app.c, scene.c */
+extern int modulate_type;
+extern int tex_gen_mode;
+
+/* for point.c */
+extern int modulate_type;
+extern int drawing_backside;
+extern int tex_gen_mode;
 
 /****************************************************************/
 /* functions */

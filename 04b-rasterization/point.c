@@ -3,29 +3,14 @@
 #include <stdio.h>
 #include <math.h>
 #include "macros.h"
-#include "texture.h"
 #include "vector.h"
 
-/*************************************************************************/
-/* externs                                                               */
-/*************************************************************************/
-/* modes */
-extern int modulate_type;
-extern int normal_type;
-extern int drawing_backside;
-extern int tex_gen_mode;
-extern int debugging_mode;
-extern int light_type;
-/* data */
-extern IMAGE texture;
-extern float color_buffer[WIN_H][WIN_W][4];
-extern float depth_buffer[WIN_H][WIN_W];
-
-extern float light[4];
-extern float eye[4];
-extern float shinyness;
-extern float material_diffuse[4], material_specular[4], material_ambient[4];
-extern float light_diffuse[4], light_specular[4], light_ambient[4];
+#include "app.h"
+#include "model.h"
+#include "light.h"
+#include "color.h"
+#include "depth.h"
+#include "material.h"
 
 /*************************************************************************/
 /* global vars                                                          */
@@ -52,6 +37,7 @@ IMAGE bump_map;
 float fog_color[4] = {1, 1, 1, 1};
 
 IMAGE cube_map[6];
+IMAGE texture;
 IMAGE *texture_ptr = &texture;
 int cube_map_index;
 

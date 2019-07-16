@@ -5,28 +5,52 @@
 #include "scene.h"
 
 #define INIT_DZ 8
+#define MAX_FILE_NAME 100
 
 /* manipulator modes */
 #define NUM_MANIP_MODES 3
-//#define ROTATE      0
-//#define TRANSLATE   1
-//#define SCALE       2
-enum Manipulator {ROTATE = 0, TRANSLATE, SCALE};
+
+
+enum Manipulator {
+    ROTATE = 0,
+    TRANSLATE = 1,
+    SCALE = 2
+};
 
 /* rotation mode */
-enum Rotation_Mode {GLOBAL = 0, LOCAL = 1};
-//#define GLOBAL 0
-//#define LOCAL 1
+enum Rotation_Mode {
+    GLOBAL = 0,
+    LOCAL = 1
+};
 
-#define MAX_FILE_NAME 100
 /* program types */
-//#define OBJ 0
-//#define SCENE 1
-//#define BASIC 2
-//#define ANIMATE 3
+enum Program {
+    BASIC = 0,
+    SCENE = 1,
+    OBJ = 2,
+    BENCHMARK = 3
+};
 
-enum Program {BASIC = 0, SCENE, OBJ, BENCHMARK};
+/****************/
+/* Var Externs */
+/****************/
+extern int debugging_mode;
 
+/* for main.c */
+extern int framebuffer_src; /* which buffer to draw from (COLOR/DEPTH) */
+extern int program_type;
+extern int curr_objectID;
+
+/* needed in model.c */
+extern int obj_has_vnorms;
+extern int draw_coord_axes;
+extern int draw_bounding_box;
+extern int light_type;
+extern int normal_type;         // whether drawing normals or not
+
+/* needed in scene.c */
+extern int draw_mode;    /* draw model as wireframe or filled (FRAME/FILL) */
+extern int proj_mode;   /* projection type (ORTHO/PERSPECT) */
 
 /*************/
 /* Functions */

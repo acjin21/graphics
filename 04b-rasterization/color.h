@@ -9,8 +9,16 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 
-float color_buffer[800][800][4];
+#include "macros.h"
+/****************************************************************/
+/* variable externs */
+/****************************************************************/
+extern float color_buffer[WIN_H][WIN_W][4];
 
+
+/****************************************************************/
+/* functions */
+/****************************************************************/
 void clear_color_buffer(float r, float g, float b, float a);
 void draw_color_buffer (void);
 

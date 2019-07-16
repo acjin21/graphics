@@ -1,8 +1,7 @@
 
 #include "benchmark.h"
 
-#include "macros.h" // ON/OFF, PHONG/FLAT/NO_SHADING
-#include "model.h" // FILL vs FRAME
+//#include "macros.h" // ON/OFF, PHONG/FLAT/NO_SHADING
 #include "point.h" // uv_generation
 
 DISPLAY_MODE benchmark =
@@ -39,8 +38,3 @@ void init_bench_ctx (BENCHMARK_CONTEXT *bench_ctx, DISPLAY_MODE *display_m, int 
     bench_ctx->display_mode = display_m;
     bench_ctx->num_samples = num_samples;
 }
-
-//void init_object_list (void)
-//{
-//
-//}

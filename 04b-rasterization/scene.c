@@ -7,21 +7,8 @@
 #include "util.h"
 #include "model.h"
 #include "math_lib/mat4.h"
-
-/*************************************************************************/
-/* externs                                                               */
-/*************************************************************************/
-extern int draw_mode;  /* draw model as wireframe or filled (FRAME/FILL) */
-extern int proj_mode;  /* projection type (ORTHO/PERSPECT) */
-extern int buffer;     /* which buffer to draw from (COLOR/DEPTH) */
-
-extern int depth_test;  /* whether depth testing turned on (OFF/ON) */
-extern int texturing;   /* whether texturing is turned on (OFF/ON) */
-extern int modulate;    /* whether modulating is turned on (OFF/ON) */
-extern int alpha_blend; /* whether alpha blending is turned on (OFF/ON) */
-extern int shading_mode;
-extern int perspective_correct;
-extern int modulate_type;
+#include "app.h"
+#include "point.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -82,7 +69,7 @@ void write_scene (char *file_name)
         printf("%s has been opened and its contents overwritten.\n", file_name);
         fprintf(fp, "SCENE FILE: %s\n", file_name);
         fprintf(fp, "%i\n", num_objects);
-        fprintf(fp, "%i %i %i\n", draw_mode, proj_mode, buffer);
+        fprintf(fp, "%i %i %i\n", draw_mode, proj_mode, framebuffer_src);
         fprintf(fp, "%i %i %i %i %i %i %i\n", depth_test, texturing, modulate,
                alpha_blend, shading_mode, perspective_correct, modulate_type);
         
@@ -128,7 +115,7 @@ void read_scene (char *file_name)
         fscanf(fp, "SCENE FILE: %s\n", name);
         printf("SCENE FILE: %s\n", name);
         fscanf(fp, "%i\n", &num_objects);
-        fscanf(fp, "%i %i %i\n", &draw_mode, &proj_mode, &buffer);
+        fscanf(fp, "%i %i %i\n", &draw_mode, &proj_mode, &framebuffer_src);
         fscanf(fp, "%i %i %i %i %i %i %i\n", &depth_test, &texturing, &modulate,
                &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
 

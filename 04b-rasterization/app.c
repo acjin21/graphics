@@ -7,23 +7,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "macros.h"
-#include "vector.h"
-#include "texture.h"    // IMAGE typedef, texture and ppm functions
+//#include "macros.h"
 #include "util.h"       // random_float
-#include "color.h"
-#include "depth.h"
-#include "raster.h"
+#include "time.h"
+
+#include "material.h"
+#include "texture.h"    // IMAGE typedef, texture and ppm functions
+#include "post-processing.h"
+
 #include "point.h"
 #include "model.h"
-#include "material.h"
-#include "image.h"
-
-#include "post-processing.h"
-#include "time.h"
-/*************************************************************************/
-/* defines                                                               */
-/*************************************************************************/
+#include "scene.h"
 
 /*************************************************************************/
 /* externs                                                               */
@@ -32,38 +26,13 @@ extern FILE *cb_file;
 extern int object_type;
 extern int counter;
 
-/* from point.c */
-extern int alpha_blend;         // whether alpha blending is turned on (OFF/ON)
-extern int depth_test;          // whether depth testing turned on (OFF/ON)
-extern int texturing;           // whether texturing is turned on (OFF/ON)
-extern int modulate;            // whether modulating is turned on (OFF/ON)
-extern int perspective_correct;
-extern int shading_mode;        // FLAT / PHONG / NONE
-extern int bump_mapping;
-extern int material;
-extern int specular_highlight;
-extern int fog;
-
-/* from model.c */
-extern int modulate_type;
-extern int tex_gen_mode;
-
-/* from time.c */
-extern TIMER vtx_timer;          // start and end in render_object()
-extern TIMER px_timer;           // start and end in model.c
-
-/* from scene.c */              // for drawing multiple 3d objects on screen
-extern OBJECT objects[MAX_N_OBJECTS];
-extern int num_objects;
-
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
-int buffer = COLOR;             // which buffer to draw from (COLOR/DEPTH)
+int framebuffer_src = COLOR;             // which buffer to draw from (COLOR/DEPTH)
 
 /* reading in different inputs: OBJ, SCENE (persistence) */
 int program_type = 0;
-extern char scene_file[MAX_FILE_NAME]; // when program_type == SCENE, "scene_name.txt"
 
 /* for render pipeline */
 /* -- vtx stage */
@@ -156,7 +125,7 @@ void print_settings(void)
     printf("DOF (4):\t\t%s\n",
            dof_mode ? "ON" : "OFF");
     printf("Buffer (B):\t\t%s\n",
-           buffer ? "COLOR" : "DEPTH");
+           framebuffer_src ? "COLOR" : "DEPTH");
     printf(".....................\n");
     printf("Debug Mode ([enter]):\t%s\n",
            debugging_mode ? "ON" : "OFF");
@@ -712,7 +681,7 @@ void key_callback (unsigned char key)
         case 'c':       perspective_correct = 1 - perspective_correct;  break;
             
             /* toggle between color and depth buffer */
-        case 'B':       buffer = 1 - buffer;                            break;
+        case 'B':       framebuffer_src = 1 - framebuffer_src;                            break;
             
         case 'a':       draw_coord_axes = 1 - draw_coord_axes;          break;
         case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;

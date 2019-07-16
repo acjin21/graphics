@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 #include "macros.h"
+#include "light.h"
 
-extern float eye[4];
 /****************************************************************/
 /* vector utility functions */
 /****************************************************************/

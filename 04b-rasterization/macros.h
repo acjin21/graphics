@@ -19,6 +19,9 @@
 #define S 0
 #define T 1
 
+#define FRAME 0
+#define FILL 1
+
 /* OBJECT TYPES */
 #define N_TYPES 14
 #define QUAD 0

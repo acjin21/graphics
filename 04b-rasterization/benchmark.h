@@ -35,6 +35,10 @@ typedef struct benchmark_context {
     int num_samples; //num samples per object
 } BENCHMARK_CONTEXT;
 
+
+extern DISPLAY_MODE benchmark;
+
+
 void init_bench_ctx (BENCHMARK_CONTEXT *bench_ctx, DISPLAY_MODE *display_m,
                      int num_samples);
 #endif
