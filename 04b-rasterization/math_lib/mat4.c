@@ -266,8 +266,8 @@ void set_ortho_mat (MAT4 *ortho,
 void set_viewport_mat (MAT4 *viewport, int view_w, int view_h)
 {
     set(viewport,
-        view_w / 2, 0, 0, 0,//view_w / 2,
-        0, view_h / 2, 0, 0, //view_h / 2,
+        view_w / 2, 0, 0, 0,  //view_w / 2,
+        0, view_h / 2, 0, 0,  //view_h / 2,
         0, 0, 1, 0,
         0, 0, 0, 1);
 }

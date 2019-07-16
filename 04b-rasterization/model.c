@@ -694,18 +694,13 @@ void viewport_mat_xform (int vp_w, int vp_h)
     {
         MAT4 viewport;
         set_viewport_mat (&viewport, vp_w, vp_h);
-//        float inverse_w = vertex_list[i].position[W];
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
+        
+        // do translation separately so that position[W] = 1/w for persp corr.
+        //      does not interfere with viewport_x, viewport_y calculation
+        // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
         float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
         vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
-//        vertex_list[i].position[W] = 1.0;
-        
-//        printf("(%.2f, %.2f, %.2f, %.2f)\n",
-//               vertex_list[i].position[X],
-//               vertex_list[i].position[Y],
-//               vertex_list[i].position[Z],
-//               vertex_list[i].position[W]);
-        
     }
 }
 
@@ -786,9 +781,12 @@ void perspective_xform(float near, float far)
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
         float w = vertex_list[i].position[W];
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
+        // {x/w, y/w, z/w, 1}
         if(perspective_correct && texturing)
         {
-                vertex_list[i].position[W] = 1.0 / w; //now pos[W] = 1/w
+                vertex_list[i].position[W] = 1.0 / w; //carry 1/w in W slot to interpolate
+            
+            // {x/w, y/w, z/w, 1/w}
         }
 //        printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
 //               vertex_list[i].position[X],
@@ -840,6 +838,7 @@ void draw_model(int mode)
         cpy_vec4(p2.color, color_list[f.colors[2]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
 
+        // set tex coords to s/w and t/w to interpolate
         if(perspective_correct && texturing)
         {
             scalar_multiply(p0.position[W], p0.tex, p0.tex);

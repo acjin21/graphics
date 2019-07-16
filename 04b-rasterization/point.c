@@ -139,17 +139,8 @@ void draw_point (POINT *p)
     
     float blend_weight = 0.50; //for alpha blending
     
-    /* for now, we only implement perspective correct texture mapping */
-    int persp_correct_texturing = perspective_correct && texturing;
-    
-    /* calculate fail condition for depth test */
-    int fails_z = p->position[Z] > depth_buffer[r][c];
-    
     /* early return if fail depth test */
-    if(depth_test && fails_z)
-    {
-        return;
-    }
+    if(depth_test && p->position[Z] > depth_buffer[r][c]) return;
     
     /* bump map */
     if(normal_type != V_NORMALS && bump_mapping)
@@ -173,14 +164,9 @@ void draw_point (POINT *p)
         bump[W] = 1;
         scalar_multiply(2, bump, bump);
         scalar_add(-1, bump, bump);
-        if(1)//debugging_mode)
-        {
-            bump[Z] = -1 * bump[Z]; //flip for our left-handed coord system
-        }
+        bump[Z] = -1 * bump[Z]; //flip for our left-handed coord system
         normalize(bump);
         cpy_vec4(p->v_normal, bump);
-//        vector_add(bump, p->v_normal, p->v_normal);
-//        normalize(p->v_normal);
     }
     
     /* phong shading */
@@ -233,12 +219,11 @@ void draw_point (POINT *p)
         {
             s = p->tex[S];
             t = p->tex[T];
-            
-//            float z = 1.0 / p->position[Z];
-//            p->position[Z] = 1.0 / p->position[Z];
+        
+            // unwrap s and t coords using interpolated 1/w value:
+            //  (s/w, t/w) -> (s, t)
             s /= p->position[W];
             t /= p->position[W];
-//            printf("(s, t): %.2f, %.2f\n", s, t);
             
             u = (int) (s * texture_ptr->width);
             v = (int) (t * texture_ptr->height);
