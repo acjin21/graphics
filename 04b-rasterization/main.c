@@ -288,7 +288,7 @@ int main(int argc, char **argv)
     set_texture();
     
     /* open output file for benchmarking */
-    char file_name[MAX_FILE_NAME] = "rotate_cb1.txt";
+    char file_name[MAX_FILE_NAME] = "build/rotate_cb1.txt";
     cb_file = fopen(file_name, "w");
     
     fprintf(cb_file, "CB1\n");

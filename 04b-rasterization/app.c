@@ -348,15 +348,21 @@ void render_object(OBJECT *o)
         }
     }
     
-    
     if(rot_mode == LOCAL)
     {
         rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     }
-    else
+    
+    //translate model
+    translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
+    
+    /* for global rotation, first translate, then rotate about origin */
+    if(rot_mode == GLOBAL)
     {
         rotate_model(0, 0, 0, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     }
+    
+    //scale
     
     calculate_face_normals();
     calculate_vertex_normals();
@@ -544,7 +550,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE)
             {
-                curr_object->center[X] += 1;
+                curr_object->translate[X] += 0.5;
             }
             else if(manip_mode == SCALE)
             {
@@ -559,7 +565,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE)
             {
-                curr_object->center[Y] += 1;
+                curr_object->translate[Y] += 0.5;
             }
             else if(manip_mode == SCALE)
             {
@@ -575,7 +581,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
             {
-                curr_object->center[Z] += 1;
+                curr_object->translate[Z] += 0.5;
             }
             else if(manip_mode == SCALE)
             {
@@ -590,7 +596,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE)
             {
-                curr_object->center[X] -= 1;
+                curr_object->translate[X] -= 0.5;
             }
             else if(manip_mode == SCALE)
             {
@@ -605,7 +611,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE)
             {
-                curr_object->center[Y] -= 1;
+                curr_object->translate[Y] -= 0.5;
             }
             else if(manip_mode == SCALE)
             {
@@ -621,7 +627,7 @@ void key_callback (unsigned char key)
             }
             else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
             {
-                curr_object->center[Z] -= 1;
+                curr_object->translate[Z] -= 0.5;
             }
             else if(manip_mode == SCALE)
             {

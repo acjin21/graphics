@@ -587,7 +587,8 @@ int get_max_idx (int normal_mode)
 /****************************************************************/
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
-void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, float z_angle)
+void rotate_model(float cx, float cy, float cz,
+                  float x_angle, float y_angle, float z_angle)
 {
     float nx, ny, nz;
     int max_idx = get_max_idx (normal_type);
@@ -611,6 +612,25 @@ void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, fl
 
         /* matrix transform world coords */
         mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
+    }
+}
+
+void translate_model_mat (float tx, float ty, float tz)
+{
+    float nx, ny, nz;
+    int max_idx = get_max_idx (normal_type);
+    
+    for(int i = 0; i < max_idx; i++)
+    {
+        POINT *p = &vertex_list[i];
+        float in_vec[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 translate;
+        
+        set_transl (&translate, tx, ty, tz);
+        mat_vec_mul (&translate, in_vec, vertex_list[i].world);
     }
 }
 
