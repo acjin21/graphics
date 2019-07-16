@@ -49,6 +49,7 @@ int display_timer = 0;
 FILE *cb_file;
 int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
 int num_samples = 360;
+
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -178,6 +179,8 @@ void mouse (int button, int state, int x, int y)
 {
     if(program_type == SCENE)
     {
+        printf("%i, %i\n", x, y);
+
         y = WIN_H - y;// (flip)
         if(state == GLUT_DOWN)
         {

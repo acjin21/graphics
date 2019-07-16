@@ -694,7 +694,10 @@ void viewport_mat_xform (int vp_w, int vp_h)
     {
         MAT4 viewport;
         set_viewport_mat (&viewport, vp_w, vp_h);
+//        float inverse_w = vertex_list[i].position[W];
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
+        float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+        vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
 //        vertex_list[i].position[W] = 1.0;
         
 //        printf("(%.2f, %.2f, %.2f, %.2f)\n",
@@ -773,32 +776,25 @@ void perspective_xform(float near, float far)
 //            vertex_list[i].position[Z] = (float) z / (far - near);
 //        }
 //        vertex_list[i].position[W] = 1.0;
-        printf("world: (%.2f, %.2f, %.2f, %.2f)\n",
-               vertex_list[i].world[X],
-               vertex_list[i].world[Y],
-               vertex_list[i].world[Z],
-               vertex_list[i].world[W]);
+//        printf("world: (%.2f, %.2f, %.2f, %.2f)\n",
+//               vertex_list[i].world[X],
+//               vertex_list[i].world[Y],
+//               vertex_list[i].world[Z],
+//               vertex_list[i].world[W]);
         MAT4 perspective;
-        set_perspective_mat (&perspective, near, far, -1, 1, -1, 1);
+        set_perspective_mat (&perspective, near, far, -5, 5, -5, 5);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
-        scalar_divide (vertex_list[i].position[W], vertex_list[i].position, vertex_list[i].position);
-        
+        float w = vertex_list[i].position[W];
+        scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
         if(perspective_correct && texturing)
         {
-            vertex_list[i].position[Z] = (float) 1.0 / vertex_list[i].position[Z] ;
+                vertex_list[i].position[W] = 1.0 / w; //now pos[W] = 1/w
         }
-        printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
-               vertex_list[i].position[X],
-               vertex_list[i].position[Y],
-               vertex_list[i].position[Z],
-               vertex_list[i].position[W]);
-
-    
-        printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
-               vertex_list[i].position[X],
-               vertex_list[i].position[Y],
-               vertex_list[i].position[Z],
-               vertex_list[i].position[W]);
+//        printf("position: (%.2f, %.2f, %.2f, %.2f)\n",
+//               vertex_list[i].position[X],
+//               vertex_list[i].position[Y],
+//               vertex_list[i].position[Z],
+//               vertex_list[i].position[W]);
         
     }
 }
@@ -846,9 +842,9 @@ void draw_model(int mode)
 
         if(perspective_correct && texturing)
         {
-            scalar_multiply(p0.position[Z], p0.tex, p0.tex);
-            scalar_multiply(p1.position[Z], p1.tex, p1.tex);
-            scalar_multiply(p2.position[Z], p2.tex, p2.tex);
+            scalar_multiply(p0.position[W], p0.tex, p0.tex);
+            scalar_multiply(p1.position[W], p1.tex, p1.tex);
+            scalar_multiply(p2.position[W], p2.tex, p2.tex);
         }
         
         // FRAME = 0, FILL = 1

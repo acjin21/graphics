@@ -257,6 +257,9 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                 p.position[Z] = w[0] * v0->position[Z] +
                                 w[1] * v1->position[Z] +
                                 w[2] * v2->position[Z];
+                p.position[W] = w[0] * v0->position[W] +
+                                w[1] * v1->position[W] +
+                                w[2] * v2->position[W];
                 p.color[R] = w[0] * v0->color[R] +
                                 w[1] * v1->color[R] +
                                 w[2] * v2->color[R];

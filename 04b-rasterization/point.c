@@ -143,9 +143,7 @@ void draw_point (POINT *p)
     int persp_correct_texturing = perspective_correct && texturing;
     
     /* calculate fail condition for depth test */
-    int fails_z =
-        (!persp_correct_texturing && p->position[Z] > depth_buffer[r][c]) ||
-        (persp_correct_texturing && 1.0/p->position[Z] > depth_buffer[r][c]);
+    int fails_z = p->position[Z] > depth_buffer[r][c];
     
     /* early return if fail depth test */
     if(depth_test && fails_z)
@@ -236,10 +234,11 @@ void draw_point (POINT *p)
             s = p->tex[S];
             t = p->tex[T];
             
-            float z = 1.0 / p->position[Z];
-            p->position[Z] = 1.0 / p->position[Z];
-            s *= z;
-            t *= z;
+//            float z = 1.0 / p->position[Z];
+//            p->position[Z] = 1.0 / p->position[Z];
+            s /= p->position[W];
+            t /= p->position[W];
+//            printf("(s, t): %.2f, %.2f\n", s, t);
             
             u = (int) (s * texture_ptr->width);
             v = (int) (t * texture_ptr->height);
