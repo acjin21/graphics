@@ -93,7 +93,7 @@ void display(void)
             
             draw_one_frame = 1;
             glutPostRedisplay();
-            print_settings();
+//            print_settings();
         }
     }
     if(program_type != BENCHMARK)
@@ -118,9 +118,13 @@ void display(void)
     /*******************************************************/
     start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
     
-    if(program_type == BASIC || program_type == BENCHMARK)
+    if(program_type == BASIC)
     {
         display_basic_mode();
+    }
+    else if(program_type == BENCHMARK)
+    {
+        display_benchmark_mode(num_samples);
     }
     else if(program_type == SCENE)
     {
@@ -286,10 +290,11 @@ int main(int argc, char **argv)
     set_texture();
     
     /* open output file for benchmarking */
-    char file_name[MAX_FILE_NAME] = "build/rotate_cb1.txt";
+    char file_name[MAX_FILE_NAME] = "benchmark/rotate_cb1.txt";
     cb_file = fopen(file_name, "w");
     
     fprintf(cb_file, "CB1\n");
+    fprintf(cb_file, "%i\n", num_samples);
     if (cb_file == NULL)
     {
         printf("Unable to open file %s\n", file_name);

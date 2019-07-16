@@ -15,6 +15,7 @@ extern int normal_type;
 extern int drawing_backside;
 extern int tex_gen_mode;
 extern int debugging_mode;
+extern int light_type;
 /* data */
 extern IMAGE texture;
 extern float color_buffer[WIN_H][WIN_W][4];
@@ -173,8 +174,16 @@ void draw_point (POINT *p)
     if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
-        set_diffuse_term(p->v_normal, p->light, tmp_diff);
-        set_specular_term(p->v_normal, p->light, tmp_spec);
+        if(light_type == LOCAL_L)
+        {
+            set_diffuse_term(p->v_normal, p->light, tmp_diff);
+            set_specular_term(p->v_normal, p->light, tmp_spec);
+        }
+        else if (light_type == GLOBAL_L)
+        {
+            set_diffuse_term(p->v_normal, light, tmp_diff);
+            set_specular_term(p->v_normal, light, tmp_spec);
+        }
         
         //modulate texture with color and brightness
         if(!modulate || (modulate && modulate_type == MOD_COLOR))

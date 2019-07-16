@@ -3,6 +3,9 @@ OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c mai
 run-basic: 
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BASIC
 
+run-benchmark: 
+	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BENCHMARK
+
 run-scene:
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model SCENE $(file)
 

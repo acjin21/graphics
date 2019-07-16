@@ -107,6 +107,7 @@ int calculate_all_vns = OFF;
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
+int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -176,8 +177,11 @@ void set_display_mode (DISPLAY_MODE *display_mode)
     texture_idx =           display_mode->texture_idx;
     tex_gen_mode =          display_mode->uv_generation;
     bump_mapping =          display_mode->bump_map;
+    
     shading_mode =          display_mode->shading;
     specular_highlight =    display_mode->lighting;
+    light_type =            display_mode->light_type;
+    
     fog =                   display_mode->fog;
     material =              display_mode->material;
     post_processing =       display_mode->post_processing;
@@ -353,6 +357,10 @@ void render_object(OBJECT *o)
         rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     }
     
+    /**********************/
+    /* world space xforms */
+    /**********************/
+
     //translate model
     translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
     
@@ -362,11 +370,12 @@ void render_object(OBJECT *o)
         rotate_model(0, 0, 0, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     }
     
-    scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
-
-    
     //scale
+    scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
     
+    /**********************/
+    /* peripheral components: normals, bounding boxes */
+    /**********************/
     calculate_face_normals();
     calculate_vertex_normals();
     
@@ -379,7 +388,11 @@ void render_object(OBJECT *o)
     insert_bb_coords();
     
     /* lighting */
-    calculate_light_vectors(); /* generate all world points' light vecs */
+    if(light_type == LOCAL_L)
+    {
+//        printf("local\n");
+        calculate_light_vectors(); /* generate all world points' light vecs */
+    }
     
     switch(proj_mode)
     {
@@ -430,6 +443,7 @@ void render_object(OBJECT *o)
 /* apply specific benchmark function (called once per frame) */
 void apply_benchmark_animation (OBJECT *o, int num_samples)
 {
+//    printf("rotate Y: %.2f\n", o->rotation[Y]);
     o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
 }
 
@@ -441,7 +455,9 @@ void display_benchmark_mode (int num_samples)
     o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
     o->radii[0] = 0.5;
     o->radii[1] = 1;
-    
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1); //prevent scale from being 0
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1); //prevent scale from being 0
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1); //prevent scale from being 0
     render_object(o);
 }
 /********************************************/

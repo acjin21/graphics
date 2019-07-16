@@ -19,6 +19,7 @@ typedef struct display_mode {
     
     int shading;
     int lighting;
+    int light_type;
     
     int fog;
     int material;

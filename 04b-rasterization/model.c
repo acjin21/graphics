@@ -26,6 +26,7 @@ extern int texturing;           // whether texturing or not
 extern int perspective_correct; // for perspective correct interpolation
 extern int normal_type;         // whether drawing normals or not
 extern int shading_mode;
+extern int light_type;
 
 /* from point.c */              // to avoid texturing the non-model vertices
 extern int drawing_normals;
@@ -46,6 +47,7 @@ extern float material_ambient[4];
 extern float light_ambient[4];
 
 extern float light_pos[4];
+extern float light[4];
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -899,9 +901,17 @@ void draw_model(int mode)
             {
                 float diffuse, tmp_diff[4], tmp_spec[4];
 
-                /* using one of vertices' light vecs instead of global light dir */
-                set_diffuse_term (f.f_normal, p0.light, tmp_diff);
-                set_specular_term (f.f_normal, p0.light, tmp_spec);
+                if(light_type == LOCAL_L)
+                {
+                    /* using one of vertices' light vecs instead of global light dir */
+                    set_diffuse_term (f.f_normal, p0.light, tmp_diff);
+                    set_specular_term (f.f_normal, p0.light, tmp_spec);
+                }
+                else if(light_type == GLOBAL_L)
+                {
+                    set_diffuse_term (f.f_normal, light, tmp_diff);
+                    set_specular_term (f.f_normal, light, tmp_spec);
+                }
                 
                 //modulate interpolated color * texture
                 if(!modulate || (modulate && modulate_type == MOD_COLOR))

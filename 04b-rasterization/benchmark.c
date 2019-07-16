@@ -8,7 +8,7 @@
 DISPLAY_MODE benchmark =
 {
     .raster_mode = FILL,
-    .projection = PERSPECT,
+    .projection = ORTHO,
     .alpha_blend = OFF,
     .depth_test = ON,
     
@@ -21,7 +21,8 @@ DISPLAY_MODE benchmark =
     .bump_map = ON,
     
     .shading = PHONG,
-    .lighting = ON, // corresponds to specular highlight
+    .lighting = ON,         // corresponds to specular highlight
+    .light_type = LOCAL_L,    // LOCAL defined in macros.h
     
     .fog = OFF,
     .material = OFF,
