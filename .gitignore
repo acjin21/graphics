@@ -1,12 +1,13 @@
-*/*
+# ignore benchmarking and build files
+*/benchmarking
+*/build
 
-!*/*.*
-!*/
-
+# unignore the makefile
 !*/Makefile
 
 *.DS_Store
 **/.DS_Store
+
 # Prerequisites
 *.d
 
