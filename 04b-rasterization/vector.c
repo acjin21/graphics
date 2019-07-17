@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 #include "macros.h"
+#include "light.h"
 
-extern float eye[4];
 /****************************************************************/
 /* vector utility functions */
 /****************************************************************/
@@ -176,3 +176,67 @@ void reflection_map (float normal[4], float tex[4])
     spherical_map(reflect, tex);
 }
 
+void cube_map_vec (float normal[4], float tex[4], int *index)
+{
+    float max_axis, s, t;
+    float abs_x = ABS(normal[X]);
+    float abs_y = ABS(normal[Y]);
+    float abs_z = ABS(normal[Z]);
+    //x major
+    if(abs_x >= abs_y && abs_x >= abs_z)
+    {
+        if(normal[X] > 0)
+        {
+            s = -normal[Z];
+            t = normal[Y];
+            *index = 0; // right face
+        }
+        else
+        {
+            s = normal[Z];
+            t = normal[Y];
+            *index = 1; // left face
+        }
+        max_axis = abs_x;
+    }
+    //y major
+    else if (abs_y >= abs_x && abs_y >= abs_z)
+    {
+        if(normal[Y] > 0)
+        {
+            s = normal[X];
+            t = -normal[Z];
+            *index = 2; // top face
+        }
+        else {
+            s = normal[X];
+            t = normal[Z];
+            *index = 3; // bottom face
+        }
+        max_axis = abs_y;
+    }
+    //z major
+    else if (abs_z >= abs_x && abs_z >= abs_y)
+    {
+        if(normal[Z] > 0)
+        {
+            s = normal[X];
+            t = normal[Y];
+            *index = 4; // front face
+        }
+        else {
+            s = -normal[X];
+            t = normal[Y];
+            *index = 5; // back face
+        }
+        max_axis = abs_z;
+    }
+//    max_axis = 1.0 / sqrt(2.0);
+    tex[S] = ((s / max_axis) + 1.0) / 2.0;
+    tex[T] = ((t / max_axis) + 1.0) / 2.0;
+    tex[2] = 0.0;
+    tex[3] = 1.0;
+
+    
+
+}

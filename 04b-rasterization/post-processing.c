@@ -1,14 +1,11 @@
 #include "post-processing.h"
 
-#include "image.h"
-#include "color.h"
 #include <stdio.h>
 
-/*************************************************************************/
-/* externs                                                               */
-/*************************************************************************/
-extern float color_buffer[800][800][4];
-extern float depth_buffer[800][800];
+#include "image.h"
+#include "color.h"
+#include "depth.h"
+
 
 /*************************************************************************/
 /* global variables                                                      */

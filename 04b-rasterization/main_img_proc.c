@@ -6,7 +6,7 @@ int file_index = 0; // for image processing
 int filter = 0;
 
 
-IMAGE texture;          /* final display texture */
+//IMAGE texture;          /* final display texture */
 IMAGE texture0;
 IMAGE texture1;
 char file_names[N_PPM_FILES][100] =

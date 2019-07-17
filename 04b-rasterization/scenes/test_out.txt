@@ -1,0 +1,5 @@
+SCENE FILE: scenes/test_out.txt
+1
+1 1 1
+1 1 0 0 0 0 0
+type: 0	cx: 0.00	cy: 1.00	cz: 0.00	scale: 5.50	r0: 0.00	r1: 0.00	init_orientation: 0.00, 0.00, 0.00	rotation: 650.00, 0.00, 0.00

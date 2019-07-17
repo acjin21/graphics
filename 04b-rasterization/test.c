@@ -3,7 +3,6 @@
 #include "raster.h"
 #include "vector.h"
 
-
 /****************************************/
 /* test vars and functions */
 /****************************************/

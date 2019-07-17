@@ -3,38 +3,25 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
+#include <float.h>
 
 #include "raster.h"
 #include "vector.h"
 #include "macros.h"
+
 #include "point.h"
+#include "app.h"
+#include "depth.h"
+#include "light.h"
+#include "material.h"
 
 /****************************************************************/
 /* defines */
 /****************************************************************/
-#define MAX_N_VERTS 100000000
-#define MAX_N_FACES 100000000
+#define MAX_N_VERTS 100000000000
+#define MAX_N_FACES 100000000000
 
 #define V_NORM_SCALE 10
-
-/****************************************************************/
-/* externs */
-/****************************************************************/
-/* modes */
-extern int texturing;           // whether texturing or not
-extern int perspective_correct; // for perspective correct interpolation
-extern int normal_type;         // whether drawing normals or not
-extern int shading_mode;
-extern int drawing_normals;
-extern int modulate;
-extern int specular_highlight;
-extern int obj_has_vnorms;
-extern int draw_coord_axes;
-/* data */
-extern float depth_buffer[WIN_H][WIN_W];
-extern float material_ambient[4];
-extern float light_ambient[4];
 
 /****************************************************************/
 /* global variables */
@@ -61,6 +48,7 @@ int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by in
 int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 
+int bb_start_idx = 0;               // starting index of bounding box vertices in vertex_list
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -118,8 +106,19 @@ void reset_num_tris (int num_verts)
 /****************************************************************/
 /* model init functions */
 /****************************************************************/
+/* object space -> world space transform using model matrix */
+void model_xform (MAT4 *model)
+{
+    for(int i = 0; i < num_vertices; i++)
+    {
+        float local_coord[4];
+        cpy_vec4(local_coord, vertex_list[i].world);
+        mat_vec_mul(model, local_coord, vertex_list[i].world);
+    }
+}
+
 /* init a 2D quad of two right triangles */
-void init_quad (void)
+void init_quad(MAT4 *model)
 {
     num_vertices = 4;
     
@@ -128,6 +127,9 @@ void init_quad (void)
     set_vec4(vertex_list[2].world, 0.5, -0.5, 0, 1.0);
     set_vec4(vertex_list[3].world, -0.5, -0.5, 0, 1.0);
 
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     set_vec4(color_list[0], 1, 0, 0, 1);
     set_vec4(color_list[1], 0, 1, 0, 1);
     set_vec4(color_list[2], 0, 0, 1, 1);
@@ -150,27 +152,31 @@ void init_quad (void)
 
 /* set vertices of a unit cube with world space coordinates and
     random color + random tex coords */
-void init_cube (float scale, float cx, float cy, float cz)
+void init_cube (MAT4 *model)
 {
     /* add vertices */
     num_vertices = 8;
     
-    set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
-    set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
-    set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
-    set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
-    set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
+//    set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
+//    set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
     
-    float center[4] = {cx, cy, cz, 0};
-    for(int i = 0; i < num_vertices; i++)
-    {
-        scalar_multiply(scale, vertex_list[i].world, vertex_list[i].world);
-        vector_add(vertex_list[i].world, center, vertex_list[i].world);
-        vertex_list[i].world[W] = 1;
-    }
+    set_vec4(vertex_list[0].world, 1, 1, -1, 1.0);
+    set_vec4(vertex_list[1].world, 1, 1, 1, 1.0);
+    set_vec4(vertex_list[2].world, 1, -1, 1, 1.0);
+    set_vec4(vertex_list[3].world, 1, -1, -1, 1.0);
+    set_vec4(vertex_list[4].world, -1, 1, -1, 1.0);
+    set_vec4(vertex_list[5].world, -1, 1, 1, 1.0);
+    set_vec4(vertex_list[6].world, -1, -1, 1, 1.0);
+    set_vec4(vertex_list[7].world, -1, -1, -1, 1.0);
+    
+    /* transform from local to world coordinates */
+    model_xform(model);
     
     /* set tex coordinates to four corners of texture */
     //0.1, 0.9 for the rock bump map
@@ -209,243 +215,41 @@ void init_cube (float scale, float cx, float cy, float cz)
     /* should now have 12 triangles */
     
     num_face_normals = num_triangles;
-
 }
 
-void read_obj_file (char *file_name, float scale, float cx, float cy, float cz)
-{
-    /* r, g, b color options */
-    set_vec4(color_list[0], 1, 0, 0, 1);
-    set_vec4(color_list[1], 0, 1, 0, 1);
-    set_vec4(color_list[2], 0, 0, 1, 1);
-    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
-    
-    FILE *fp;
-    fp = fopen(file_name, "r");
-    if (fp == NULL)
-    {
-        printf("Unable to open file %s\n", file_name);
-    }
-    else
-    {
-        num_vertices = 0;
-        float x, y, z, s, t, r, nx, ny, nz;
-        int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
-        vt1 = 0;
-        vt2 = 1;
-        vt3 = 2;
-        /* handle any possible comments */
-        int next_ch;
-        char comment[500];
-        char next_line[500];
-        
-        next_ch = getc(fp);
-        if(next_ch == '#') fgets(comment, 500, fp);
-        else ungetc(next_ch, fp);
-        
-        while(fgets(next_line, 500, fp)[0] != 'v')
-        {
-            ;
-        }
-        fputs(next_line, fp);
-        
-        /******************/
-        /* vertices */
-        /******************/
-        do
-        {
-            sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
-            set_vec4(vertex_list[num_vertices].world,
-                     cx + scale * x,
-                     cy + scale * y,
-                     cz + scale * z, 1.0);
-            num_vertices++;
-        } while(fgets(next_line, 500, fp)[0] == 'v' && next_line[1] != 't');
-
-//        printf("%i vertices read\n", num_vertices);
-        /* reset num_tris for each vertex */
-        reset_num_tris(num_vertices);
-        
-//        printf("NEXT: %s\n", next_line);
-        while(next_line[0] == '\n')
-        {
-
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-        /******************/
-        /* textures */
-        /******************/
-        num_tex_coords = 0;
-        while (!strncmp(next_line, "vt", 2))
-        {
-
-            sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
-            set_vec4(tex_list[num_tex_coords], s, t, r, 0.0);
-            num_tex_coords++;
-            fgets(next_line, 500, fp);
-
-        }
-        fputs(next_line, fp);
-//        printf("%i textures read\n", num_tex_coords);
-//        printf("NEXT: %s\n", next_line);
-
-        while(next_line[0] == '\n')
-        {
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-        
-        /******************/
-        /* normals */
-        /******************/
-        num_vertex_normals = 0;
-        while (!strncmp(next_line, "vn", 2))
-        {
-//            printf("hello\n");
-            sscanf(next_line, "vn %f %f %f\n", &nx, &ny, &nz);
-            set_vec4(normal_list[num_vertex_normals], nx, ny, nz, 0.0);
-            num_vertex_normals++;
-            fgets(next_line, 500, fp);
-            
-        }
-        fputs(next_line, fp);
-//        printf("%i normals read\n", num_vertex_normals);
-//        printf("NEXT: %s\n", next_line);
-        
-        while(next_line[0] != 'f')
-        {
-            fgets(next_line, 500, fp);
-        }
-        fputs(next_line, fp);
-
-
-        /******************/
-        /* add faces/triangles */
-        /******************/
-        num_triangles = 0; // reset num of triangles
-        while(!strncmp(next_line, "f", 1))
-        {
-            if(num_tex_coords > 0 && num_vertex_normals > 0) // obj file has vt, vn
-            {
-                obj_has_vnorms = TRUE;
-                sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                       &i, &vt1, &vn1,
-                       &j, &vt2, &vn2,
-                       &k, &vt3, &vn3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
-
-            }
-            else if (num_tex_coords > 0) // obj file has vt, vn
-            {
-                obj_has_vnorms = FALSE;
-                sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
-                       &i, &vt1, &j, &vt2, &k, &vt3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
-            }
-            else if (num_vertex_normals > 0)
-            {
-                obj_has_vnorms = TRUE;
-                sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
-                       &i, &vn1, &j, &vn2, &k, &vn3);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
-            }
-            else {
-                obj_has_vnorms = FALSE;
-                sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
-                vt1 = i;
-                vt2 = j;
-                vt3 = k;
-            }
-            add_face(i - 1, j - 1, k - 1,       //vtx indices
-                     3, 3, 3,                   //colors
-                     vt1 - 1, vt2 - 1, vt3 - 1, //tex coord indices
-                     vn1, vn2, vn3);            //normal indices
-            
-            if(fgets(next_line, 500, fp) == NULL) {
-                break; // reach end of file
-            }
-            while(next_line[0] != 'f')
-            {
-                 if(fgets(next_line, 500, fp) == NULL)
-                 {
-                     break;
-                 }
-            }
-        }
-//        printf("%i faces read\n", num_triangles);
-//        printf("obj has vnorms:%s\n", obj_has_vnorms ? "YES" : "NO");
-        fclose(fp);
-    }
-    
-    num_face_normals = num_triangles;
-
-}
-
-void write_obj_file (char *file_name)
-{
-    FILE *fp;
-    fp = fopen(file_name, "w");
-    
-    if (fp == NULL)
-    {
-        printf("Unable to open file %s\n", file_name);
-    }
-    else
-    {
-        printf("%s has been opened and its contents overwritten.\n", file_name);
-        float x, y, z;
-        int i, j, k;
-        printf("num_vertices = %i\n", num_vertices);
-        for(int v = 0; v < num_vertices; v++)
-        {
-            x = vertex_list[v].world[X];
-            y = vertex_list[v].world[Y];
-            z = vertex_list[v].world[Z];
-            fprintf(fp, "v %f %f %f\n", x, y, z);
-        }
-        for(int f = 0; f < num_triangles; f++)
-        {
-            i = face_list[f].vertices[0];
-            j = face_list[f].vertices[1];
-            k = face_list[f].vertices[2];
-
-            fprintf(fp, "f %d %d %d\n", i+1, j+1, k+1);
-        }
-
-        printf("Done writing obj file to %s\n", file_name);
-        fclose(fp);
-    }
-}
-
-void add_mesh_faces (int width, int height)
+/* reset num_tris for all vertices, and add mesh faces to face_list */
+/*      called in init functions built ontop of init_mesh           */
+void add_mesh_faces (int w, int h)
 {
     reset_num_tris(num_vertices);
     
+    // for grayscale; comment out if want interpolated colors
+    set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
+
     /* add triangles/faces */
     num_triangles = 0;
-    
-    for(int r = 0; r < height - 1; r++) // height - 2 for mesh
+    int v0, v1, v2;
+
+    for(int r = 0; r < h - 1; r++) // height - 2 for mesh
     {
-        for(int c = 0; c < width - 1; c++) // width - 2 for mesh
+        for(int c = 0; c < w - 1; c++) // width - 2 for mesh
         {
-            add_face(r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //v
-                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //c
-                     r * width + c, (r + 1) * width + (c + 1), (r + 1) * width + c, //vt
-                     0, 0, 0);                                          //vn
-            add_face(r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
-                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
-                     r * width + c, r * width + (c + 1), (r + 1) * width + (c + 1),
+            v0 = r * w + c;
+            v1 = (r + 1) * w + (c + 1);
+            v2 = (r + 1) * w + c;
+            add_face(v0, v1, v2, /* v */
+                     v0, v1, v2, //0, 0, 0,    /* c; v0, v1, v2 if want interp color */
+                     v0, v1, v2, /* vt */
+                     0, 0, 0);   /* vn -- only used if reading in obj w/ vn */
+
+            v1 = r * w + (c + 1);
+            v2 = (r + 1) * w + (c + 1);
+            add_face(v0, v1, v2,
+                     v0, v1, v2, //0, 0, 0,
+                     v0, v1, v2,
                      0, 0, 0);
         }
     }
-    
     num_face_normals = num_triangles;
 }
 
@@ -546,8 +350,6 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
 /* init a sphere */
 void init_sphere (float radius, float cx, float cy, float cz)
 {
-
-
     int n = 32;
     int width = n;
     int height = n;
@@ -557,6 +359,7 @@ void init_sphere (float radius, float cx, float cy, float cz)
     {
         for(int c = 0; c < n; c++)
         {
+            int i = r * n + c;
             float u = (float) c / (width - 1);
             float v = (float) r / (height - 1);
             
@@ -569,33 +372,11 @@ void init_sphere (float radius, float cx, float cy, float cz)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], (float) c / n, (float) r / n, 0, 0);
-            set_vec4(color_list[0], 0.5, 0.5, 0.5, 1);
-            set_vec4(color_list[1], 0, 0, 0, 1);
-
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
-    reset_num_tris(num_vertices);
-    
-    /* add triangles/faces */
-    num_triangles = 0;
-    
-    for(int r = 0; r < n - 1; r++)
-    {
-        for(int c = 0; c < n - 1; c++)
-        {
-            add_face(r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0,
-                     r * n + c, (r + 1) * n + (c + 1), (r + 1) * n + c,
-                     0, 0, 0);
-            add_face(r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0,
-                     r * n + c, r * n + (c + 1), (r + 1) * n + (c + 1),
-                     0, 0, 0);
-        }
-    }
-    
-    num_face_normals = num_triangles;
+    add_mesh_faces(width, height);
 }
 
 /* init a torus */
@@ -634,12 +415,13 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
 }
 
 /*************************************************************************/
-/* insert additional coordinates into vertex_list (normals, axes coords) */
+/* insert add'l coordinates into vertex_list (normals, axes, bb) */
 /*************************************************************************/
-//call after calculate_face_normals()
-//insert normals into vertex_list for a specific 3d model
-    //(2 * num_normals extra points added by this function)
-//call before 3D transformations; actually draw the normals in draw_model
+/* inserts FACE normals centers and endpoints after vertices in vertex_list */
+/*  NOTE: - call after calculate_face_normals()                             */
+/*        - this function adds 2 * num_normals extra points to vertex_list  */
+/*        - call before 3D transformations so the normals are transformed   */
+/*              along with model vertices                                   */
 void insert_normal_coords(void)
 {
     float tmp[4], color[4];
@@ -671,6 +453,7 @@ void insert_normal_coords(void)
     }
 }
 
+/* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
     if(normal_type == F_NORMALS)
@@ -681,17 +464,86 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
     {
         axes_start_idx = num_vertices;
     }
-    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 0 );
-    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 2, cy, cz, 0);
-    set_vec4(vertex_list[axes_start_idx + 2].world, cx, cy + 2, cz, 0);
-    set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 0);
+    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 1 );
+    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 2, cy, cz, 1);
+    set_vec4(vertex_list[axes_start_idx + 2].world, cx, cy + 2, cz, 1);
+    set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 1);
 }
 
-//mode == F_NORMALS, V_NORMALS, NO_NORMALS, COORD_AXES (TODO)
-int get_max_idx (int mode)
+// do this in world space
+void insert_bb_coords (void)
+{
+    //set 2D select/bounding box
+    float max_x, max_y, max_z, min_x, min_y, min_z;
+    max_x = -FLT_MAX;
+    max_y = -FLT_MAX;
+    max_z = -FLT_MAX;
+    
+    min_x = FLT_MAX;
+    min_y = FLT_MAX;
+    min_z = FLT_MAX;
+    
+    for(int i = 0; i < num_vertices; i++)
+    {
+        if(vertex_list[i].world[X] < min_x)
+        {
+            min_x = vertex_list[i].world[X];
+        }
+        else if(vertex_list[i].world[X] > max_x)
+        {
+            max_x = vertex_list[i].world[X];
+        }
+        if(vertex_list[i].world[Y] < min_y)
+        {
+            min_y = vertex_list[i].world[Y];
+        }
+        else if(vertex_list[i].world[Y] > max_y)
+        {
+            max_y = vertex_list[i].world[Y];
+        }
+        if(vertex_list[i].world[Z] < min_z)
+        {
+            min_z = vertex_list[i].world[Z];
+        }
+        else if(vertex_list[i].world[Z] > max_z)
+        {
+            max_z = vertex_list[i].world[Z];
+        }
+    }
+    // get offset in vertex_list
+    if(normal_type == F_NORMALS && draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals + 4;
+    }
+    else if(normal_type == F_NORMALS)
+    {
+        bb_start_idx = num_vertices + 2 * num_face_normals;
+    }
+    else if(draw_coord_axes)
+    {
+        bb_start_idx = num_vertices + 4;
+    }
+    else
+    {
+        bb_start_idx = num_vertices;
+    }
+    
+    set_vec4(vertex_list[bb_start_idx].world, min_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
+    set_vec4(vertex_list[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
+}
+
+/* return the greatest index that points to relevant data in vertex_list */
+/*    dep on if drawing F_NORMALS and if drawing local axes              */
+int get_max_idx (int normal_mode)
 {
     int max_idx = 0;
-    switch(mode)
+    switch(normal_mode)
     {
         case F_NORMALS:
             max_idx = num_vertices + 2 * num_face_normals;
@@ -700,61 +552,80 @@ int get_max_idx (int mode)
         case V_NORMALS:
             max_idx = num_vertices;
             break;
-            
-        
     }
     if(axes_start_idx != 0) max_idx += 4;
+    if(bb_start_idx != 0) max_idx += 8;
     return max_idx;
 }
 
 /****************************************************************/
-/* model transformations */
+/* model world space transformations */
 /****************************************************************/
-/* transform model from world space to screen space */
-void xform_model(float scale)
-{
-    int max_idx = get_max_idx (normal_type);
-    for(int i = 0; i < max_idx; i++)
-    {
-        vertex_list[i].position[X] = vertex_list[i].world[X] * scale;
-        vertex_list[i].position[Y] = vertex_list[i].world[Y] * scale;
-        vertex_list[i].position[Z] = vertex_list[i].world[Z];
-        vertex_list[i].position[W] = 1.0;
-    }
-}
-
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
-void rotate_model(float cx, float cy, float cz, float x_angle, float y_angle, float z_angle)
+void rotate_model(float cx, float cy, float cz,
+                  float x_angle, float y_angle, float z_angle)
 {
-    z_angle *= (PI / 180.0);
-    y_angle *= (PI / 180.0);
-    x_angle *= (PI / 180.0);
-
     float nx, ny, nz;
     int max_idx = get_max_idx (normal_type);
-
+    
     for(int i = 0; i < max_idx; i++)
     {
         POINT *p = &vertex_list[i];
+        float in_vec[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 tmp, rotate_about_origin;
+        
+        set_identity(&rotate_about_origin);
+        set_transl (&tmp, -cx, -cy, -cz);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+        set_3d_rot(&tmp, x_angle, y_angle, z_angle);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+        set_transl (&tmp, cx, cy, cz);
+        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
 
-        /* about z axis */
-        nx = (p->world[X] - cx) * cos(z_angle) - (p->world[Y] - cy) * sin(z_angle);
-        ny = (p->world[X] - cx) * sin(z_angle) + (p->world[Y] - cy)* cos(z_angle);
-        vertex_list[i].world[X] = nx + cx;
-        vertex_list[i].world[Y] = ny + cy;
+        /* matrix transform world coords */
+        mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
+    }
+}
 
-        /* about y axis */
-        nx = (p->world[X] - cx) * cos(y_angle) - (p->world[Z] - cz) * sin(y_angle);
-        nz = (p->world[X] - cx) * sin(y_angle) + (p->world[Z] - cz) * cos(y_angle);
-        vertex_list[i].world[X] = nx + cx;
-        vertex_list[i].world[Z] = nz + cz;
+void translate_model_mat (float tx, float ty, float tz)
+{
+    float nx, ny, nz;
+    int max_idx = get_max_idx (normal_type);
+    
+    for(int i = 0; i < max_idx; i++)
+    {
+        POINT *p = &vertex_list[i];
+        float in_vec[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 translate;
+        
+        set_transl (&translate, tx, ty, tz);
+        mat_vec_mul (&translate, in_vec, vertex_list[i].world);
+    }
+}
 
-        /* about x axis */
-        ny = (p->world[Y] - cy) * cos(x_angle) - (p->world[Z] - cz) * sin(x_angle);
-        nz = (p->world[Y] - cy) * sin(x_angle) + (p->world[Z] - cz) * cos(x_angle);
-        vertex_list[i].world[Y] = ny + cy;
-        vertex_list[i].world[Z] = nz + cz;
+void scale_model_mat (float sx, float sy, float sz)
+{
+    float nx, ny, nz;
+    int max_idx = get_max_idx (normal_type);
+    
+    for(int i = 0; i < max_idx; i++)
+    {
+        POINT *p = &vertex_list[i];
+        float in_vec[4];
+        
+        cpy_vec4 (in_vec, p->world);
+        /* matrices */
+        MAT4 scale;
+        
+        set_scale_nonuniform (&scale, sx, sy, sz);
+        mat_vec_mul (&scale, in_vec, vertex_list[i].world);
     }
 }
 
@@ -766,7 +637,6 @@ void calculate_face_normals (void)
 {
     for(int i = 0; i < num_triangles ; i++)
     {
-        //get p0, p1, p2
         int p0_idx = face_list[i].vertices[0];
         int p1_idx = face_list[i].vertices[1];
         int p2_idx = face_list[i].vertices[2];
@@ -775,16 +645,12 @@ void calculate_face_normals (void)
         POINT *p1 = &vertex_list[p1_idx];
         POINT *p2 = &vertex_list[p2_idx];
         
-        //calculate v1, v2
         float v1[4], v2[4], f_normal[4];
         vector_subtract(p1->world, p0->world, v1);
         vector_subtract(p2->world, p0->world, v2);
         
-        //cross v1, v2 = n
         vector_cross(v1, v2, f_normal);
-        //normalize(n)
         normalize(f_normal);
-        //store normal in face_list's normal property
         cpy_vec4(face_list[i].f_normal, f_normal);
         
     }
@@ -819,6 +685,39 @@ void calculate_vertex_normals (void)
         }
     }
 }
+/****************************************************************/
+/* for orthographic projections */
+/****************************************************************/
+/* transform model from world space to screen space */
+void xform_model(float x_min, float x_max,
+                 float y_min, float y_max,
+                 float z_min, float z_max)
+{
+    int max_idx = get_max_idx (normal_type);
+    for(int i = 0; i < max_idx; i++)
+    {
+        MAT4 ortho;
+        set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
+        mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
+        vertex_list[i].position[W] = 1.0;
+    }
+}
+void viewport_mat_xform (int vp_w, int vp_h)
+{
+    int max_idx = get_max_idx (normal_type);
+    for(int i = 0; i < max_idx; i++)
+    {
+        MAT4 viewport;
+        set_viewport_mat (&viewport, vp_w, vp_h);
+        mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
+        
+        // do translation separately so that position[W] = 1/w for persp corr.
+        //      does not interfere with viewport_x, viewport_y calculation
+        // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
+        float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+        vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
+    }
+}
 
 /****************************************************************/
 /* for perspective projections */
@@ -834,6 +733,35 @@ void translate_model (float distance)
     }
 }
 
+/* determine if object BB is entirely outside view frustrum */
+/*  in eye space; assuming eye/camera is at origin */
+int cull_model (float near, float far)
+{
+    int b = bb_start_idx;
+    /* near and far clipping planes */
+    if(vertex_list[b+6].world[Z] < near || vertex_list[b].world[Z] > far)
+    {
+        return 1;
+    }
+    /* left and right clipping planes */
+    if(-vertex_list[b].world[X] > vertex_list[b].world[Z] ||
+       -vertex_list[b + 4].world[X] > vertex_list[b + 4].world[Z] ||
+       vertex_list[b + 1].world[X] > vertex_list[b+1].world[Z] ||
+       vertex_list[b + 5].world[X] > vertex_list[b+5].world[Z])
+    {
+        return 1;
+    }
+    /* top and bottom clipping planes */
+    if(-vertex_list[b + 2].world[Y] > vertex_list[b + 2].world[Z] ||
+       -vertex_list[b + 6].world[Y] > vertex_list[b + 6].world[Z] ||
+       vertex_list[b + 1].world[Y] > vertex_list[b + 1].world[Z] ||
+       vertex_list[b + 5].world[Y] > vertex_list[b + 5].world[Z])
+    {
+        return 1;
+    }
+    return 0;
+}
+
 /* perspective transform from world to screen coordinates */
 void perspective_xform(float near, float far)
 {
@@ -841,42 +769,45 @@ void perspective_xform(float near, float far)
 
     for(int i = 0; i < max_idx; i++)
     {
-        float x, y, z;
-        x = vertex_list[i].world[X];
-        y = vertex_list[i].world[Y];
-        z = vertex_list[i].world[Z];
-        
-        vertex_list[i].position[X] = near * x / z;
-        vertex_list[i].position[Y] = near * y / z;
-
+//        float x, y, z;
+//        x = vertex_list[i].world[X];
+//        y = vertex_list[i].world[Y];
+//        z = vertex_list[i].world[Z];
+//
+//        vertex_list[i].position[X] = near * x / z;
+//        vertex_list[i].position[Y] = near * y / z;
+//
+//        if(perspective_correct && texturing)
+//        {
+//            vertex_list[i].position[Z] = (float)(far - near) / z;
+//        }
+//        else
+//        {
+//            vertex_list[i].position[Z] = (float) z / (far - near);
+//        }
+//        vertex_list[i].position[W] = 1.0;
+//        printf("world: (%.2f, %.2f, %.2f, %.2f)\n",
+//               vertex_list[i].world[X],
+//               vertex_list[i].world[Y],
+//               vertex_list[i].world[Z],
+//               vertex_list[i].world[W]);
+        MAT4 perspective;
+        set_perspective_mat (&perspective, near, far, -5, 5, -5, 5);
+        mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
+        float w = vertex_list[i].position[W];
+        scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
+        // {x/w, y/w, z/w, 1}
         if(perspective_correct && texturing)
         {
-            vertex_list[i].position[Z] = (float)(far - near) / z;
-        }
-        else
-        {
-            vertex_list[i].position[Z] = (float) z / (far - near);
-        }
-
-        vertex_list[i].position[W] = 1.0;
-        if(perspective_correct)
-        {
-            vertex_list[i].position[Z] = 1.0 / (z / (far - near));
+                vertex_list[i].position[W] = 1.0 / w; //carry 1/w in W slot to interpolate
             
-            vertex_list[i].tex[S] *= vertex_list[i].position[Z];
-            vertex_list[i].tex[T] *= vertex_list[i].position[Z];
+            // {x/w, y/w, z/w, 1/w}
         }
-        else
-        {
-            vertex_list[i].position[Z] = z / (far - near); //normalize Z
-
-        }
-
     }
 }
 
-/* scale normalized view coordinates to screen coordinates
- *  (for perspective proj) */
+/* scale normalized view coordinates to screen coordinates */
+/*  (for perspective proj)                                 */
 void viewport_xform(float scale)
 {
     int max_idx = get_max_idx (normal_type);
@@ -886,15 +817,14 @@ void viewport_xform(float scale)
         vertex_list[i].position[X] *= scale;
         vertex_list[i].position[Y] *= scale;
         vertex_list[i].position[Z] *= 1;
-        vertex_list[i].position[W] = 1.0;
+//        vertex_list[i].position[W] = 1.0;
     }
 }
 
-
 /****************************************************************/
-/* draw model into color buffer */
+/* draw functions */
 /****************************************************************/
-/* draw wire-frame or filled in model */
+/* draw wire-frame or filled in model (mode = FRAME or FILL) */
 void draw_model(int mode)
 {
 //    printf("num_triangles: %i\n", num_triangles);
@@ -917,11 +847,12 @@ void draw_model(int mode)
         cpy_vec4(p2.color, color_list[f.colors[2]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
 
+        // set tex coords to s/w and t/w to interpolate
         if(perspective_correct && texturing)
         {
-            scalar_multiply(p0.position[Z], p0.tex, p0.tex);
-            scalar_multiply(p1.position[Z], p1.tex, p1.tex);
-            scalar_multiply(p2.position[Z], p2.tex, p2.tex);
+            scalar_multiply(p0.position[W], p0.tex, p0.tex);
+            scalar_multiply(p1.position[W], p1.tex, p1.tex);
+            scalar_multiply(p2.position[W], p2.tex, p2.tex);
         }
         
         // FRAME = 0, FILL = 1
@@ -938,8 +869,17 @@ void draw_model(int mode)
             {
                 float diffuse, tmp_diff[4], tmp_spec[4];
 
-                set_diffuse_term (f.f_normal, tmp_diff);
-                set_specular_term (f.f_normal, tmp_spec);
+                if(light_type == LOCAL_L)
+                {
+                    /* using one of vertices' light vecs instead of global light dir */
+                    set_diffuse_term (f.f_normal, p0.light, tmp_diff);
+                    set_specular_term (f.f_normal, p0.light, tmp_spec);
+                }
+                else if(light_type == GLOBAL_L)
+                {
+                    set_diffuse_term (f.f_normal, light, tmp_diff);
+                    set_specular_term (f.f_normal, light, tmp_spec);
+                }
                 
                 //modulate interpolated color * texture
                 if(!modulate || (modulate && modulate_type == MOD_COLOR))
@@ -960,8 +900,12 @@ void draw_model(int mode)
                         vector_add(tmp_spec, p1.color, p1.color);
                         vector_add(tmp_spec, p2.color, p2.color);
                     }
-                    float ambient[4] = {0, 0 , 0 , 0};
-                    vector_multiply(light_ambient, material_ambient, ambient);
+                    
+                    float ambient[4] = {0.5 , 0.5 , 0.5 , 0};
+                    if(material)
+                    {
+                        vector_multiply(light_ambient, material_ambient, ambient);
+                    }
                     
                     vector_add(p0.color, ambient, p0.color);
                     vector_add(p1.color, ambient, p1.color);
@@ -1026,10 +970,17 @@ void draw_model(int mode)
                 drawing_normals = OFF;
 
             }
+
         }
     }
+}
+
+/* draw object space coord axes */
+void draw_local_axes (void)
+{
     if(axes_start_idx != 0 && draw_coord_axes)
     {
+        drawing_axes = ON;
         //draw coord axes of model
         set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);
         set_vec4(vertex_list[axes_start_idx + 1].color, 1, 0, 0, 1);
@@ -1045,63 +996,65 @@ void draw_model(int mode)
         set_vec4(vertex_list[axes_start_idx + 3].color, 0, 0, 1, 1);
         draw_line(&vertex_list[axes_start_idx],
                   &vertex_list[axes_start_idx + 3], DRAW);
+        drawing_axes = OFF;
     }
-
 }
 
-void draw_2D_select_box (void)
+/* set 2D click frame for sensing mouse clicks in main.c */
+void set_click_frame (OBJECT *o)
 {
-    POINT top_left, bottom_right;
-    float max_x, max_y, min_x, min_y;
-    max_x = INT_MIN;
-    max_y = INT_MIN;
-    min_x = INT_MAX;
-    min_y = INT_MAX;
-
-    for(int i = 0; i < num_vertices; i++)
-    {
-        if(vertex_list[i].position[X] < min_x)
-        {
-            min_x = vertex_list[i].position[X];
-        }
-        else if(vertex_list[i].position[X] > max_x)
-        {
-            max_x = vertex_list[i].position[X];
-        }
-        if(vertex_list[i].position[Y] < min_y)
-        {
-            min_y = vertex_list[i].position[Y];
-        }
-        else if(vertex_list[i].position[Y] > max_y)
-        {
-            max_y = vertex_list[i].position[Y];
-        }
-    }
-
-    bottom_left.position[X] = min_x - 5;
-    bottom_left.position[Y] = min_y - 5;
-    top_right.position[X] = max_x + 5;
-    top_right.position[Y] = max_y + 5;
-
-    top_left.position[X] = bottom_left.position[X];
-    top_left.position[Y] = top_right.position[Y];
-    top_left.position[Z] = 0;
-    
-    bottom_right.position[X] = top_right.position[X];
-    bottom_right.position[Y] = bottom_left.position[Y];
-    bottom_right.position[Z] = 0;
- 
-    set_vec4(bottom_right.color, 1, 0, 0, 1);
-    set_vec4(top_left.color, 1, 0, 0, 1);
-    set_vec4(bottom_left.color, 1, 0, 0, 1);
-    set_vec4(top_right.color, 1, 0, 0, 1);
-
-    draw_line(&top_left, &top_right, DRAW);
-    draw_line(&top_right, &bottom_right, DRAW);
-    draw_line(&bottom_right, &bottom_left, DRAW);
-    draw_line(&bottom_left, &top_left, DRAW);
+    cpy_vec4(o->bb_tr.position, vertex_list[bb_start_idx + 1].position);
+    cpy_vec4(o->bb_bl.position, vertex_list[bb_start_idx + 3].position);
+//    printf("type: %i | ID: %i | tr: (%.2f, %.2f) | bl: (%.2f, %.2f)\n",
+//           o->type, o->ID,
+//           o->bb_tr.position[X], o->bb_tr.position[Y],
+//           o->bb_bl.position[X], o->bb_bl.position[Y]);
 }
 
+/* for SCENE mode to draw a black 3D box around the object being modified */
+void draw_3D_bb (float bb_color[4])
+{
+    if(bb_start_idx != 0 && draw_bounding_box)
+    {
+        for(int i = 0; i < 8; i++)
+        {
+//            set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+            cpy_vec4(vertex_list[bb_start_idx + i].color, bb_color);
+        }
+        drawing_bounding_box = ON;
+        draw_line(&vertex_list[bb_start_idx + 0],
+                  &vertex_list[bb_start_idx + 1], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 1],
+                  &vertex_list[bb_start_idx + 2], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 2],
+                  &vertex_list[bb_start_idx + 3], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 3],
+                  &vertex_list[bb_start_idx + 0], DRAW);
+        
+        draw_line(&vertex_list[bb_start_idx + 0],
+                  &vertex_list[bb_start_idx + 4], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 1],
+                  &vertex_list[bb_start_idx + 5], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 2],
+                  &vertex_list[bb_start_idx + 6], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 3],
+                  &vertex_list[bb_start_idx + 7], DRAW);
+        
+        draw_line(&vertex_list[bb_start_idx + 4],
+                  &vertex_list[bb_start_idx + 5], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 5],
+                  &vertex_list[bb_start_idx + 6], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 6],
+                  &vertex_list[bb_start_idx + 7], DRAW);
+        draw_line(&vertex_list[bb_start_idx + 7],
+                  &vertex_list[bb_start_idx + 4], DRAW);
+        drawing_bounding_box = OFF;
+    }
+}
+
+/****************************************************************/
+/* Texture Generation */
+/****************************************************************/
 /* go through all vertices and generate texture coordinates from normals */
 void get_tex_coords (void)
 {
@@ -1137,5 +1090,260 @@ void get_tex_coords (void)
             reflection_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-
 }
+
+char *tex_gen_name (int mode)
+{
+    switch (mode)
+    {
+        case OFF:
+            return "NONE";
+        case NAIVE:
+            return "NAIVE";
+        case CYLINDRICAL:
+            return "CYLINDRICAL";
+        case SPHERICAL:
+            return "SPHERICAL";
+        case REFLECTION:
+            return "REFLECTION";
+        case CUBE_MAP:
+            return "CUBE MAP";
+        default:
+            return "ERROR";
+    }
+}
+/****************************************************************/
+/* lighting */
+/****************************************************************/
+void calculate_light_vectors (void)
+{
+    POINT *p;
+    for(int i = 0; i < num_vertices; i++)
+    {
+        p = &vertex_list[i];
+        vector_subtract(light_pos, p->world, p->light);
+        normalize(p->light);
+    }
+}
+
+/****************************************************************/
+/* OBJ I/O */
+/****************************************************************/
+
+/* read a .obj file and transform vertices to world space */
+void read_obj_file (char *file_name, MAT4 *model)
+{
+    /* r, g, b color options */
+    set_vec4(color_list[0], 1, 0, 0, 1);
+    set_vec4(color_list[1], 0, 1, 0, 1);
+    set_vec4(color_list[2], 0, 0, 1, 1);
+    set_vec4(color_list[3], 0.5, 0.5, 0.5, 1);
+    
+    FILE *fp;
+    fp = fopen(file_name, "r");
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        num_vertices = 0;
+        float x, y, z, s, t, r, nx, ny, nz;
+        int i, j, k, vt1, vt2, vt3, vn1, vn2, vn3;
+        vt1 = 0;
+        vt2 = 1;
+        vt3 = 2;
+        /* handle any possible comments */
+        int next_ch;
+        char comment[500];
+        char next_line[500];
+        
+        next_ch = getc(fp);
+        if(next_ch == '#') fgets(comment, 500, fp);
+        else ungetc(next_ch, fp);
+        
+        while(fgets(next_line, 500, fp)[0] != 'v')
+        {
+            ;
+        }
+        fputs(next_line, fp);
+        
+        /******************/
+        /* vertices */
+        /******************/
+        do
+        {
+            sscanf(next_line, "v %f %f %f\n", &x, &y, &z);
+            set_vec4(vertex_list[num_vertices].world, x, y, z, 1.0);
+            num_vertices++;
+            fgets(next_line, 500, fp);
+        } while(!strncmp(next_line, "v ", 2));
+        
+        /* local to world space */
+        model_xform(model);
+        
+        /* reset num_tris for each vertex */
+        reset_num_tris(num_vertices);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i vertices read\n", num_vertices);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] == '\n')
+        {
+            
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        /******************/
+        /* textures */
+        /******************/
+        num_tex_coords = 0;
+        while (!strncmp(next_line, "vt", 2))
+        {
+            sscanf(next_line, "vt %f %f %f\n", &s, &t, &r);
+            set_vec4(tex_list[num_tex_coords], s, t, r, 0.0);
+            num_tex_coords++;
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i textures read\n", num_tex_coords);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] == '\n')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+        /******************/
+        /* normals */
+        /******************/
+        num_vertex_normals = 0;
+        while (!strncmp(next_line, "vn", 2))
+        {
+            sscanf(next_line, "vn %f %f %f\n", &nx, &ny, &nz);
+            set_vec4(normal_list[num_vertex_normals], nx, ny, nz, 0.0);
+            num_vertex_normals++;
+            fgets(next_line, 500, fp);
+            
+        }
+        fputs(next_line, fp);
+        
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i normals read\n", num_vertex_normals);
+        printf("NEXT: %s\n", next_line);
+#endif
+        
+        while(next_line[0] != 'f')
+        {
+            fgets(next_line, 500, fp);
+        }
+        fputs(next_line, fp);
+        
+        
+        /******************/
+        /* add faces/triangles */
+        /******************/
+        num_triangles = 0; /* reset num of triangles */
+        while(!strncmp(next_line, "f", 1))
+        {
+            if(num_tex_coords > 0 && num_vertex_normals > 0)
+            /* obj file has vt, vn */
+            {
+                obj_has_vnorms = TRUE;
+                sscanf(next_line, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
+                       &i, &vt1, &vn1,
+                       &j, &vt2, &vn2,
+                       &k, &vt3, &vn3);
+            }
+            else if (num_tex_coords > 0)
+            /* obj file has vt, no vn */
+            {
+                obj_has_vnorms = FALSE;
+                sscanf(next_line, "f %d/%d %d/%d %d/%d\n",
+                       &i, &vt1, &j, &vt2, &k, &vt3);
+            }
+            else if (num_vertex_normals > 0)
+            /* obj has vn, no vt */
+            {
+                obj_has_vnorms = TRUE;
+                sscanf(next_line, "f %d//%d %d//%d %d//%d\n",
+                       &i, &vn1, &j, &vn2, &k, &vn3);
+            }
+            else {
+                /* obj has neither vt nor vn */
+                obj_has_vnorms = FALSE;
+                sscanf(next_line, "f %d %d %d\n", &i, &j, &k);
+            }
+            
+            vt1 = i;
+            vt2 = j;
+            vt3 = k;
+            add_face(i - 1,     j - 1,      k - 1,      //vtx indices
+                     3,         3,          3,          //colors
+                     vt1 - 1,   vt2 - 1,    vt3 - 1,    //tex coord indices
+                     vn1,       vn2,        vn3);       //normal indices
+            
+            if(fgets(next_line, 500, fp) == NULL)
+            {
+                break; // reach end of file
+            }
+            while(next_line[0] != 'f')
+            {
+                if(fgets(next_line, 500, fp) == NULL)
+                {
+                    break;
+                }
+            }
+        }
+#ifdef PRINT_DEBUG_OBJ
+        printf("%i faces read\n", num_triangles);
+        printf("obj has vnorms: %s\n", obj_has_vnorms ? "YES" : "NO");
+#endif
+        fclose(fp);
+    }
+    /* in order to establish proper spacing in vertex_list */
+    num_face_normals = num_triangles;
+}
+
+void write_obj_file (char *file_name)
+{
+    FILE *fp;
+    fp = fopen(file_name, "w");
+    
+    if (fp == NULL)
+    {
+        printf("Unable to open file %s\n", file_name);
+    }
+    else
+    {
+        printf("%s has been opened and its contents overwritten.\n", file_name);
+        float x, y, z;
+        int i, j, k;
+        printf("num_vertices = %i\n", num_vertices);
+        for(int v = 0; v < num_vertices; v++)
+        {
+            x = vertex_list[v].world[X];
+            y = vertex_list[v].world[Y];
+            z = vertex_list[v].world[Z];
+            fprintf(fp, "v %f %f %f\n", x, y, z);
+        }
+        for(int f = 0; f < num_triangles; f++)
+        {
+            i = face_list[f].vertices[0];
+            j = face_list[f].vertices[1];
+            k = face_list[f].vertices[2];
+            
+            fprintf(fp, "f %d %d %d\n", i+1, j+1, k+1);
+        }
+        
+        printf("Done writing obj file to %s\n", file_name);
+        fclose(fp);
+    }
+}
+

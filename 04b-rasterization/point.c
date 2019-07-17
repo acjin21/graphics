@@ -3,27 +3,14 @@
 #include <stdio.h>
 #include <math.h>
 #include "macros.h"
-#include "texture.h"
 #include "vector.h"
 
-/*************************************************************************/
-/* externs                                                               */
-/*************************************************************************/
-/* modes */
-extern int modulate_type;
-extern int normal_type;
-extern int drawing_backside;
-
-/* data */
-extern IMAGE texture;
-extern float color_buffer[WIN_H][WIN_W][4];
-extern float depth_buffer[WIN_H][WIN_W];
-
-extern float light[4];
-extern float eye[4];
-extern float shinyness;
-extern float material_diffuse[4], material_specular[4], material_ambient[4];
-extern float light_diffuse[4], light_specular[4], light_ambient[4];
+#include "app.h"
+#include "model.h"
+#include "light.h"
+#include "color.h"
+#include "depth.h"
+#include "material.h"
 
 /*************************************************************************/
 /* global vars                                                          */
@@ -36,7 +23,11 @@ int modulate = OFF;
 int perspective_correct = OFF;
 
 int shading_mode = FLAT;
+
 int drawing_normals = OFF;
+int drawing_bounding_box = OFF;
+int drawing_axes = OFF;
+
 int bump_mapping = OFF;         // bump mapping for specular lighting
 int material = OFF;             // material properties
 int specular_highlight = OFF;
@@ -46,6 +37,11 @@ int fog = OFF;
 IMAGE bump_map;
 float fog_color[4] = {1, 1, 1, 1};
 
+IMAGE cube_map[6];
+IMAGE texture;
+IMAGE *texture_ptr = &texture;
+int cube_map_index;
+
 /*************************************************************************/
 /* helper functions                                                      */
 /*************************************************************************/
@@ -53,7 +49,7 @@ float fog_color[4] = {1, 1, 1, 1};
     calculate diffuse term for current material and light types, and
         store vector result in diffuse_term
  */
-void set_diffuse_term (float normal[4], float diffuse_term[4])
+void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
 {
     float diffuse;
     normalize(light);
@@ -76,7 +72,7 @@ void set_diffuse_term (float normal[4], float diffuse_term[4])
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float spec_term[4])
+void set_specular_term (float normal[4], float light[4], float spec_term[4])
 {
     float specular, refl[4];
     normalize(light);
@@ -123,27 +119,16 @@ void shade_point (float diffuse[4], float spec[4], POINT *p)
 /*************************************************************************/
 void draw_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + WIN_H / 2);
-    int c = (int) (p->position[X] + WIN_W / 2);
+    int r = (int) (p->position[Y]);//+ WIN_H / 2);
+    int c = (int) (p->position[X]);// + WIN_W / 2);
     
     /* if not within window size, do not draw */
     if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
     
     float blend_weight = 0.50; //for alpha blending
     
-    /* for now, we only implement perspective correct texture mapping */
-    int persp_correct_texturing = perspective_correct && texturing;
-    
-    /* calculate fail condition for depth test */
-    int fails_z =
-        (!persp_correct_texturing && p->position[Z] > depth_buffer[r][c]) ||
-        (persp_correct_texturing && 1.0/p->position[Z] > depth_buffer[r][c]);
-    
     /* early return if fail depth test */
-    if(depth_test && fails_z)
-    {
-        return;
-    }
+    if(depth_test && p->position[Z] > depth_buffer[r][c]) return;
     
     /* bump map */
     if(normal_type != V_NORMALS && bump_mapping)
@@ -163,20 +148,29 @@ void draw_point (POINT *p)
         
         bump[X] = bump_map.data[v][u][R] / 255.0;
         bump[Y] = bump_map.data[v][u][G] / 255.0;
-        bump[Z] = bump_map.data[v][u][B] / 255.0;
+        bump[Z] = (bump_map.data[v][u][B] / 255.0);
         bump[W] = 1;
-        
-        scalar_add(-0.5, bump, bump);
+        scalar_multiply(2, bump, bump);
+        scalar_add(-1, bump, bump);
+        bump[Z] = -1 * bump[Z]; //flip for our left-handed coord system
         normalize(bump);
-        vector_multiply(bump, p->v_normal, p->v_normal);
+        cpy_vec4(p->v_normal, bump);
     }
     
     /* phong shading */
-    if(normal_type != V_NORMALS && shading_mode == PHONG)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
-        set_diffuse_term(p->v_normal, tmp_diff);
-        set_specular_term(p->v_normal, tmp_spec);
+        if(light_type == LOCAL_L)
+        {
+            set_diffuse_term(p->v_normal, p->light, tmp_diff);
+            set_specular_term(p->v_normal, p->light, tmp_spec);
+        }
+        else if (light_type == GLOBAL_L)
+        {
+            set_diffuse_term(p->v_normal, light, tmp_diff);
+            set_specular_term(p->v_normal, light, tmp_spec);
+        }
         
         //modulate texture with color and brightness
         if(!modulate || (modulate && modulate_type == MOD_COLOR))
@@ -198,49 +192,57 @@ void draw_point (POINT *p)
             {
                 vector_multiply(light_ambient, material_ambient, ambient);
             }
-
             vector_add(p->color, ambient, p->color);
         }
     }
-    
+    texture_ptr = &texture;
+
     /* texture mapping */
-    if(!drawing_normals && texturing)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && tex_gen_mode == CUBE_MAP)
+    {
+        normalize(p->v_normal);
+        cube_map_vec(p->v_normal, p->tex, &cube_map_index);
+        texture_ptr = &cube_map[cube_map_index];
+
+    }
+    
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && texturing)
     {
         float s, t;
         int u, v;
-        
+
         if (perspective_correct)
         {
             s = p->tex[S];
             t = p->tex[T];
+        
+            // unwrap s and t coords using interpolated 1/w value:
+            //  (s/w, t/w) -> (s, t)
+            s /= p->position[W];
+            t /= p->position[W];
             
-            float z = 1.0 / p->position[Z];
-            p->position[Z] = 1.0 / p->position[Z];
-            s *= z;
-            t *= z;
-            
-            u = (int) (s * texture.width);
-            v = (int) (t * texture.height);
+            u = (int) (s * texture_ptr->width);
+            v = (int) (t * texture_ptr->height);
         }
         else
         {
-            s = (p->tex[S] * texture.width);
-            t = (p->tex[T] * texture.height);
+            s = (p->tex[S] * texture_ptr->width);
+            t = (p->tex[T] * texture_ptr->height);
             
             if(p->tex[S] == 1 || p->tex[T] == 1)
             {
-                s = p->tex[S] == 1 ? texture.width - 1 : s;
-                t = p->tex[T] == 1 ? texture.width - 1 : t;
+                s = p->tex[S] == 1 ? texture_ptr->width - 1 : s;
+                t = p->tex[T] == 1 ? texture_ptr->width - 1 : t;
             }
             
             u = (int) s;
             v = (int) t;
         }
         
-        color_buffer[r][c][R] = texture.data[v][u][R] / 255.0;
-        color_buffer[r][c][G] = texture.data[v][u][G] / 255.0;
-        color_buffer[r][c][B] = texture.data[v][u][B] / 255.0;
-        color_buffer[r][c][A] = texture.data[v][u][A] / 255.0;
+        color_buffer[r][c][R] = texture_ptr->data[v][u][R] / 255.0;
+        color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
+        color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
+        color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
         // if drawing reverse side of triangles, ignore the texel channels
         if(drawing_backside)
         {
