@@ -51,6 +51,40 @@ void set(MAT4 *out,
 //    print_mat4(out);
 }
 
+void set_one_col (MAT4 *out, int c, float col[4])
+{
+    for(int i = 0; i < 4; i++)
+    {
+        out->data[c + 4 * i] = col[i];
+    }
+}
+
+void set_one_row (MAT4 *out, int r, float row[4])
+{
+    for(int i = 0; i < 4; i++)
+    {
+        out->data[4 * r + i] = row[i];
+    }
+}
+
+void set_all_cols (MAT4 *out,
+                   float col0[4], float col1[4], float col2[4], float col3[4])
+{
+    set_one_col(out, 0, col0);
+    set_one_col(out, 1, col1);
+    set_one_col(out, 2, col2);
+    set_one_col(out, 3, col3);
+}
+
+void set_all_rows (MAT4 *out,
+                   float row0[4], float row1[4], float row2[4], float row3[4])
+{
+    set_one_row(out, 0, row0);
+    set_one_row(out, 1, row1);
+    set_one_row(out, 2, row2);
+    set_one_row(out, 3, row3);
+}
+
 /* set 4x4 matrix out to the identity matrix */
 void set_identity (MAT4 *out)
 {
@@ -236,6 +270,39 @@ void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
     mat_mul (model, &tmp, model);
     set_transl (&tmp, tx, ty, tz);
     mat_mul (model, &tmp, model);
+}
+
+void set_camera_mat (MAT4 *cam, float eye[4], float lookat[4], float up[4])
+{
+    float u[4], v[4];
+    float col3[4] = {0, 0, 0, 1};
+    MAT4 transl, rot;
+    if(eye[X] == lookat[X] && eye[Y] == lookat[Y] && eye[Z] == lookat[Z])
+    {
+        set_identity(&rot);
+    }
+    else
+    {
+        vector_subtract(lookat, eye, v);
+        normalize(v);
+//        set_vec4(v, 0, 0, 1, 0);
+//        printf("v: %.2f, %.2f, %.2f\n", v[X], v[Y], v[Z]);
+
+        vector_cross (up, v, u);
+        normalize(u);
+//        printf("u: %.2f, %.2f, %.2f\n", u[X], u[Y], u[Z]);
+
+        vector_cross (v, u, up);
+        normalize(up);
+//        printf("up: %.2f, %.2f, %.2f\n", up[X], up[Y], up[Z]);
+
+        u[W] = 0.0;
+        v[W] = 0.0;
+        up[W] = 0.0;
+        set_all_rows(&rot, u, up, v, col3);
+    }
+    set_transl(&transl, -eye[X], -eye[Y], -eye[Z]);
+    mat_mul (cam, &rot, &transl); // M_cam = M_rot * M_transl
 }
 
 void set_perspective_mat (MAT4 *perspective,

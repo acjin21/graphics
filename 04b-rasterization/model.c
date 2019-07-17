@@ -685,6 +685,30 @@ void calculate_vertex_normals (void)
         }
     }
 }
+
+/****************************************************************/
+/* for camera projections */
+/****************************************************************/
+void camera_xform (float eye[4], float lookat[4], float up[4])
+{
+//    printf("============== CAMERA XFORM ============ \n");
+
+    MAT4 cam;
+    set_camera_mat (&cam, eye, lookat, up);
+//    printf("---- CAMERA MAT ---- \n");
+//    print_mat4(&cam);
+    int max_idx = get_max_idx (normal_type);
+    for(int i = 0; i < max_idx; i++)
+    {
+        mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
+        vertex_list[i].position[W] = 1.0;
+    }
+//    printf("==========================================  \n");
+
+
+}
+
+
 /****************************************************************/
 /* for orthographic projections */
 /****************************************************************/
@@ -693,22 +717,24 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
+    MAT4 ortho;
+    set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
+    
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
     {
-        MAT4 ortho;
-        set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
         vertex_list[i].position[W] = 1.0;
     }
 }
 void viewport_mat_xform (int vp_w, int vp_h)
 {
+    MAT4 viewport;
+    set_viewport_mat (&viewport, vp_w, vp_h);
+    
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
     {
-        MAT4 viewport;
-        set_viewport_mat (&viewport, vp_w, vp_h);
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
         
         // do translation separately so that position[W] = 1/w for persp corr.
@@ -892,9 +918,9 @@ void draw_model(int mode)
             if(f.f_normal[Z] >= 0) //pointing away from us
             {
                 drawing_backside = ON;
-                set_vec4(p0.color, 0.5, 0.5, 0.5, 1);
-                set_vec4(p1.color, 0.5, 0.5, 0.5, 1);
-                set_vec4(p2.color, 0.5, 0.5, 0.5, 1);
+                scalar_add(-0.5, p0.color, p0.color);
+                scalar_add(-0.5, p1.color, p1.color);
+                scalar_add(-0.5, p2.color, p2.color);
                 draw_triangle_barycentric (&p0, &p2, &p1);
                 
             }

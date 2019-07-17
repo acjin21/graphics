@@ -10,6 +10,7 @@
 //#include "macros.h"
 #include "util.h"       // random_float
 #include "time.h"
+#include "vector.h"
 
 #include "material.h"
 #include "texture.h"    // IMAGE typedef, texture and ppm functions
@@ -18,6 +19,7 @@
 #include "point.h"
 #include "model.h"
 #include "scene.h"
+#include "camera.h"
 
 /*************************************************************************/
 /* externs                                                               */
@@ -41,6 +43,11 @@ float init_scale = 1.0;         // for obj files from the internet
 
 int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
 int rot_mode = LOCAL;
+
+MAT4 camera_mat;
+float lookat[4] = {0, 0, 1, 0};
+float k[4] = {0, 0, 1, 0};
+float world_up[4] = {0, 1, 0, 0};
 
 int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
 float ortho_vp_scale = 50;
@@ -76,7 +83,7 @@ int calculate_all_vns = OFF;
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
-int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
+int light_type = GLOBAL_L;         // LOCAL or GLOBAL lights
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -110,7 +117,7 @@ void print_settings(void)
            bump_mapping ? "ON" : "OFF");
     printf(".....................\n");
     printf(".......LIGHTING......\n");
-    printf("Shading Type (s):\t%s\n",
+    printf("Shading Type (h):\t%s\n",
            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
     printf("Spec Highlight (S):\t%s\n",
            specular_highlight ? "ON" : "OFF");
@@ -342,6 +349,11 @@ void render_object(OBJECT *o)
     //scale
     scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
     
+    /*******************/
+    /* CAMERA SPACE */
+    /*****************/
+    camera_xform (eye, lookat, world_up);
+
     /**********************/
     /* peripheral components: normals, bounding boxes */
     /**********************/
@@ -362,7 +374,8 @@ void render_object(OBJECT *o)
 //        printf("local\n");
         calculate_light_vectors(); /* generate all world points' light vecs */
     }
-    
+
+
     switch(proj_mode)
     {
         case ORTHO:
@@ -645,7 +658,7 @@ void key_callback (unsigned char key)
             
         case 'R':       rot_mode = 1 - rot_mode;                        break;
             /* flowing mesh animation */
-        case 'w':       mesh_da += 0.5;                                 break;
+//        case 'w':       mesh_da += 0.5;                                 break;
             /* reset rotations and any offsets */
         case 'r':
             curr_object->rotation[X] = 0;
@@ -655,11 +668,18 @@ void key_callback (unsigned char key)
             mesh_da = 0;                                    break;
             
             /* zooming: in (+) /out (-) */
-        case '+':       if(proj_mode == PERSPECT) dz -= 0.20;
-            if(proj_mode == ORTHO) ortho_vp_scale += 10;
+        case '+':
+            eye[Z] += 0.5;
+            
+//            if(proj_mode == PERSPECT) dz -= 0.20;
+//            if(proj_mode == ORTHO) ortho_vp_scale += 10;
             break;
-        case '-':       if(proj_mode == PERSPECT) dz += 0.20;
-            if(proj_mode == ORTHO) ortho_vp_scale -= 10;
+        case '-':
+            eye[Z] -= 0.5;
+            
+
+//            if(proj_mode == PERSPECT) dz += 0.20;
+//            if(proj_mode == ORTHO) ortho_vp_scale -= 10;
             break;
             
             /* point drawing modes */
@@ -679,13 +699,13 @@ void key_callback (unsigned char key)
             break;
             
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 'd':       depth_test = 1 - depth_test;                    break;
+        case 'D':       depth_test = 1 - depth_test;                    break;
             
         case 'm':       modulate = 1 - modulate;                        break;
         case 'M':       if(modulate) modulate_type = 1 - modulate_type; break;
             
         case 'n':       normal_type = (normal_type + 1) % 3;            break;
-        case 's':       shading_mode = (shading_mode + 1) % 3;          break;
+        case 'h':       shading_mode = (shading_mode + 1) % 3;          break;
         case 'F':       fog = 1 - fog;                                  break;
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
@@ -698,7 +718,7 @@ void key_callback (unsigned char key)
             /* toggle between color and depth buffer */
         case 'B':       framebuffer_src = 1 - framebuffer_src;                            break;
             
-        case 'a':       draw_coord_axes = 1 - draw_coord_axes;          break;
+        case 'A':       draw_coord_axes = 1 - draw_coord_axes;          break;
         case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;
             
             /* write out scene objects with initial orientation to a scene file */
@@ -708,7 +728,18 @@ void key_callback (unsigned char key)
             break;
             /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
+        
+        case 'a': lookat[X] -= 0.5;                  break;
+        case 'd': lookat[X] += 0.5;                  break;
+        case 'w': lookat[Y] += 0.5;                  break;
+        case 's': lookat[Y] -= 0.5;                  break;
             
+        case 'j': eye[X] -= 0.5;                  break;
+        case 'l': eye[X] += 0.5;                  break;
+        case 'i': eye[Y] += 0.5;                  break;
+        case 'k': eye[Y] -= 0.5;                  break;
+            
+
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;

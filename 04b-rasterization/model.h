@@ -57,6 +57,9 @@ void scale_model_mat (float sx, float sy, float sz);
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
+void camera_xform (float eye[4], float lookat[4], float up[4]);
+
+
 /* orthographic transformations */
 void xform_model(float x_min, float x_max,
                  float y_min, float y_max,

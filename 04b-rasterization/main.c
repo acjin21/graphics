@@ -79,10 +79,10 @@ void display(void)
             glutPostRedisplay();
         }
     }
-//    if(program_type != BENCHMARK)
-//    {
-//        print_settings();
-//    }
+    if(program_type != BENCHMARK)
+    {
+        print_settings();
+    }
 
     if(program_type == BENCHMARK)
     {
@@ -289,10 +289,9 @@ int main(int argc, char **argv)
         read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
         read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
     }
-    if(bump_mapping || program_type == BASIC)
-    {
-        read_ppm("ppm/rocks_bump.ppm", &bump_map);
-    }
+    
+    read_ppm("ppm/rocks_bump.ppm", &bump_map);
+    
     set_texture();
     
     /* open output file for benchmarking */
