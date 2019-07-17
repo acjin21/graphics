@@ -796,7 +796,7 @@ void perspective_xform(float near, float far)
     for(int i = 0; i < max_idx; i++)
     {
         MAT4 perspective;
-        set_perspective_mat (&perspective, near, far, -5, 5, -5, 5);
+        set_perspective_mat (&perspective, near, far, -2, 2, -2, 2);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
         float w = vertex_list[i].position[W];
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
@@ -808,6 +808,32 @@ void perspective_xform(float near, float far)
         }
     }
 }
+
+//void perspective_xform(float near, float far)
+//{
+//    int max_idx = get_max_idx (normal_type);
+//
+//    for(int i = 0; i < max_idx; i++)
+//    {
+//        float x, y, z;
+//        x = vertex_list[i].world[X];
+//        y = vertex_list[i].world[Y];
+//        z = vertex_list[i].world[Z];
+//
+//        vertex_list[i].position[X] = near * x / z;
+//        vertex_list[i].position[Y] = near * y / z;
+//
+//        if(perspective_correct && texturing)
+//        {
+//            vertex_list[i].position[Z] = (float)(far - near) / z;
+//        }
+//        else
+//        {
+//            vertex_list[i].position[Z] = (float) z / (far - near);
+//        }
+//        vertex_list[i].position[W] = 1.0;
+//    }
+//}
 
 /* scale normalized view coordinates to screen coordinates */
 /*  (for perspective proj)                                 */

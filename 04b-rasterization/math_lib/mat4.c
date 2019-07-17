@@ -315,6 +315,11 @@ void set_perspective_mat (MAT4 *perspective,
         0, 2.0 * near / (y_max - y_min), (y_max + y_min) / (y_min - y_max), 0,
         0, 0, (near + far) / (far - near), - (2.0 * far * near) / (far - near),
         0, 0, 1, 0);
+//    set(perspective,
+//        near, 0, 0, 0,
+//        0, near, 0, 0,
+//        0, 0, 0, 1,
+//        0, 0, far - near, 0);
 }
 
 void set_ortho_mat (MAT4 *ortho,

@@ -386,7 +386,7 @@ void render_object(OBJECT *o)
         case PERSPECT:
             translate_model(dz);
             float near =  3.0;
-            float far = 20.0;
+            float far = 40.0;
             int skip = cull_model(near, far);
             if(skip)
             {
@@ -734,10 +734,10 @@ void key_callback (unsigned char key)
         case 'w': lookat[Y] += 0.5;                  break;
         case 's': lookat[Y] -= 0.5;                  break;
             
-        case 'j': eye[X] -= 0.5;                  break;
-        case 'l': eye[X] += 0.5;                  break;
-        case 'i': eye[Y] += 0.5;                  break;
-        case 'k': eye[Y] -= 0.5;                  break;
+        case 'j': eye[X] -= 0.5;    lookat[X] -= 0.5;               break;
+        case 'l': eye[X] += 0.5;    lookat[X] += 0.5;               break;
+        case 'i': eye[Y] += 0.5;    lookat[Y] += 0.5;               break;
+        case 'k': eye[Y] -= 0.5;    lookat[Y] -= 0.5;               break;
             
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
