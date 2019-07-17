@@ -73,7 +73,7 @@ void viewport_mat_xform (int vp_w, int vp_h);
 void draw_model(int mode);
 void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
-void draw_3D_bb (void);
+void draw_3D_bb (float bb_color[4]);
 
 /* texture generation */
 void get_tex_coords (void);

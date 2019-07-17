@@ -399,7 +399,8 @@ void render_object(OBJECT *o)
     if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
     {
         draw_local_axes();
-        draw_3D_bb();
+        float bb_color[4] = {1, 1, 1, 1};
+        draw_3D_bb(bb_color);
     }
     stop_timer(&px_timer);
     //    printf("px_timer: %.5f\n", elapsed_time(&px_timer));
@@ -460,7 +461,13 @@ void display_scene_mode (void)
 {
     for(int i = 0; i < num_objects; i++)
     {
+//        printf("%i\n", i);
+        objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1); //prevent scale from being 0
+        objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1); //prevent scale from being 0
+        objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1); //prevent scale from being 0
         render_object(&objects[i]);
+
+
     }
 }
 /********************************************/
@@ -498,6 +505,14 @@ void display_obj_mode (void)
     
     read_obj_file(obj_file, &o->model_mat);
     render_object(o);
+}
+
+void translate_object(float screen_dx, float screen_dy)
+{
+    OBJECT *curr_object = get_curr_object(curr_objectID);
+    curr_object->translate[X] += (5 * screen_dx / (WIN_W / 2.0));
+    curr_object->translate[Y] += (5 * screen_dy / (WIN_H / 2.0));
+
 }
 
 /********************************************/

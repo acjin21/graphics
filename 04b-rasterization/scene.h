@@ -4,7 +4,7 @@
 #include "math_lib/mat4.h"
 #include "point.h"
 
-#define MAX_N_OBJECTS 10
+#define MAX_N_OBJECTS 32
 
 #define ORTHO 0
 #define PERSPECT 1

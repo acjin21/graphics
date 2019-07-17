@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 //#include "macros.h"
 #include "time.h"
@@ -36,7 +37,7 @@ int display_timer = 0;
 FILE *cb_file;
 int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
 int num_samples = 360;
-
+float start[2], stop[2];
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -74,10 +75,10 @@ void display(void)
             glutPostRedisplay();
         }
     }
-    if(program_type != BENCHMARK)
-    {
-        print_settings();
-    }
+//    if(program_type != BENCHMARK)
+//    {
+//        print_settings();
+//    }
 
     if(program_type == BENCHMARK)
     {
@@ -85,7 +86,9 @@ void display(void)
     }
     else
     {
-        clear_color_buffer(1, 1, 1, 1);
+//        clear_color_buffer(1, 1, 1, 1);
+        clear_color_buffer(0, 0, 0, 1);
+
     }
     clear_depth_buffer(1.0);
     glPointSize(2.0);
@@ -106,7 +109,6 @@ void display(void)
     }
     else if(program_type == SCENE)
     {
-        printf("scene mode display\n");
         display_scene_mode();
     }
     else if(program_type == OBJ)
@@ -148,30 +150,51 @@ static void key(unsigned char key, int x, int y)
 
 int click_in_bb (int x, int y, OBJECT *o)
 {
-    printf("bl: %.2f, %.2f || tr: %.2f, %.2f\n", o->bb_bl.position[X], o->bb_bl.position[Y],
-           o->bb_tr.position[X], o->bb_tr.position[Y]);
+//    printf("bl: %.2f, %.2f || tr: %.2f, %.2f\n", o->bb_bl.position[X], o->bb_bl.position[Y],
+//           o->bb_tr.position[X], o->bb_tr.position[Y]);
     return (x > o->bb_bl.position[X] &&
             x < o->bb_tr.position[X] &&
             y > o->bb_bl.position[Y] &&
             y < o->bb_tr.position[Y]);
 }
-
+//void glutMotionFunc(void (*func)(int x, int y));
+void motion(int x, int y)
+{
+    y = WIN_H - y;// (flip)
+    stop[X] = x;
+    stop[Y] = y;
+    float screen_dx = stop[X] - start[X];
+    float screen_dy = stop[Y] - start[Y];
+    translate_object(screen_dx, screen_dy);
+    
+    start[X] = x;
+    start[Y] = y;
+    
+    draw_one_frame = 1;
+    glutPostRedisplay();
+}
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
 void mouse (int button, int state, int x, int y)
 {
     if(program_type == SCENE)
     {
-        printf("%i, %i\n", x, y);
 
         y = WIN_H - y;// (flip)
         if(state == GLUT_DOWN)
         {
-            printf("%i, %i\n", x, y);
+            start[X] = x;
+            start[Y] = y;
+            
+            float closest_z = FLT_MAX;
             for(int i = 0; i < num_objects; i++)
             {
                 if(click_in_bb(x, y, &objects[i]))
                 {
-                    curr_objectID = i;
+                    if(objects[i].center[Z] < closest_z)
+                    {
+                        closest_z = objects[i].center[Z];
+                        curr_objectID = i;
+                    }
                 }
             }
             draw_one_frame = 1;
@@ -218,7 +241,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutKeyboardFunc(key);
     glutMouseFunc(mouse);
-
+    glutMotionFunc(motion);
     /*
      * setup OpenGL state
      */

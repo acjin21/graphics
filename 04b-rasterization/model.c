@@ -1019,13 +1019,14 @@ void set_click_frame (OBJECT *o)
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */
-void draw_3D_bb (void)
+void draw_3D_bb (float bb_color[4])
 {
     if(bb_start_idx != 0 && draw_bounding_box)
     {
         for(int i = 0; i < 8; i++)
         {
-            set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+//            set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
+            cpy_vec4(vertex_list[bb_start_idx + i].color, bb_color);
         }
         drawing_bounding_box = ON;
         draw_line(&vertex_list[bb_start_idx + 0],

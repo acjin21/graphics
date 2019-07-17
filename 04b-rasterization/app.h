@@ -73,6 +73,9 @@ void display_basic_mode (void);
 void display_scene_mode (void);
 void display_obj_mode (void);
 
+void translate_object(float screen_dx, float screen_dy);
+
+
 void key_callback (unsigned char key);
 int init_obj_program (int argc, char **argv);
 int init_scene_program (int argc, char **argv);
