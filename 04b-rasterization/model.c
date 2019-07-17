@@ -769,28 +769,6 @@ void perspective_xform(float near, float far)
 
     for(int i = 0; i < max_idx; i++)
     {
-//        float x, y, z;
-//        x = vertex_list[i].world[X];
-//        y = vertex_list[i].world[Y];
-//        z = vertex_list[i].world[Z];
-//
-//        vertex_list[i].position[X] = near * x / z;
-//        vertex_list[i].position[Y] = near * y / z;
-//
-//        if(perspective_correct && texturing)
-//        {
-//            vertex_list[i].position[Z] = (float)(far - near) / z;
-//        }
-//        else
-//        {
-//            vertex_list[i].position[Z] = (float) z / (far - near);
-//        }
-//        vertex_list[i].position[W] = 1.0;
-//        printf("world: (%.2f, %.2f, %.2f, %.2f)\n",
-//               vertex_list[i].world[X],
-//               vertex_list[i].world[Y],
-//               vertex_list[i].world[Z],
-//               vertex_list[i].world[W]);
         MAT4 perspective;
         set_perspective_mat (&perspective, near, far, -5, 5, -5, 5);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
@@ -799,8 +777,7 @@ void perspective_xform(float near, float far)
         // {x/w, y/w, z/w, 1}
         if(perspective_correct && texturing)
         {
-                vertex_list[i].position[W] = 1.0 / w; //carry 1/w in W slot to interpolate
-            
+            vertex_list[i].position[W] = 1.0 / w; //carry 1/w in W slot to interpolate
             // {x/w, y/w, z/w, 1/w}
         }
     }
