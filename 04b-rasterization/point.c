@@ -8,6 +8,7 @@
 #include "app.h"
 #include "model.h"
 #include "light.h"
+#include "camera.h"
 #include "color.h"
 #include "depth.h"
 #include "material.h"

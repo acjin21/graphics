@@ -4,6 +4,8 @@
 #include <math.h>
 #include "macros.h"
 #include "light.h"
+#include "camera.h"
+
 
 /****************************************************************/
 /* vector utility functions */
