@@ -353,7 +353,7 @@ void render_object(OBJECT *o)
     /* CAMERA SPACE */
     /*****************/
 //    set_camera (&camera, eye, lookat, world_up); //remove after have rotate_cam method
-//    rotate_camera (&camera, camera.rot[X], camera.rot[Y], camera.rot[Z]);
+    rotate_camera (&camera, camera.rot[X], camera.rot[Y], 0);
 
     camera_xform (&camera);
 
@@ -739,20 +739,20 @@ void key_callback (unsigned char key)
             /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
         
-//        case 'a': camera.rot[X] -= 0.05;                  break;
-//        case 'd': camera.rot[X] += 0.05;                  break;
-//        case 'w': camera.rot[Y] += 0.05;                  break;
-//        case 's': camera.rot[Y] -= 0.05;                  break;
+        case 'a': camera.rot[X] -= 0.05;                  break;
+        case 'd': camera.rot[X] += 0.05;                  break;
+        case 'w': camera.rot[Y] += 0.05;                  break;
+        case 's': camera.rot[Y] -= 0.05;                  break;
             
-        case 'a': lookat[X] -= 0.05;                   break;
-        case 'd': lookat[X] += 0.05;                  break;
-        case 'w': lookat[Y] += 0.05;                  break;
-        case 's': lookat[Y] -= 0.05;                  break;
+//        case 'a': lookat[X] -= 0.05;                   break;
+//        case 'd': lookat[X] += 0.05;                  break;
+//        case 'w': lookat[Y] += 0.05;                  break;
+//        case 's': lookat[Y] -= 0.05;                  break;
             
-        case 'j': camera.pos[X] -= 0.5;    lookat[X] -= 0.5;               break;
-        case 'l': camera.pos[X] += 0.5;    lookat[X] += 0.5;               break;
-        case 'i': camera.pos[Y] += 0.5;    lookat[Y] += 0.5;               break;
-        case 'k': camera.pos[Y] -= 0.5;    lookat[Y] -= 0.5;               break;
+        case 'j': camera.pos[X] -= 0.5;                   break;
+        case 'l': camera.pos[X] += 0.5;                   break;
+        case 'i': camera.pos[Y] += 0.5;                   break;
+        case 'k': camera.pos[Y] -= 0.5;                   break;
             
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
