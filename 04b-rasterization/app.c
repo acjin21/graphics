@@ -352,7 +352,10 @@ void render_object(OBJECT *o)
     /*******************/
     /* CAMERA SPACE */
     /*****************/
-    camera_xform (eye, lookat, world_up);
+//    set_camera (&camera, eye, lookat, world_up); //remove after have rotate_cam method
+//    rotate_camera (&camera, camera.rot[X], camera.rot[Y], camera.rot[Z]);
+
+    camera_xform (&camera);
 
     /**********************/
     /* peripheral components: normals, bounding boxes */
@@ -446,6 +449,11 @@ void display_benchmark_mode (int num_samples)
 /********************************************/
 /* for BASIC mode */
 /********************************************/
+void init_basic_program (void)
+{
+    set_camera (&camera, eye, lookat, world_up);
+}
+
 void display_basic_mode (void)
 {
     OBJECT *o = &objects[0];
@@ -464,6 +472,8 @@ void display_basic_mode (void)
 /********************************************/
 int init_scene_program (int argc, char **argv)
 {
+    set_camera (&camera, eye, lookat, world_up);
+
     strcat(scene_file, argv[2]);
     read_scene(scene_file);
     program_type = SCENE;
@@ -729,15 +739,20 @@ void key_callback (unsigned char key)
             /* write obj file */
         case 'O': write_obj_file("obj/out.obj");                        break;
         
-        case 'a': lookat[X] -= 0.5;                  break;
-        case 'd': lookat[X] += 0.5;                  break;
-        case 'w': lookat[Y] += 0.5;                  break;
-        case 's': lookat[Y] -= 0.5;                  break;
+//        case 'a': camera.rot[X] -= 0.05;                  break;
+//        case 'd': camera.rot[X] += 0.05;                  break;
+//        case 'w': camera.rot[Y] += 0.05;                  break;
+//        case 's': camera.rot[Y] -= 0.05;                  break;
             
-        case 'j': eye[X] -= 0.5;    lookat[X] -= 0.5;               break;
-        case 'l': eye[X] += 0.5;    lookat[X] += 0.5;               break;
-        case 'i': eye[Y] += 0.5;    lookat[Y] += 0.5;               break;
-        case 'k': eye[Y] -= 0.5;    lookat[Y] -= 0.5;               break;
+        case 'a': lookat[X] -= 0.05;                   break;
+        case 'd': lookat[X] += 0.05;                  break;
+        case 'w': lookat[Y] += 0.05;                  break;
+        case 's': lookat[Y] -= 0.05;                  break;
+            
+        case 'j': camera.pos[X] -= 0.5;    lookat[X] -= 0.5;               break;
+        case 'l': camera.pos[X] += 0.5;    lookat[X] += 0.5;               break;
+        case 'i': camera.pos[Y] += 0.5;    lookat[Y] += 0.5;               break;
+        case 'k': camera.pos[Y] -= 0.5;    lookat[Y] -= 0.5;               break;
             
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;

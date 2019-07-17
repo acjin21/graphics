@@ -3,6 +3,7 @@
 
 #include "math_lib/mat4.h"
 #include "scene.h"
+#include "camera.h"
 
 /****************************************************************/
 /* types */
@@ -57,7 +58,7 @@ void scale_model_mat (float sx, float sy, float sz);
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
-void camera_xform (float eye[4], float lookat[4], float up[4]);
+void camera_xform (CAMERA *c);
 
 
 /* orthographic transformations */

@@ -1,6 +1,7 @@
 #ifndef MAT4_H
 #define MAT4_H
 
+#include "../camera.h"
 /****************************************************************/
 /* types */
 /****************************************************************/
@@ -42,7 +43,7 @@ void set_model_mat (MAT4 *model, float s,
                     float rot_x, float rot_y, float rot_z,
                     float tx, float ty, float tz);
 
-void set_camera_mat (MAT4 *cam, float eye[4], float lookat[4], float up[4]);
+void set_camera_mat (MAT4 *cam, CAMERA *c);
 
 void set_perspective_mat (MAT4 *perspective,
                           float near, float far,

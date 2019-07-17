@@ -689,12 +689,12 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 /* for camera projections */
 /****************************************************************/
-void camera_xform (float eye[4], float lookat[4], float up[4])
+void camera_xform (CAMERA *c)
 {
 //    printf("============== CAMERA XFORM ============ \n");
 
     MAT4 cam;
-    set_camera_mat (&cam, eye, lookat, up);
+    set_camera_mat (&cam, c);
 //    printf("---- CAMERA MAT ---- \n");
 //    print_mat4(&cam);
     int max_idx = get_max_idx (normal_type);

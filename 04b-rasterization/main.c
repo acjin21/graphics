@@ -253,6 +253,10 @@ int main(int argc, char **argv)
     glClearColor(0.7, 0.7, 0.7, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
+    if(program_type == BASIC)
+    {
+        init_basic_program();
+    }
     /* get type of file we're reading from (obj vs scene file) */
     if(program_type != BASIC && program_type != BENCHMARK)
     {

@@ -77,6 +77,7 @@ void translate_object(float screen_dx, float screen_dy);
 
 
 void key_callback (unsigned char key);
+void init_basic_program(void);
 int init_obj_program (int argc, char **argv);
 int init_scene_program (int argc, char **argv);
 
