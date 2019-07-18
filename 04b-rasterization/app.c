@@ -353,7 +353,6 @@ void render_object(OBJECT *o)
     /* CAMERA SPACE */
     /*****************/
 //    set_camera (&camera, eye, lookat, world_up); //remove after have rotate_cam method
-//    printf("rotation: %.2f, %.2f, %.2f\n", camera.rot[X], camera.rot[X], camera.rot[X]);
 //    rotate_camera (&camera, camera.rot[X], camera.rot[Y], camera.rot[Z]);
 
     camera_xform (&camera);
@@ -767,7 +766,6 @@ void key_callback (unsigned char key)
         case 'r':
             camera.rot[Z] += 5;
             rotate_camera (&camera, 0, 0, 5);
-
             break;
 
             
