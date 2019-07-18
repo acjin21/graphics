@@ -1,7 +1,7 @@
 #include "frustum.h"
 
 #include <math.h>
-
+#include "macros.h"
 #include "vector.h"
 /************************/
 /* global variables */
@@ -13,9 +13,22 @@ PLANE frustum[6];        //view frustum for clipping
 /************************/
 float point_to_plane_dist (float point[4], PLANE *plane)
 {
+    float point_dist_from_orig = vector_dot(point, plane->normal);
+    
     // doesn't work if the plane doent go through origin and is not near or far planes
     // assuming plane.normal is normalized
-    return vector_dot(point, plane->normal) - plane->distance;
+    if(plane->distance > 0)
+    {
+        if(point_dist_from_orig < 0) //far plane
+        {
+            return plane->distance - ABS(point_dist_from_orig);
+        }
+        else if (point_dist_from_orig > 0) //near plane
+        {
+            return point_dist_from_orig - plane->distance;
+        }
+    }
+    return  point_dist_from_orig;
 }
 
 /************************/
@@ -55,7 +68,7 @@ void setup_clip_frustum(float near, float far)
 int entire_tri_inside_frustum (POINT tri[3])
 {
     float d0, d1, d2;
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 6; i++)
     {
         d0 = point_to_plane_dist(tri[0].world, &frustum[i]);
         d1 = point_to_plane_dist(tri[1].world, &frustum[i]);
@@ -72,7 +85,7 @@ int entire_tri_inside_frustum (POINT tri[3])
 int entire_tri_outside_frustum (POINT tri[3])
 {
     float d0, d1, d2;
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 6; i++)
     {
         d0 = point_to_plane_dist(tri[0].world, &frustum[i]);
         d1 = point_to_plane_dist(tri[1].world, &frustum[i]);

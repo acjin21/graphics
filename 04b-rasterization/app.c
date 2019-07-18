@@ -379,7 +379,7 @@ void render_object(OBJECT *o)
     }
 
     float near = 1.0;
-    float far = 40.0;
+    float far = 10.0;
     int skip;
 
     switch(proj_mode)
