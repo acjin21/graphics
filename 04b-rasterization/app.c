@@ -20,7 +20,7 @@
 #include "model.h"
 #include "scene.h"
 #include "camera.h"
-
+//#include "frustum.h" // for PLANE type (clipping frustum (global var))
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
