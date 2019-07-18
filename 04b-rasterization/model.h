@@ -17,7 +17,7 @@ typedef struct face
     int v_normals[3];
     
     float f_normal[4]; //face normal in world coordinates
-    int clipped;
+    int clip_flag;
 } FACE;
 
 /****************************************************************/

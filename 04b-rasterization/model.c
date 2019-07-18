@@ -856,15 +856,15 @@ void set_triangle_clip_flags (void)
         POINT p_list[3] = {p0, p1, p2};
         if(entire_tri_outside_frustum(p_list))
         {
-            (&face_list[i])->clipped = 1;
+            (&face_list[i])->clip_flag = 1;
         }
         else if(entire_tri_inside_frustum(p_list))
         {
-            (&face_list[i])->clipped = 0;
+            (&face_list[i])->clip_flag = 0;
         }
         else //if partially, then clipped = 1
         {
-            (&face_list[i])->clipped = 1;
+            (&face_list[i])->clip_flag = 1;
         }
     }
 }
@@ -878,7 +878,7 @@ void draw_model(int mode)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
-        if(f.clipped)
+        if(f.clip_flag)
         {
             continue;
         }
