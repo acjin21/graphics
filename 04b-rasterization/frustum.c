@@ -15,7 +15,7 @@ float point_to_plane_dist (float point[4], PLANE *plane)
 {
     float point_dist_from_orig = vector_dot(point, plane->normal);
     
-    // doesn't work if the plane doent go through origin and is not near or far planes
+    // havent checked if works when plane doesnt go through origin and is not near or far planes
     // assuming plane.normal is normalized
     if(plane->distance > 0)
     {
