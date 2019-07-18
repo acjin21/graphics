@@ -699,8 +699,6 @@ void camera_xform (CAMERA *c)
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].position[W] = 1.0;
     }
-
-
 }
 
 
@@ -784,14 +782,14 @@ int cull_model (float near, float far)
 }
 
 /* perspective transform from world to screen coordinates */
-void perspective_xform(float near, float far)
+void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
     int max_idx = get_max_idx (normal_type);
 
     for(int i = 0; i < max_idx; i++)
     {
         MAT4 perspective;
-        set_perspective_mat (&perspective, near, far, -2, 2, -2, 2);
+        set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
         float w = vertex_list[i].position[W];
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);

@@ -280,7 +280,7 @@ void set_camera_mat (MAT4 *cam, CAMERA *c)//, float eye[4], float lookat[4], flo
 
     set_all_rows(&rot, c->u, c->up, c->v, col3);
     set_transl(&transl, -c->pos[X], -c->pos[Y], -c->pos[Z]);
-    mat_mul (cam, &rot, &transl); // M_cam = M_rot * M_transl
+    mat_mul (cam, &rot, &transl ); // M_cam = M_rot * M_transl
 }
 
 void set_perspective_mat (MAT4 *perspective,

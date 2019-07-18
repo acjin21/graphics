@@ -42,10 +42,10 @@ float mesh_da = 0;              // flowing mesh animation
 float init_scale = 1.0;         // for obj files from the internet
 
 int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
-int rot_mode = LOCAL;
+int rot_mode = GLOBAL;
 
 MAT4 camera_mat;
-float lookat[4] = {0, 0, 1, 0};
+float lookat[4] = {0, 0, 100, 0};
 float k[4] = {0, 0, 1, 0};
 float world_up[4] = {0, 1, 0, 0};
 
@@ -378,24 +378,24 @@ void render_object(OBJECT *o)
         calculate_light_vectors(); /* generate all world points' light vecs */
     }
 
-
+    float near = 3.0;
+    float far = 40.0;
+    int skip;
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-5, 5, -5, 5, -5, 5);
+//            translate_model(-o->center[Z]);
+            xform_model(-10, 10, -10, 10, 3, 40);
             viewport_mat_xform(WIN_W, WIN_H);
             break;
             
         case PERSPECT:
-            translate_model(dz);
-            float near =  3.0;
-            float far = 40.0;
-            int skip = cull_model(near, far);
+            skip = cull_model(near, far);
             if(skip)
             {
                 return;
             }
-            perspective_xform(near, far);
+            perspective_xform(near, far, -10, 10, -10, 10);
             viewport_mat_xform(WIN_W, WIN_H);
 
 //            viewport_xform(200);
@@ -676,21 +676,7 @@ void key_callback (unsigned char key)
 //            curr_object->rotation[Z] = 0;
 //            dz = INIT_DZ;
 //            mesh_da = 0;                                      break;
-            
-            /* zooming: in (+) /out (-) */
-        case '+':
-            eye[Z] += 0.5;
-            
-//            if(proj_mode == PERSPECT) dz -= 0.20;
-//            if(proj_mode == ORTHO) ortho_vp_scale += 10;
-            break;
-        case '-':
-            eye[Z] -= 0.5;
-            
-
-//            if(proj_mode == PERSPECT) dz += 0.20;
-//            if(proj_mode == ORTHO) ortho_vp_scale -= 10;
-            break;
+        
             
             /* point drawing modes */
         case 't':
@@ -770,7 +756,12 @@ void key_callback (unsigned char key)
         case 'k':
             translate_camera (&camera, 0, -0.5, 0);
             break;
-            
+        case '+':
+            translate_camera (&camera, 0, 0, 0.5);
+            break;
+        case '-':
+            translate_camera (&camera, 0, 0, -0.5);
+            break;
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
