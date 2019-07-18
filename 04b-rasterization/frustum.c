@@ -11,6 +11,7 @@ PLANE frustum[6];        //view frustum for clipping
 /************************/
 /* utility functions */
 /************************/
+/* distance from point to view frustum plane */
 float point_to_plane_dist (float point[4], PLANE *plane)
 {
     float point_dist_from_orig = vector_dot(point, plane->normal);
@@ -35,7 +36,7 @@ float point_to_plane_dist (float point[4], PLANE *plane)
 /* functions */
 /************************/
 /* initialize our global frustum */
-/*  NOTE: hard coded for FOV = 90 deg */
+/*  NOTE: hard coded for FOV = 90 deg and eye @ origin (camera space coords) */
 void setup_clip_frustum(float near, float far)
 {
     float inv_sqrt = 1.0 / sqrt(2.0);
@@ -65,6 +66,7 @@ void setup_clip_frustum(float near, float far)
     frustum[5].distance = far;
 }
 
+/* whether entire triangle is within frustum boundary */
 int entire_tri_inside_frustum (POINT tri[3])
 {
     float d0, d1, d2;
@@ -82,6 +84,7 @@ int entire_tri_inside_frustum (POINT tri[3])
     return 1;
 }
 
+/* whether entire triangle is outside frustum boundary */
 int entire_tri_outside_frustum (POINT tri[3])
 {
     float d0, d1, d2;

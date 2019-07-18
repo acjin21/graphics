@@ -843,6 +843,7 @@ void viewport_xform(float scale)
     }
 }
 
+/* set the clip_flags of all triangles in model */
 void set_triangle_clip_flags (void)
 {
     for(int i = 0; i < num_triangles; i++)
