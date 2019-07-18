@@ -846,6 +846,8 @@ void viewport_xform(float scale)
 /* set the clip_flags of all triangles in model */
 void set_triangle_clip_flags (void)
 {
+    POINT verts[6];
+    POINT *p;
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
@@ -854,18 +856,57 @@ void set_triangle_clip_flags (void)
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
         
-        POINT p_list[3] = {p0, p1, p2};
-        if(entire_tri_outside_frustum(p_list))
+        verts[0] = p0;
+        verts[1] = p1;
+        verts[2] = p2;
+        if(entire_tri_outside_frustum(verts))
         {
             (&face_list[i])->clip_flag = 1;
         }
-        else if(entire_tri_inside_frustum(p_list))
+        else if(entire_tri_inside_frustum(verts))
         {
             (&face_list[i])->clip_flag = 0;
         }
         else //if partially, then clipped = 1
         {
             (&face_list[i])->clip_flag = 1;
+            
+            int num_clipped = clip_triangle (verts);
+            //should never enter this stage though
+            if(num_clipped == 0)
+            {
+                continue;
+            }
+            //subdivide polygon into triangles
+            for(int j = 1; j < num_clipped - 1; j++)
+            {
+                int new_v0 = num_vertices;
+                //v0
+                p = &vertex_list[num_vertices++];
+                *p = verts[0];
+                p->num_tris = 0;
+                
+                //v1
+                p = &vertex_list[num_vertices++];
+                *p = verts[j];
+                p->num_tris = 0;
+                
+                //v2
+                p = &vertex_list[num_vertices++];
+                *p = verts[j + 1];
+                p->num_tris = 0;
+                
+                int new_f = num_triangles;
+                
+                add_face (new_v0, new_v0 + 1, new_v0 + 2,
+                          0, 0, 0,
+                          0, 0, 0,
+                          0, 0, 0);
+                
+                cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
+                face_list[new_f].clip_flag = 0;
+            }
+
         }
     }
 }
@@ -886,8 +927,6 @@ void draw_model(int mode)
         POINT p0 = vertex_list[f.vertices[0]];
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
-    
-        
         
         /* fix the colors and textures of each point in vertex_list to the
          color and tex coords specified by FACE object */

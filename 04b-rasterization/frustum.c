@@ -66,6 +66,107 @@ void setup_clip_frustum(float near, float far)
     frustum[5].distance = far;
 }
 
+void interp_intersection_point (float a[4], float b[4], float intersect[4], float t)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        intersect[i] = a[i] + t * (b[i] - a[i]);
+    }
+}
+
+/* clip line(a, b) against plane p to generate intersection point *intersect
+ with properly interpolated POINT fields: normals, uvs, depth (z)*/
+// NOTE: *a is inside, *b is outside
+void clip_line (POINT *a, POINT *b, POINT *intersect, PLANE *p)
+{
+    // find dist a ( > 0)
+    float dist_a = point_to_plane_dist(a->world, p);
+    // find dist b (< 0)
+    float dist_b = point_to_plane_dist(b->world, p);
+
+    // find t factor ("blend weight") at the intersect
+    float t = dist_a / (dist_a - dist_b);
+    
+    // set intersect's fields using t
+    interp_intersection_point(a->world, b->world, intersect->world, t);
+    interp_intersection_point(a->color, b->color, intersect->color, t);
+    interp_intersection_point(a->tex, b->tex, intersect->tex, t);
+    interp_intersection_point(a->v_normal, b->v_normal, intersect->v_normal, t);
+    interp_intersection_point(a->light, b->light, intersect->light, t);
+}
+
+/* clips each edge of triangle by walking edges.
+    sets the vertices of resulting clipped polygon (verts), and
+    returns the number of elements in verts */
+int clip_triangle (POINT *verts)
+{
+    POINT new, clipped[8];
+    POINT *in, *out, *tmp;
+    int num_in = 3;
+    int num_out;
+    
+    in = verts;
+    out = clipped;
+    /* clip triangle against one plane at a time */
+    for(int i = 0; i < 6; i++)
+    {
+        //reset num_out
+        num_out = 0;
+        //walk each edge that starts at POINT in[e]
+        for(int e = 0; e < num_in; e++)
+        {
+            int next_e = (e + 1) % num_in;
+            float dist1 = point_to_plane_dist(in[e].world, &frustum[i]);
+            float dist2 = point_to_plane_dist(in[next_e].world, &frustum[i]);
+            //if both out
+            if (dist1 < 0 && dist2 < 0)
+            {
+                continue;
+            }
+            //if both in, add end
+            else if (dist1 > 0 && dist2 > 0)
+            {
+                out[num_out] = in[next_e];
+                num_out++;
+            }
+            //if out->in, add intersection, end
+            else if (dist1 < 0 && dist2 > 0)
+            {
+                clip_line(&in[e], &in[next_e], &new, &frustum[i]);
+                out[num_out] = new;
+                num_out++;
+                out[num_out] = in[next_e];
+                num_out++;
+            }
+            //if in->out, add intersection
+            else if (dist1 > 0 && dist2 < 0)
+            {
+                clip_line(&in[e], &in[next_e], &new, &frustum[i]);
+                out[num_out] = new;
+                num_out++;
+            }
+        }
+        // swap in & out pointers
+        tmp = in;
+        in = out;
+        out = in;
+        
+        // update num_in
+        num_in = num_out;
+    }
+    // set out to the final output POINT list
+    out = in;
+    // move POINTs from in to verts
+    for(int i = 0; i < num_out; i++)
+    {
+        verts[i] = out[i];
+    }
+    // return resulting num of verts of clipped polygon
+    return num_out;
+    
+}
+
+
 /* whether entire triangle is within frustum boundary */
 int entire_tri_inside_frustum (POINT tri[3])
 {

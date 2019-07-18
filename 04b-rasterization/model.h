@@ -14,7 +14,7 @@ typedef struct face
     int vertices[3];
     int colors[3];
     int tex[3];
-    int v_normals[3];
+    int v_normals[3]; //only used if obj has vns
     
     float f_normal[4]; //face normal in world coordinates
     int clip_flag;

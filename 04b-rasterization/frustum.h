@@ -12,4 +12,5 @@ void setup_clip_frustum(float near, float far);
 int entire_tri_inside_frustum (POINT tri[3]);
 int entire_tri_outside_frustum (POINT tri[3]);
 
+int clip_triangle (POINT *verts);
 #endif
