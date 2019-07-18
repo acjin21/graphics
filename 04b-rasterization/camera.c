@@ -44,30 +44,11 @@ void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
 
 void rotate_camera (CAMERA *c, float rx, float ry, float rz)
 {
-    MAT4 rot, transl;
-    /*
-    printf("============\n");
-    printf("u (before): ");
-    print_vec4(c->u);
-    printf("v (before): ");
-    print_vec4(c->v);
-    printf("up (before): ");
-    print_vec4(c->up); */
-
-    
+    MAT4 rot;
     set_3d_rot(&rot, rx, ry, rz);
     mat_vec_mul(&rot, c->u, c->u);
     mat_vec_mul(&rot, c->v, c->v);
     mat_vec_mul(&rot, c->up, c->up);
-    
-    /*
-    printf("- - -\n");
-    printf("u (after): ");
-    print_vec4(c->u);
-    printf("v (after): ");
-    print_vec4(c->v);
-    printf("up (after): ");
-    print_vec4(c->up);
-    printf("============\n");*/
 }
+
 
