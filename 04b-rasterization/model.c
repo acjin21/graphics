@@ -856,6 +856,14 @@ void set_triangle_clip_flags (void)
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
         
+        cpy_vec4(p0.color, color_list[f.colors[0]]);
+        cpy_vec4(p1.color, color_list[f.colors[1]]);
+        cpy_vec4(p2.color, color_list[f.colors[2]]);
+        
+        cpy_vec4(p0.tex, tex_list[f.tex[0]]);
+        cpy_vec4(p1.tex, tex_list[f.tex[1]]);
+        cpy_vec4(p2.tex, tex_list[f.tex[2]]);
+
         verts[0] = p0;
         verts[1] = p1;
         verts[2] = p2;
@@ -870,41 +878,51 @@ void set_triangle_clip_flags (void)
         else //if partially, then clipped = 1
         {
             (&face_list[i])->clip_flag = 1;
+            if(debugging_mode)
+            {
+                int num_clipped = clip_triangle (verts);
+                //should never enter this stage though
+                if(num_clipped == 0)
+                {
+                    continue;
+                }
+                //subdivide polygon into triangles
+                for(int j = 1; j < num_clipped - 1; j++)
+                {
+                    int new_v0 = num_vertices;
+                    //v0
+                    p = &vertex_list[num_vertices++];
+                    *p = verts[0];
+                    p->num_tris = 0;
+                    cpy_vec4(color_list[new_v0], p->color);
+                    cpy_vec4(tex_list[new_v0], p->tex);
+                    
+                    //v1
+                    p = &vertex_list[num_vertices++];
+                    *p = verts[j];
+                    p->num_tris = 0;
+                    cpy_vec4(color_list[new_v0 + 1], p->color);
+                    cpy_vec4(tex_list[new_v0 + 1], p->tex);
+                    
+                    //v2
+                    p = &vertex_list[num_vertices++];
+                    *p = verts[j + 1];
+                    p->num_tris = 0;
+                    cpy_vec4(color_list[new_v0 + 2], p->color);
+                    cpy_vec4(tex_list[new_v0 + 2], p->tex);
+                    
+                    int new_f = num_triangles;
+                    
+                    add_face (new_v0, new_v0 + 1, new_v0 + 2,
+                              new_v0, new_v0 + 1, new_v0 + 2,
+                              new_v0, new_v0 + 1, new_v0 + 2,
+                              new_v0, new_v0 + 1, new_v0 + 2);
+                    
+                    cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
+                    face_list[new_f].clip_flag = 0;
+                }
+                
             
-            int num_clipped = clip_triangle (verts);
-            //should never enter this stage though
-            if(num_clipped == 0)
-            {
-                continue;
-            }
-            //subdivide polygon into triangles
-            for(int j = 1; j < num_clipped - 1; j++)
-            {
-                int new_v0 = num_vertices;
-                //v0
-                p = &vertex_list[num_vertices++];
-                *p = verts[0];
-                p->num_tris = 0;
-                
-                //v1
-                p = &vertex_list[num_vertices++];
-                *p = verts[j];
-                p->num_tris = 0;
-                
-                //v2
-                p = &vertex_list[num_vertices++];
-                *p = verts[j + 1];
-                p->num_tris = 0;
-                
-                int new_f = num_triangles;
-                
-                add_face (new_v0, new_v0 + 1, new_v0 + 2,
-                          0, 0, 0,
-                          0, 0, 0,
-                          0, 0, 0);
-                
-                cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
-                face_list[new_f].clip_flag = 0;
             }
 
         }
