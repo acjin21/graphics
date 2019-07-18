@@ -54,8 +54,21 @@ void rotate_camera (CAMERA *c, float rx, float ry, float rz)
     mat_vec_mul(&rot, c->u, c->u);
     mat_vec_mul(&rot, c->v, c->v);
     mat_vec_mul(&rot, c->up, c->up);
+    
+    c->rot[X] += rx;
+    c->rot[Y] += ry;
+    c->rot[Z] += rz;
 }
 
+void translate_camera (CAMERA *c, float tx, float ty, float tz)
+{
+    // not using translation matrix for performance (dont need a matrix mul)
+    // translating camera means moving its center point/eye (dont need to recalc unit basis vecs),
+    //  so don't need to worry about homogenous coord (it will be 1, but we just don't add to it
+    float transl[4];
+    set_vec4(transl, tx, ty, tz, 0);
+    vector_add(c->pos, transl, c->pos);
+}
 void reset_camera (CAMERA *c)
 {
     cpy_vec4(c->pos, c->orig_pos);

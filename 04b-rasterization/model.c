@@ -691,19 +691,14 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 void camera_xform (CAMERA *c)
 {
-//    printf("============== CAMERA XFORM ============ \n");
-
     MAT4 cam;
     set_camera_mat (&cam, c);
-//    printf("---- CAMERA MAT ---- \n");
-//    print_mat4(&cam);
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
     {
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].position[W] = 1.0;
     }
-//    printf("==========================================  \n");
 
 
 }

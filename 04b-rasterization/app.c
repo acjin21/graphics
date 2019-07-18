@@ -83,7 +83,7 @@ int calculate_all_vns = OFF;
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
-int light_type = GLOBAL_L;         // LOCAL or GLOBAL lights
+int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -740,39 +740,36 @@ void key_callback (unsigned char key)
         case 'O': write_obj_file("obj/out.obj");                        break;
         
         case 'a':
-            camera.rot[Y] += 5;
             rotate_camera (&camera, 0, 5, 0);
-
             break;
         case 'd':
-            camera.rot[Y] -= 5;
             rotate_camera (&camera, 0, -5, 0);
-
             break;
         case 'w':
-            camera.rot[X] -= 5;
             rotate_camera (&camera, -5, 0, 0);
-
             break;
         case 's':
-            camera.rot[X] += 5;
             rotate_camera (&camera, 5, 0, 0);
             break;
         case 'e':
-            camera.rot[Z] -= 5;
             rotate_camera (&camera, 0, 0, -5);
-
             break;
         case 'r':
-            camera.rot[Z] += 5;
             rotate_camera (&camera, 0, 0, 5);
             break;
 
-            
-        case 'j': camera.pos[X] -= 0.5;                   break;
-        case 'l': camera.pos[X] += 0.5;                   break;
-        case 'i': camera.pos[Y] += 0.5;                   break;
-        case 'k': camera.pos[Y] -= 0.5;                   break;
+        case 'j':
+            translate_camera (&camera, -0.5, 0, 0);
+            break;
+        case 'l':
+            translate_camera (&camera, 0.5, 0, 0);
+            break;
+        case 'i':
+            translate_camera (&camera, 0, 0.5, 0);
+            break;
+        case 'k':
+            translate_camera (&camera, 0, -0.5, 0);
+            break;
             
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;

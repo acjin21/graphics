@@ -257,7 +257,6 @@ void set_3d_rot (MAT4 *out, float rx, float ry, float rz)
     set_rot_Y(&Ry, ry);
     mat_mul(out, &Ry, &Rz);
     mat_mul(out, &Rx, out);
-//    print_mat4(out);
 }
 
 void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
