@@ -257,6 +257,7 @@ void set_3d_rot (MAT4 *out, float rx, float ry, float rz)
     set_rot_Y(&Ry, ry);
     mat_mul(out, &Ry, &Rz);
     mat_mul(out, &Rx, out);
+//    print_mat4(out);
 }
 
 void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
@@ -277,30 +278,8 @@ void set_camera_mat (MAT4 *cam, CAMERA *c)//, float eye[4], float lookat[4], flo
     float u[4], v[4];
     float col3[4] = {0, 0, 0, 1};
     MAT4 transl, rot;
-//    if(eye[X] == lookat[X] && eye[Y] == lookat[Y] && eye[Z] == lookat[Z])
-//    {
-//        set_identity(&rot);
-//    }
-//    else
-//    {
-//        vector_subtract(lookat, eye, v);
-//        normalize(v);
-////        set_vec4(v, 0, 0, 1, 0);
-////        printf("v: %.2f, %.2f, %.2f\n", v[X], v[Y], v[Z]);
-//
-//        vector_cross (up, v, u);
-//        normalize(u);
-////        printf("u: %.2f, %.2f, %.2f\n", u[X], u[Y], u[Z]);
-//
-//        vector_cross (v, u, up);
-//        normalize(up);
-////        printf("up: %.2f, %.2f, %.2f\n", up[X], up[Y], up[Z]);
-//
-//        u[W] = 0.0;
-//        v[W] = 0.0;
-//        up[W] = 0.0;
+
     set_all_rows(&rot, c->u, c->up, c->v, col3);
-//    }
     set_transl(&transl, -c->pos[X], -c->pos[Y], -c->pos[Z]);
     mat_mul (cam, &rot, &transl); // M_cam = M_rot * M_transl
 }

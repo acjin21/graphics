@@ -46,6 +46,8 @@ void set_vec4 (float vec[4], float x, float y, float z, float w);
 /* copy contents of val[4] into dest[4] */
 void cpy_vec4 (float dest[4], float val[4]);
 
+void print_vec4 (float vec[4]);
+
 void naive_map (float normal[4], float tex[4]);
 void cylindrical_map (float normal[4], float tex[4]);
 void spherical_map (float normal[4], float tex[4]);

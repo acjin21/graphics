@@ -118,6 +118,11 @@ void cpy_vec4 (float dest[4], float val[4])
     }
 }
 
+void print_vec4 (float vec[4])
+{
+    printf("[%.2f, %.2f, %.2f, %.2f]\n", vec[X], vec[Y], vec[Z], vec[W]);
+}
+
 /****************************************************************/
 /* normal-to-texture conversions */
 /****************************************************************/
