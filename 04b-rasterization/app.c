@@ -20,7 +20,7 @@
 #include "model.h"
 #include "scene.h"
 #include "camera.h"
-//#include "frustum.h" // for PLANE type (clipping frustum (global var))
+#include "frustum.h" // for setup_clip_frustum
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -378,9 +378,10 @@ void render_object(OBJECT *o)
         calculate_light_vectors(); /* generate all world points' light vecs */
     }
 
-    float near = 3.0;
+    float near = 1.0;
     float far = 40.0;
     int skip;
+
     switch(proj_mode)
     {
         case ORTHO:
@@ -390,15 +391,15 @@ void render_object(OBJECT *o)
             break;
             
         case PERSPECT:
-            skip = cull_model(near, far);
-            if(skip)
-            {
-                return;
-            }
-            perspective_xform(near, far, -10, 10, -10, 10);
+//            skip = cull_model(near, far);
+//            if(skip)
+//            {
+//                return;
+//            }
+            setup_clip_frustum(near, far);
+            set_triangle_clip_flags();
+            perspective_xform(near, far, -2, 2, -2, 2);
             viewport_mat_xform(WIN_W, WIN_H);
-
-//            viewport_xform(200);
             break;
     }
     
@@ -538,6 +539,7 @@ void translate_object(float screen_dx, float screen_dy)
 
 }
 
+float camera_transl = 0.1;
 /********************************************/
 /* IO */
 /********************************************/
@@ -745,22 +747,22 @@ void key_callback (unsigned char key)
             break;
 
         case 'j':
-            translate_camera (&camera, -0.5, 0, 0);
+            translate_camera (&camera, -camera_transl, 0, 0);
             break;
         case 'l':
-            translate_camera (&camera, 0.5, 0, 0);
+            translate_camera (&camera, camera_transl, 0, 0);
             break;
         case 'i':
-            translate_camera (&camera, 0, 0.5, 0);
+            translate_camera (&camera, 0, camera_transl, 0);
             break;
         case 'k':
-            translate_camera (&camera, 0, -0.5, 0);
+            translate_camera (&camera, 0, -camera_transl, 0);
             break;
         case '+':
-            translate_camera (&camera, 0, 0, 0.5);
+            translate_camera (&camera, 0, 0, camera_transl);
             break;
         case '-':
-            translate_camera (&camera, 0, 0, -0.5);
+            translate_camera (&camera, 0, 0, -camera_transl);
             break;
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;

@@ -9,6 +9,16 @@
 PLANE frustum[6];        //view frustum for clipping
 
 /************************/
+/* utility functions */
+/************************/
+float point_to_plane_dist (float point[4], PLANE *plane)
+{
+    // doesn't work if the plane doent go through origin and is not near or far planes
+    // assuming plane.normal is normalized
+    return vector_dot(point, plane->normal) - plane->distance;
+}
+
+/************************/
 /* functions */
 /************************/
 /* initialize our global frustum */
@@ -40,5 +50,39 @@ void setup_clip_frustum(float near, float far)
     /* bottom */
     set_vec4(frustum[5].normal, 0, 0, -1, 0);
     frustum[5].distance = far;
+}
+
+int entire_tri_inside_frustum (POINT tri[3])
+{
+    float d0, d1, d2;
+    for(int i = 0; i < 5; i++)
+    {
+        d0 = point_to_plane_dist(tri[0].world, &frustum[i]);
+        d1 = point_to_plane_dist(tri[1].world, &frustum[i]);
+        d2 = point_to_plane_dist(tri[2].world, &frustum[i]);
+        
+        if(d0 < 0 || d1 < 0 || d2 < 0)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int entire_tri_outside_frustum (POINT tri[3])
+{
+    float d0, d1, d2;
+    for(int i = 0; i < 5; i++)
+    {
+        d0 = point_to_plane_dist(tri[0].world, &frustum[i]);
+        d1 = point_to_plane_dist(tri[1].world, &frustum[i]);
+        d2 = point_to_plane_dist(tri[2].world, &frustum[i]);
+        
+        if(d0 < 0 && d1 < 0 && d2 < 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 

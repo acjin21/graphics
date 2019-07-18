@@ -17,6 +17,7 @@ typedef struct face
     int v_normals[3];
     
     float f_normal[4]; //face normal in world coordinates
+    int clipped;
 } FACE;
 
 /****************************************************************/
@@ -73,6 +74,8 @@ void perspective_xform(float near, float far, float x_min, float x_max, float y_
 void viewport_xform(float scale);
 
 void viewport_mat_xform (int vp_w, int vp_h);
+void set_triangle_clip_flags (void);
+
 /* draw functions */
 void draw_model(int mode);
 void draw_local_axes (void);

@@ -14,7 +14,7 @@
 #include "depth.h"
 #include "light.h"
 #include "material.h"
-
+#include "frustum.h"
 /****************************************************************/
 /* defines */
 /****************************************************************/
@@ -843,6 +843,31 @@ void viewport_xform(float scale)
     }
 }
 
+void set_triangle_clip_flags (void)
+{
+    for(int i = 0; i < num_triangles; i++)
+    {
+        FACE f = face_list[i];
+        
+        POINT p0 = vertex_list[f.vertices[0]];
+        POINT p1 = vertex_list[f.vertices[1]];
+        POINT p2 = vertex_list[f.vertices[2]];
+        
+        POINT p_list[3] = {p0, p1, p2};
+        if(entire_tri_outside_frustum(p_list))
+        {
+            (&face_list[i])->clipped = 1;
+        }
+        else if(entire_tri_inside_frustum(p_list))
+        {
+            (&face_list[i])->clipped = 0;
+        }
+        else //if partially, then clipped = 1
+        {
+            (&face_list[i])->clipped = 1;
+        }
+    }
+}
 /****************************************************************/
 /* draw functions */
 /****************************************************************/
@@ -853,10 +878,15 @@ void draw_model(int mode)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
-        
+        if(f.clipped)
+        {
+            continue;
+        }
         POINT p0 = vertex_list[f.vertices[0]];
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
+    
+        
         
         /* fix the colors and textures of each point in vertex_list to the
          color and tex coords specified by FACE object */
