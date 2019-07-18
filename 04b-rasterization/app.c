@@ -782,7 +782,9 @@ void key_callback (unsigned char key)
         case '4': dof_mode = 1 - dof_mode;                              break;
             
         case '5': bump_mapping = 1 - bump_mapping;                      break;
-            
+        case '6':
+            reset_camera(&camera);
+            break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;

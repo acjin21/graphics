@@ -35,6 +35,11 @@ void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
         v[W] = 0.0;
         up[W] = 0.0;
         
+        cpy_vec4(c->orig_pos, pos);
+        cpy_vec4(c->orig_u, u);
+        cpy_vec4(c->orig_v, v);
+        cpy_vec4(c->orig_up, up);
+        
         cpy_vec4(c->pos, pos);
         cpy_vec4(c->u, u);
         cpy_vec4(c->v, v);
@@ -51,4 +56,14 @@ void rotate_camera (CAMERA *c, float rx, float ry, float rz)
     mat_vec_mul(&rot, c->up, c->up);
 }
 
-
+void reset_camera (CAMERA *c)
+{
+    cpy_vec4(c->pos, c->orig_pos);
+    cpy_vec4(c->u, c->orig_u);
+    cpy_vec4(c->v, c->orig_v);
+    cpy_vec4(c->up, c->orig_up);
+    
+    c->rot[X] = 0;
+    c->rot[Y] = 0;
+    c->rot[Z] = 0;
+}
