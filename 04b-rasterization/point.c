@@ -245,10 +245,10 @@ void draw_point (POINT *p)
         color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
         color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
         // if drawing reverse side of triangles, ignore the texel channels
-        if(drawing_backside)
-        {
-            set_vec4(color_buffer[r][c], 0, 0, 0, 1);
-        }
+//        if(drawing_backside)
+//        {
+//            set_vec4(color_buffer[r][c], 0, 0, 0, 1);
+//        }
         //any form of modulating (with color or with light)
         if(modulate)
         {

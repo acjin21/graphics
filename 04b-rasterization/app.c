@@ -83,7 +83,7 @@ int calculate_all_vns = OFF;
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
-int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
+int light_type = GLOBAL_L;         // LOCAL or GLOBAL lights
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -354,27 +354,19 @@ void render_object(OBJECT *o)
     /*****************/
 //    set_camera (&camera, eye, lookat, world_up); //remove after have rotate_cam method
 //    rotate_camera (&camera, camera.rot[X], camera.rot[Y], camera.rot[Z]);
-
-    camera_xform (&camera);
-
+    
     /**********************/
     /* peripheral components: normals, bounding boxes */
     /**********************/
     calculate_face_normals();
     calculate_vertex_normals();
     
-    if(normal_type == F_NORMALS)
-    {
-        
-        insert_normal_coords();
-    }
-    
-    insert_bb_coords();
+    camera_xform (&camera);
+
     
     /* lighting */
     if(light_type == LOCAL_L)
     {
-//        printf("local\n");
         calculate_light_vectors(); /* generate all world points' light vecs */
     }
 
@@ -396,7 +388,7 @@ void render_object(OBJECT *o)
 //            {
 //                return;
 //            }
-            setup_clip_frustum(near, far);
+            setup_clip_frustum(1, 10);
             set_triangle_clip_flags();
             perspective_xform(near, far, -2, 2, -2, 2);
             viewport_mat_xform(WIN_W, WIN_H);

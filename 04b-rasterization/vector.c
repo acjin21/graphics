@@ -79,7 +79,11 @@ void normalize (float v[4])
     {
         len = EPSILON;
     }
-    scalar_divide(len, v, v);
+    v[X] /= len;
+    v[Y] /= len;
+    v[Z] /= len;
+
+//    scalar_divide(len, v, v);
 }
 
 void vector_cross (float v1[4], float v2[4], float res[4])

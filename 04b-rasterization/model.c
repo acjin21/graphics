@@ -157,15 +157,6 @@ void init_cube (MAT4 *model)
     /* add vertices */
     num_vertices = 8;
     
-//    set_vec4(vertex_list[0].world, 0.5, 0.5, -0.5, 1.0);
-//    set_vec4(vertex_list[1].world, 0.5, 0.5, 0.5, 1.0);
-//    set_vec4(vertex_list[2].world, 0.5, -0.5, 0.5, 1.0);
-//    set_vec4(vertex_list[3].world, 0.5, -0.5, -0.5, 1.0);
-//    set_vec4(vertex_list[4].world, -0.5, 0.5, -0.5, 1.0);
-//    set_vec4(vertex_list[5].world, -0.5, 0.5, 0.5, 1.0);
-//    set_vec4(vertex_list[6].world, -0.5, -0.5, 0.5, 1.0);
-//    set_vec4(vertex_list[7].world, -0.5, -0.5, -0.5, 1.0);
-    
     set_vec4(vertex_list[0].world, 1, 1, -1, 1.0);
     set_vec4(vertex_list[1].world, 1, 1, 1, 1.0);
     set_vec4(vertex_list[2].world, 1, -1, 1, 1.0);
@@ -184,6 +175,16 @@ void init_cube (MAT4 *model)
     set_vec4(tex_list[1], 0.9, 0.1, 0, 0);
     set_vec4(tex_list[2], 0.9, 0.9, 0, 0);
     set_vec4(tex_list[3], 0.1, 0.9, 0, 0);
+//
+//    set_vec4(tex_list[0].tex, 1, 1, 0, 0);
+//    set_vec4(tex_list[1].tex, 1, 1, 0, 0);
+//    set_vec4(tex_list[2].tex, 1, -1, 0, 0);
+//    set_vec4(tex_list[3].tex, 1, -1, 0, 0);
+//    set_vec4(tex_list[4].tex, -1, 1, 0, 0);
+//    set_vec4(tex_list[5].tex, -1, 1, 0, 0);
+//    set_vec4(tex_list[6].tex, -1, -1, 0, 0);
+//    set_vec4(tex_list[7].tex, -1, -1, 0, 0);
+//
     num_tex_coords = 4;
 
     /* r, g, b color options */
@@ -370,6 +371,16 @@ void init_sphere (float radius, float cx, float cy, float cz)
             p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI) + cy;
             p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI) + cz;
             p->world[W] = 1.0;
+            
+//            p->tex[X] = u;
+//            p->tex[Y] = v;
+//            p->tex[Z] = 0;
+//            p->tex[W] = 0;
+//
+//            p->color[X] = u;
+//            p->color[Y] = v;
+//            p->color[Z] = 0;
+//            p->color[W] = 1;
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
@@ -647,10 +658,13 @@ void calculate_face_normals (void)
         
         float v1[4], v2[4], f_normal[4];
         vector_subtract(p1->world, p0->world, v1);
+  
         vector_subtract(p2->world, p0->world, v2);
         
         vector_cross(v1, v2, f_normal);
+
         normalize(f_normal);
+ 
         cpy_vec4(face_list[i].f_normal, f_normal);
         
     }
@@ -850,6 +864,8 @@ void set_triangle_clip_flags (void)
     POINT *p;
     for(int i = 0; i < num_triangles; i++)
     {
+//        printf("num_tris = %.2i\n", num_triangles);
+        if(num_triangles > 100000) return;
         FACE f = face_list[i];
         
         POINT p0 = vertex_list[f.vertices[0]];
@@ -869,19 +885,20 @@ void set_triangle_clip_flags (void)
         verts[2] = p2;
         if(entire_tri_outside_frustum(verts))
         {
-            (&face_list[i])->clip_flag = 1;
+            face_list[i].clip_flag = 1;
         }
         else if(entire_tri_inside_frustum(verts))
         {
-            (&face_list[i])->clip_flag = 0;
+            face_list[i].clip_flag = 0;
         }
         else //if partially, then clipped = 1
         {
-            (&face_list[i])->clip_flag = 1;
+            face_list[i].clip_flag = 1;
             if(debugging_mode)
             {
                 int num_clipped = clip_triangle (verts);
-                //should never enter this stage though
+//                printf("num_clipped = %.2i\n", num_clipped);
+            
                 if(num_clipped == 0)
                 {
                     continue;
@@ -916,14 +933,15 @@ void set_triangle_clip_flags (void)
                     add_face (new_v0, new_v0 + 1, new_v0 + 2,
                               new_v0, new_v0 + 1, new_v0 + 2,
                               new_v0, new_v0 + 1, new_v0 + 2,
-                              new_v0, new_v0 + 1, new_v0 + 2);
-                    
+                              0, 0, 0);
                     cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
                     face_list[new_f].clip_flag = 0;
+
                 }
                 
             
             }
+            num_face_normals = num_triangles;
 
         }
     }
@@ -1022,14 +1040,20 @@ void draw_model(int mode)
                     vector_add(p2.color, ambient, p2.color);
                 }
             }
-            if(f.f_normal[Z] >= 0) //pointing away from us
+            
+            float eye_ray[4], dot;
+            vector_subtract(p0.world, eye, eye_ray);
+            dot = vector_dot (eye_ray, f.f_normal);
+            if(dot >= 0) //pointing away from us
             {
                 drawing_backside = ON;
-                scalar_add(-0.5, p0.color, p0.color);
-                scalar_add(-0.5, p1.color, p1.color);
-                scalar_add(-0.5, p2.color, p2.color);
+//                set_vec4(p0.color, 1, 0, 0, 1);
+//                set_vec4(p1.color, 1, 0, 0, 1);
+//                set_vec4(p2.color, 1, 0, 0, 1);
+                scalar_add(-0.4, p0.color, p0.color);
+                scalar_add(-0.4, p1.color, p1.color);
+                scalar_add(-0.4, p2.color, p2.color);
                 draw_triangle_barycentric (&p0, &p2, &p1);
-                
             }
             else {
                 drawing_backside = OFF;

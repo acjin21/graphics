@@ -93,6 +93,7 @@ void clip_line (POINT *a, POINT *b, POINT *intersect, PLANE *p)
     interp_intersection_point(a->tex, b->tex, intersect->tex, t);
     interp_intersection_point(a->v_normal, b->v_normal, intersect->v_normal, t);
     interp_intersection_point(a->light, b->light, intersect->light, t);
+//    printf("a->color: %.2f, %.2f, %.2f, %.2f\n", a->color[X], a->color[Y], a->color[Z], a->color[W]);
 }
 
 /* clips each edge of triangle by walking edges.
@@ -108,7 +109,7 @@ int clip_triangle (POINT *verts)
     in = verts;
     out = clipped;
     /* clip triangle against one plane at a time */
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 5; i++)
     {
         //reset num_out
         num_out = 0;
@@ -126,30 +127,27 @@ int clip_triangle (POINT *verts)
             //if both in, add end
             else if (dist1 > 0 && dist2 > 0)
             {
-                out[num_out] = in[next_e];
-                num_out++;
-            }
-            //if out->in, add intersection, end
-            else if (dist1 < 0 && dist2 > 0)
-            {
-                clip_line(&in[e], &in[next_e], &new, &frustum[i]);
-                out[num_out] = new;
-                num_out++;
-                out[num_out] = in[next_e];
-                num_out++;
+                out[num_out++] = in[next_e];
             }
             //if in->out, add intersection
             else if (dist1 > 0 && dist2 < 0)
             {
                 clip_line(&in[e], &in[next_e], &new, &frustum[i]);
-                out[num_out] = new;
-                num_out++;
+                out[num_out++] = new;
             }
+            //if out->in, add intersection, end
+            else if (dist1 < 0 && dist2 > 0)
+            {
+                clip_line(&in[e], &in[next_e], &new, &frustum[i]);
+                out[num_out++] = new;
+                out[num_out++] = in[next_e];
+            }
+
         }
         // swap in & out pointers
         tmp = in;
         in = out;
-        out = in;
+        out = tmp;
         
         // update num_in
         num_in = num_out;
@@ -159,7 +157,7 @@ int clip_triangle (POINT *verts)
     // move POINTs from in to verts
     for(int i = 0; i < num_out; i++)
     {
-        verts[i] = out[i];
+        verts[i] = in[i];
     }
     // return resulting num of verts of clipped polygon
     return num_out;
