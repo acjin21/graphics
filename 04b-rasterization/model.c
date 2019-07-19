@@ -31,6 +31,7 @@ int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulatio
 int drawing_backside = OFF;     // if drawing backside of a triangle
 int tex_gen_mode = SPHERICAL;
 
+int max_n_addl_tris = 1000;
 /* data */
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
@@ -816,32 +817,6 @@ void perspective_xform(float near, float far, float x_min, float x_max, float y_
     }
 }
 
-//void perspective_xform(float near, float far)
-//{
-//    int max_idx = get_max_idx (normal_type);
-//
-//    for(int i = 0; i < max_idx; i++)
-//    {
-//        float x, y, z;
-//        x = vertex_list[i].world[X];
-//        y = vertex_list[i].world[Y];
-//        z = vertex_list[i].world[Z];
-//
-//        vertex_list[i].position[X] = near * x / z;
-//        vertex_list[i].position[Y] = near * y / z;
-//
-//        if(perspective_correct && texturing)
-//        {
-//            vertex_list[i].position[Z] = (float)(far - near) / z;
-//        }
-//        else
-//        {
-//            vertex_list[i].position[Z] = (float) z / (far - near);
-//        }
-//        vertex_list[i].position[W] = 1.0;
-//    }
-//}
-
 /* scale normalized view coordinates to screen coordinates */
 /*  (for perspective proj)                                 */
 void viewport_xform(float scale)
@@ -862,10 +837,11 @@ void set_triangle_clip_flags (void)
 {
     POINT verts[6];
     POINT *p;
+    int num_addl = 0;
     for(int i = 0; i < num_triangles; i++)
     {
-//        printf("num_tris = %.2i\n", num_triangles);
-        if(num_triangles > 100000) return;
+//        printf("num_addl = %.2i\n", num_addl);
+        if(num_addl > max_n_addl_tris) return;
         FACE f = face_list[i];
         
         POINT p0 = vertex_list[f.vertices[0]];
@@ -934,6 +910,7 @@ void set_triangle_clip_flags (void)
                               new_v0, new_v0 + 1, new_v0 + 2,
                               new_v0, new_v0 + 1, new_v0 + 2,
                               0, 0, 0);
+                    num_addl++;
                     cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
                     face_list[new_f].clip_flag = 0;
 

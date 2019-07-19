@@ -99,6 +99,7 @@ void clip_line (POINT *a, POINT *b, POINT *intersect, PLANE *p)
 /* clips each edge of triangle by walking edges.
     sets the vertices of resulting clipped polygon (verts), and
     returns the number of elements in verts */
+float clip_epsilon = 0;
 int clip_triangle (POINT *verts)
 {
     POINT new, clipped[8];
@@ -120,23 +121,23 @@ int clip_triangle (POINT *verts)
             float dist1 = point_to_plane_dist(in[e].world, &frustum[i]);
             float dist2 = point_to_plane_dist(in[next_e].world, &frustum[i]);
             //if both out
-            if (dist1 < 0 && dist2 < 0)
+            if (dist1 < clip_epsilon && dist2 < clip_epsilon)
             {
                 continue;
             }
             //if both in, add end
-            else if (dist1 > 0 && dist2 > 0)
+            else if (dist1 >= clip_epsilon && dist2 >= clip_epsilon)
             {
                 out[num_out++] = in[next_e];
             }
             //if in->out, add intersection
-            else if (dist1 > 0 && dist2 < 0)
+            else if (dist1 >= clip_epsilon && dist2 < clip_epsilon)
             {
                 clip_line(&in[e], &in[next_e], &new, &frustum[i]);
                 out[num_out++] = new;
             }
             //if out->in, add intersection, end
-            else if (dist1 < 0 && dist2 > 0)
+            else if (dist1 < clip_epsilon && dist2 >= clip_epsilon)
             {
                 clip_line(&in[e], &in[next_e], &new, &frustum[i]);
                 out[num_out++] = new;
