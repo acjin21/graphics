@@ -18,18 +18,27 @@ float point_to_plane_dist (float point[4], PLANE *plane)
     
     // havent checked if works when plane doesnt go through origin and is not near or far planes
     // assuming plane.normal is normalized
-    if(plane->distance > 0)
+    if(plane->distance < 0) //far plane
     {
-        if(point_dist_from_orig < 0) //far plane
-        {
-            return plane->distance - ABS(point_dist_from_orig);
-        }
-        else if (point_dist_from_orig > 0) //near plane
+        return point_dist_from_orig - plane->distance;
+    }
+    else if (plane->distance > 0) //near plane
+    {
+        if(plane->normal[Z] == 1 )
         {
             return point_dist_from_orig - plane->distance;
         }
+        else
+        {
+            return point_dist_from_orig + plane->distance;
+
+        }
     }
-    return  point_dist_from_orig;
+    else
+    {
+        return point_dist_from_orig;
+    }
+
 }
 
 /************************/
@@ -43,20 +52,30 @@ void setup_clip_frustum(float near, float far)
     
     /* left */
     set_vec4(frustum[0].normal, inv_sqrt, 0, inv_sqrt, 0);
+//    set_vec4(frustum[0].normal, 1, 0, 0, 0);
+//    frustum[0].distance = -1.0;
     frustum[0].distance = 0.0;
+
     
     /* right */
     set_vec4(frustum[1].normal, -inv_sqrt, 0, inv_sqrt, 0);
+//    set_vec4(frustum[1].normal, -1, 0, 0, 0);
+//    frustum[1].distance = 1.0;
     frustum[1].distance = 0.0;
+
     
     /* top */
     set_vec4(frustum[2].normal, 0, -inv_sqrt, inv_sqrt, 0);
+//    set_vec4(frustum[2].normal, 0, -1, 0, 0);
+//    frustum[2].distance = 1.0;
     frustum[2].distance = 0.0;
     
     /* bottom */
     set_vec4(frustum[3].normal, 0, inv_sqrt, inv_sqrt, 0);
+//    set_vec4(frustum[3].normal, 0, 1, 0, 0);
+//    frustum[3].distance = -1.0;
     frustum[3].distance = 0.0;
-    
+
     /* near */
     set_vec4(frustum[4].normal, 0, 0, 1, 0);
     frustum[4].distance = near;
@@ -110,7 +129,7 @@ int clip_triangle (POINT *verts)
     in = verts;
     out = clipped;
     /* clip triangle against one plane at a time */
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 6; i++)
     {
         //reset num_out
         num_out = 0;

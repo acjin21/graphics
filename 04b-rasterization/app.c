@@ -370,16 +370,18 @@ void render_object(OBJECT *o)
         calculate_light_vectors(); /* generate all world points' light vecs */
     }
 
-    float near = 1.0;
-    float far = 10.0;
+    float near = 5;
+    float far = 20.0;
     int skip;
-
+    setup_clip_frustum(near, far);
+    set_triangle_clip_flags();
+    
     switch(proj_mode)
     {
         case ORTHO:
 //            translate_model(-o->center[Z]);
             xform_model(-10, 10, -10, 10, 3, 40);
-            viewport_mat_xform(WIN_W, WIN_H);
+//            viewport_mat_xform(WIN_W, WIN_H);
             break;
             
         case PERSPECT:
@@ -388,13 +390,13 @@ void render_object(OBJECT *o)
 //            {
 //                return;
 //            }
-            setup_clip_frustum(1, 10);
-            set_triangle_clip_flags();
             perspective_xform(near, far, -2, 2, -2, 2);
-            viewport_mat_xform(WIN_W, WIN_H);
+
             break;
     }
+
     
+    viewport_mat_xform(WIN_W, WIN_H);
     /* for detecting mouse clicks */
     set_click_frame (o);
     stop_timer(&vtx_timer);
