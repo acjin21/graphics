@@ -143,9 +143,6 @@ void display(void)
     }
 }
 
-/*
- * Key routine
- */
 static void key(unsigned char key, int x, int y)
 {
     key_callback(key);
@@ -155,17 +152,15 @@ static void key(unsigned char key, int x, int y)
 
 int click_in_bb (int x, int y, OBJECT *o)
 {
-//    printf("bl: %.2f, %.2f || tr: %.2f, %.2f\n", o->bb_bl.position[X], o->bb_bl.position[Y],
-//           o->bb_tr.position[X], o->bb_tr.position[Y]);
     return (x > o->bb_bl.position[X] &&
             x < o->bb_tr.position[X] &&
             y > o->bb_bl.position[Y] &&
             y < o->bb_tr.position[Y]);
 }
-//void glutMotionFunc(void (*func)(int x, int y));
+
 void motion(int x, int y)
 {
-    y = WIN_H - y;// (flip)
+    y = WIN_H - y;
     stop[X] = x;
     stop[Y] = y;
     float screen_dx = stop[X] - start[X];
@@ -178,7 +173,7 @@ void motion(int x, int y)
     draw_one_frame = 1;
     glutPostRedisplay();
 }
-//void glutMouseFunc(void (*func)(int button, int state, int x, int y));
+
 void mouse (int button, int state, int x, int y)
 {
     if(program_type == SCENE)
@@ -208,9 +203,6 @@ void mouse (int button, int state, int x, int y)
     }
 }
 
-/*
- * main function
- */
 int main(int argc, char **argv)
 {
     if(argc == 2 && !strcmp("BASIC", argv[1]))

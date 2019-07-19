@@ -265,9 +265,9 @@ void render_object(OBJECT *o)
     }
     
     float rx, ry, rz;
-    rx = o->init_orientation[X];// + o->rotation[X];
-    ry = o->init_orientation[Y];// + o->rotation[Y];
-    rz = o->init_orientation[Z];// + o->rotation[Z];
+    rx = o->init_orientation[X];
+    ry = o->init_orientation[Y];
+    rz = o->init_orientation[Z];
     
     switch (o->type)
     {
@@ -279,10 +279,8 @@ void render_object(OBJECT *o)
             scale *= 0.005;
             break;
     }
-    /* construct model matrix */
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
     set_material(material_type);
-    
     
     switch (o->type)
     {
@@ -314,7 +312,6 @@ void render_object(OBJECT *o)
         reading_obj = FALSE;
     }
     
-    
     if(draw_coord_axes)
     {
         if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
@@ -324,37 +321,24 @@ void render_object(OBJECT *o)
     }
 
     rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
-
-    /**********************/
-    /* world space xforms */
-    /**********************/
-
-    //translate model
     translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
-    
-    //scale
     scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
     
     /*******************/
     /* CAMERA SPACE */
     /*****************/
-    
-    /**********************/
-    /* peripheral components: normals, bounding boxes */
-    /**********************/
     calculate_face_normals();
     calculate_vertex_normals();
     
     camera_xform (&camera);
-    /* lighting */
-    if(light_type == LOCAL_L)
-    {
-        calculate_light_vectors(); /* generate all world points' light vecs */
-    }
 
+    if(light_type == LOCAL_L) calculate_light_vectors();
+  
     float near = 5;
     float far = 20.0;
     int skip;
+    translate_model((near + far) / 2.0);
+
     setup_clip_frustum(near, far);
     set_triangle_clip_flags();
     insert_bb_coords();
@@ -362,7 +346,7 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-10, 10, -10, 10, 3, 40);
+            xform_model(-10, 10, -10, 10, near, far);
             break;
             
         case PERSPECT:
@@ -499,12 +483,12 @@ void display_obj_mode (void)
     render_object(o);
 }
 
+/* for mouse io in main.c */
 void translate_object(float screen_dx, float screen_dy)
 {
     OBJECT *curr_object = get_curr_object(curr_objectID);
     curr_object->translate[X] += (5 * screen_dx / (WIN_W / 2.0));
     curr_object->translate[Y] += (5 * screen_dy / (WIN_H / 2.0));
-
 }
 
 float camera_transl = 0.1;
@@ -636,7 +620,6 @@ void key_callback (unsigned char key)
         }
         
             
-            /* point drawing modes */
         case 't':
             if(program_type == SCENE)
             {
@@ -648,7 +631,8 @@ void key_callback (unsigned char key)
             }
             break;
             
-        case 'T':       texture_idx = (texture_idx + 1) % N_TEXTURES;
+        case 'T':
+            texture_idx = (texture_idx + 1) % N_TEXTURES;
             set_texture();
             break;
             
@@ -663,24 +647,19 @@ void key_callback (unsigned char key)
         case 'F':       fog = 1 - fog;                                  break;
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
-            
-            /* toggle projection mode */
         case 'p':       proj_mode = 1 - proj_mode;                      break;
-            /* toggle perspective-correct texturing */
         case 'c':       perspective_correct = 1 - perspective_correct;  break;
             
-            /* toggle between color and depth buffer */
-        case 'B':       framebuffer_src = 1 - framebuffer_src;                            break;
+        case 'B':       framebuffer_src = 1 - framebuffer_src;          break;
             
         case 'A':       draw_coord_axes = 1 - draw_coord_axes;          break;
         case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;
-            
-            /* write out scene objects with initial orientation to a scene file */
+        
         case 'W':
             strcat(scene_name, strtok(scene_file, "."));
             write_scene(strcat(scene_name,"_out.txt"));
             break;
-            /* write obj file */
+            
         case 'O': write_obj_file("obj/out.obj");                        break;
         
         case 'a':
@@ -726,11 +705,8 @@ void key_callback (unsigned char key)
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
         case '3': post_processing = 1 - post_processing;                break;
         case '4': dof_mode = 1 - dof_mode;                              break;
-            
         case '5': bump_mapping = 1 - bump_mapping;                      break;
-        case '6':
-            reset_camera(&camera);
-            break;
+        case '6': reset_camera(&camera);                                break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
