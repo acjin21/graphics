@@ -176,30 +176,26 @@ void motion(int x, int y)
 
 void mouse (int button, int state, int x, int y)
 {
-    if(program_type == SCENE)
+    y = WIN_H - y;// (flip)
+    if(state == GLUT_DOWN)
     {
-
-        y = WIN_H - y;// (flip)
-        if(state == GLUT_DOWN)
+        start[X] = x;
+        start[Y] = y;
+        
+        float closest_z = FLT_MAX;
+        for(int i = 0; i < num_objects; i++)
         {
-            start[X] = x;
-            start[Y] = y;
-            
-            float closest_z = FLT_MAX;
-            for(int i = 0; i < num_objects; i++)
+            if(click_in_bb(x, y, &objects[i]))
             {
-                if(click_in_bb(x, y, &objects[i]))
+                if(objects[i].center[Z] < closest_z)
                 {
-                    if(objects[i].center[Z] < closest_z)
-                    {
-                        closest_z = objects[i].center[Z];
-                        curr_objectID = i;
-                    }
+                    closest_z = objects[i].center[Z];
+                    curr_objectID = i;
                 }
             }
-            draw_one_frame = 1;
-            glutPostRedisplay();
         }
+        draw_one_frame = 1;
+        glutPostRedisplay();
     }
 }
 
