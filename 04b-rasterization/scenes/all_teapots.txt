@@ -1,5 +1,0 @@
-SCENE FILE: all_teapots.txt
-1
-1 0 1
-1 0 0 0 0 0 0
-type: 7	cx: 0.00	cy: 0.00	cz: 0.00	scale: 1	r0: 0.50	r1: 1.00	init_orientation: 0, 0, 0	rotation: 0, 0, 0

@@ -38,11 +38,9 @@ int program_type = 0;
 
 /* for render pipeline */
 /* -- vtx stage */
-float mesh_da = 0;              // flowing mesh animation
 float init_scale = 1.0;         // for obj files from the internet
 
 int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
-int rot_mode = GLOBAL;
 
 MAT4 camera_mat;
 float lookat[4] = {0, 0, 100, 0};
@@ -83,7 +81,7 @@ int calculate_all_vns = OFF;
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
-int light_type = GLOBAL_L;         // LOCAL or GLOBAL lights
+int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 
 /*************************************************************************/
 /* helper functions                                                    */
@@ -98,8 +96,6 @@ void print_settings(void)
            perspective_correct ? "ON" : "OFF");
     printf("Manip Mode ([tab]):\t%s\n",
            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
-    printf("Rotation Mode (R):\t%s\n",
-           rot_mode ? "LOCAL" : "GLOBAL");
     printf(".....................\n");
     printf("Alpha Blending (b):\t%s\n",
            alpha_blend ? "ON" : "OFF");
@@ -266,7 +262,6 @@ void render_object(OBJECT *o)
         texture_idx = o->texture_idx;
         tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
         set_texture();
-//        printf("%i, %i, %i\n", texturing, texture_idx, tex_gen_mode);
     }
     
     float rx, ry, rz;
@@ -293,7 +288,7 @@ void render_object(OBJECT *o)
     {
         case QUAD:      init_quad(&o->model_mat);                           break;
         case CUBE:      init_cube (&o->model_mat);                          break;
-        case MESH:      init_mesh(scale, cx, cy, cz, mesh_da);              break;
+        case MESH:      init_mesh(scale, cx, cy, cz);                       break;
         case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
         case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
         case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
@@ -327,12 +322,9 @@ void render_object(OBJECT *o)
             insert_coord_axes(cx, cy, cz, scale);
         }
     }
-    
-    if(rot_mode == LOCAL)
-    {
-        rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
-    }
-    
+
+    rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
+
     /**********************/
     /* world space xforms */
     /**********************/
@@ -340,20 +332,12 @@ void render_object(OBJECT *o)
     //translate model
     translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
     
-    /* for global rotation, first translate, then rotate about origin */
-    if(rot_mode == GLOBAL)
-    {
-        rotate_model(0, 0, 0, o->rotation[X], o->rotation[Y], o->rotation[Z]);
-    }
-    
     //scale
     scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
     
     /*******************/
     /* CAMERA SPACE */
     /*****************/
-//    set_camera (&camera, eye, lookat, world_up); //remove after have rotate_cam method
-//    rotate_camera (&camera, camera.rot[X], camera.rot[Y], camera.rot[Z]);
     
     /**********************/
     /* peripheral components: normals, bounding boxes */
@@ -362,8 +346,6 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     
     camera_xform (&camera);
-
-    
     /* lighting */
     if(light_type == LOCAL_L)
     {
@@ -375,46 +357,38 @@ void render_object(OBJECT *o)
     int skip;
     setup_clip_frustum(near, far);
     set_triangle_clip_flags();
-    
+    insert_bb_coords();
+
     switch(proj_mode)
     {
         case ORTHO:
-//            translate_model(-o->center[Z]);
             xform_model(-10, 10, -10, 10, 3, 40);
-//            viewport_mat_xform(WIN_W, WIN_H);
             break;
             
         case PERSPECT:
-//            skip = cull_model(near, far);
-//            if(skip)
-//            {
-//                return;
-//            }
+            skip = cull_model(near, far);
+            if(skip) return;
             perspective_xform(near, far, -2, 2, -2, 2);
-
             break;
     }
-
-    
     viewport_mat_xform(WIN_W, WIN_H);
-    /* for detecting mouse clicks */
     set_click_frame (o);
+    
     stop_timer(&vtx_timer);
-    //    printf("vtx_timer: %.5f\n", elapsed_time(&vtx_timer));
     /*-------------------------------*/         /* end vertex processing */
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
     draw_model(draw_mode);
     
-    if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
+    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
+       && !skip)
     {
         draw_local_axes();
         float bb_color[4] = {1, 1, 1, 1};
         draw_3D_bb(bb_color);
     }
     stop_timer(&px_timer);
-    //    printf("px_timer: %.5f\n", elapsed_time(&px_timer));
     /*-------------------------------*/         /* end pixel processing */
 }
 
@@ -424,7 +398,6 @@ void render_object(OBJECT *o)
 /* apply specific benchmark function (called once per frame) */
 void apply_benchmark_animation (OBJECT *o, int num_samples)
 {
-//    printf("rotate Y: %.2f\n", o->rotation[Y]);
     o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
 }
 
@@ -433,12 +406,12 @@ void display_benchmark_mode (int num_samples)
     OBJECT *o = &objects[0];
     apply_benchmark_animation(o, num_samples);
     o->type = object_type;
-    o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
+    o->scale = (o->scale ? o->scale : 0.5);
     o->radii[0] = 0.5;
     o->radii[1] = 1;
-    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1); //prevent scale from being 0
-    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1); //prevent scale from being 0
-    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1); //prevent scale from being 0
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     render_object(o);
 }
 /********************************************/
@@ -453,13 +426,12 @@ void display_basic_mode (void)
 {
     OBJECT *o = &objects[0];
     o->type = object_type;
-    o->scale = (o->scale ? o->scale : 0.5); //prevent scale from being 0
+    o->scale = (o->scale ? o->scale : 0.5);
     o->radii[0] = 0.5;
     o->radii[1] = 1;
-    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1); //prevent scale from being 0
-    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1); //prevent scale from being 0
-    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1); //prevent scale from being 0
-
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     render_object(o);
 }
 /********************************************/
@@ -479,10 +451,12 @@ void display_scene_mode (void)
 {
     for(int i = 0; i < num_objects; i++)
     {
-//        printf("%i\n", i);
-        objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1); //prevent scale from being 0
-        objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1); //prevent scale from being 0
-        objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1); //prevent scale from being 0
+        objects[i].scale_vec[X] =
+        (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
+        objects[i].scale_vec[Y] =
+        (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
+        objects[i].scale_vec[Z] =
+        (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
         render_object(&objects[i]);
 
 
@@ -660,18 +634,6 @@ void key_callback (unsigned char key)
             }
             break;
         }
-            
-            
-        case 'R':       rot_mode = 1 - rot_mode;                        break;
-            /* flowing mesh animation */
-//        case 'w':       mesh_da += 0.5;                                 break;
-            /* reset rotations and any offsets */
-//        case 'r':
-//            curr_object->rotation[X] = 0;
-//            curr_object->rotation[Y] = 0;
-//            curr_object->rotation[Z] = 0;
-//            dz = INIT_DZ;
-//            mesh_da = 0;                                      break;
         
             
             /* point drawing modes */
@@ -789,7 +751,3 @@ void apply_post_pipeline_fx (void)
     }
 }
 
-//void update_animation (void)
-//{
-//    
-//}

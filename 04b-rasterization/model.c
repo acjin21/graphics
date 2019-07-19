@@ -49,7 +49,7 @@ int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by in
 int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 
-int bb_start_idx = 0;               // starting index of bounding box vertices in vertex_list
+int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -176,16 +176,7 @@ void init_cube (MAT4 *model)
     set_vec4(tex_list[1], 0.9, 0.1, 0, 0);
     set_vec4(tex_list[2], 0.9, 0.9, 0, 0);
     set_vec4(tex_list[3], 0.1, 0.9, 0, 0);
-//
-//    set_vec4(tex_list[0].tex, 1, 1, 0, 0);
-//    set_vec4(tex_list[1].tex, 1, 1, 0, 0);
-//    set_vec4(tex_list[2].tex, 1, -1, 0, 0);
-//    set_vec4(tex_list[3].tex, 1, -1, 0, 0);
-//    set_vec4(tex_list[4].tex, -1, 1, 0, 0);
-//    set_vec4(tex_list[5].tex, -1, 1, 0, 0);
-//    set_vec4(tex_list[6].tex, -1, -1, 0, 0);
-//    set_vec4(tex_list[7].tex, -1, -1, 0, 0);
-//
+
     num_tex_coords = 4;
 
     /* r, g, b color options */
@@ -256,7 +247,7 @@ void add_mesh_faces (int w, int h)
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
-void init_mesh (float scale, float cx, float cy, float cz, float da)
+void init_mesh (float scale, float cx, float cy, float cz)
 {
     int n = 32;
     int width = n;
@@ -275,7 +266,7 @@ void init_mesh (float scale, float cx, float cy, float cz, float da)
             /* world coordinates */
             p->world[X] = scale * u + cx;
             p->world[Y] = scale * v + cy;
-            p->world[Z] = cos(da + v * 2 * PI) * sin(da + u * 2 * PI) + cz;
+            p->world[Z] = cos(v * 2 * PI) * sin(u * 2 * PI) + cz;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -372,16 +363,6 @@ void init_sphere (float radius, float cx, float cy, float cz)
             p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI) + cy;
             p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI) + cz;
             p->world[W] = 1.0;
-            
-//            p->tex[X] = u;
-//            p->tex[Y] = v;
-//            p->tex[Z] = 0;
-//            p->tex[W] = 0;
-//
-//            p->color[X] = u;
-//            p->color[Y] = v;
-//            p->color[Z] = 0;
-//            p->color[W] = 1;
             
             /* set colors and textures for each vertex */
             set_vec4(tex_list[(r * n) + c], u, v, 0, 0);

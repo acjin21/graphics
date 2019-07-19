@@ -15,30 +15,18 @@ PLANE frustum[6];        //view frustum for clipping
 float point_to_plane_dist (float point[4], PLANE *plane)
 {
     float point_dist_from_orig = vector_dot(point, plane->normal);
-    
-    // havent checked if works when plane doesnt go through origin and is not near or far planes
-    // assuming plane.normal is normalized
-    if(plane->distance < 0) //far plane
+    if(plane->distance < 0 || (plane->distance > 0 && plane->normal[Z] == 1))
     {
         return point_dist_from_orig - plane->distance;
     }
-    else if (plane->distance > 0) //near plane
+    else if (plane->distance > 0)
     {
-        if(plane->normal[Z] == 1 )
-        {
-            return point_dist_from_orig - plane->distance;
-        }
-        else
-        {
-            return point_dist_from_orig + plane->distance;
-
-        }
+        return point_dist_from_orig + plane->distance;
     }
     else
     {
         return point_dist_from_orig;
     }
-
 }
 
 /************************/
@@ -112,20 +100,19 @@ void clip_line (POINT *a, POINT *b, POINT *intersect, PLANE *p)
     interp_intersection_point(a->tex, b->tex, intersect->tex, t);
     interp_intersection_point(a->v_normal, b->v_normal, intersect->v_normal, t);
     interp_intersection_point(a->light, b->light, intersect->light, t);
-//    printf("a->color: %.2f, %.2f, %.2f, %.2f\n", a->color[X], a->color[Y], a->color[Z], a->color[W]);
 }
 
 /* clips each edge of triangle by walking edges.
     sets the vertices of resulting clipped polygon (verts), and
     returns the number of elements in verts */
-float clip_epsilon = 0;
 int clip_triangle (POINT *verts)
 {
     POINT new, clipped[8];
     POINT *in, *out, *tmp;
     int num_in = 3;
     int num_out;
-    
+    float clip_epsilon = 0;
+
     in = verts;
     out = clipped;
     /* clip triangle against one plane at a time */
@@ -164,24 +151,18 @@ int clip_triangle (POINT *verts)
             }
 
         }
-        // swap in & out pointers
         tmp = in;
         in = out;
         out = tmp;
         
-        // update num_in
         num_in = num_out;
     }
-    // set out to the final output POINT list
     out = in;
-    // move POINTs from in to verts
     for(int i = 0; i < num_out; i++)
     {
         verts[i] = in[i];
     }
-    // return resulting num of verts of clipped polygon
     return num_out;
-    
 }
 
 

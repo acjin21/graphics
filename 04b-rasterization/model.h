@@ -38,7 +38,7 @@ extern int tex_gen_mode;
 /* model init functions (set initial world space coords) */
 void init_quad(MAT4 *model);
 void init_cube (MAT4 *model);
-void init_mesh (float scale, float cx, float cy, float cz, float mesh_da);
+void init_mesh (float scale, float cx, float cy, float cz);
 void init_cylinder (float radius, float scale, float cx, float cy, float cz);
 void init_cone (float radius, float scale, float cx, float cy, float cz);
 void init_sphere (float radius, float cx, float cy, float cz);
