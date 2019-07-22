@@ -341,7 +341,9 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     if(light_type == LOCAL_L) calculate_light_vectors();
     
+    /* set per triangle dot products to later determine if drawing backface */
     set_backface_flags(&camera);
+    
     camera_xform (&camera);
 
     /*******************/

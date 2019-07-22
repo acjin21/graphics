@@ -855,8 +855,6 @@ void set_triangle_clip_flags (void)
             if(debugging_mode)
             {
                 int num_clipped = clip_triangle (verts);
-//                printf("num_clipped = %.2i\n", num_clipped);
-            
                 if(num_clipped == 0)
                 {
                     continue;
@@ -893,13 +891,12 @@ void set_triangle_clip_flags (void)
                               new_v0, new_v0 + 1, new_v0 + 2,
                               0, 0, 0);
                     num_addl++;
+                    
+                    /* copy data from original face */
                     cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
                     face_list[new_f].clip_flag = 0;
                     face_list[new_f].backface_factor = face_list[i].backface_factor;
-
                 }
-                
-            
             }
             num_face_normals = num_triangles;
 
@@ -922,7 +919,6 @@ void set_backface_flags (CAMERA *c)
         normalize(eye_ray);
         dot = vector_dot(eye_ray, f->f_normal);
         f->backface_factor = dot;
-        
     }
 }
 /****************************************************************/
@@ -1024,88 +1020,47 @@ void draw_model(int mode)
             if(f.backface_factor < 0) //pointing away from us
             {
                 drawing_backside = ON;
-                printf("backside %.2f\n", f.backface_factor);
-//                set_vec4(p0.color, -f.backface_factor, 0, 0, 1);
                 scalar_add(f.backface_factor / 2.0, p0.color, p0.color);
-
-//                set_vec4(p1.color, -f.backface_factor, 0, 0, 1);
                 scalar_add(f.backface_factor / 2.0, p1.color, p1.color);
-
-//                set_vec4(p2.color, -f.backface_factor, 0, 0, 1);
                 scalar_add(f.backface_factor / 2.0, p2.color, p2.color);
                 
                 draw_triangle_barycentric (&p0, &p2, &p1);
+            }
+            else {
+                drawing_backside = OFF;
+                draw_triangle_barycentric (&p0, &p1, &p2);
                 
                 if (normal_type == V_NORMALS)
                 {
                     drawing_normals = ON;
                     POINT v_norm_endpt, vtx;
                     float tmp[4];
-                    set_vec4(v_norm_endpt.color, 0, 0, 1, 1);
-                    
-                    set_vec4(p0.color, 0, 0, 1, 1);
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
+
+                    set_vec4(p0.color, 0, 1, 0, 1);
                     scalar_multiply(V_NORM_SCALE, p0.v_normal, tmp);
                     vector_add(p0.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = vtx.position[Z];
                     draw_line(&p0, &v_norm_endpt, DRAW);
-                    
-                    set_vec4(p1.color, 0, 0, 1, 1);
-                    set_vec4(v_norm_endpt.color, 0, 0, 1, 1);
+
+                    set_vec4(p1.color, 0, 1, 0, 1);
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
 
                     scalar_multiply(V_NORM_SCALE, p1.v_normal, tmp);
                     vector_add(p1.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p1.position[Z];
                     draw_line(&p1, &v_norm_endpt, DRAW);
-                    
-                    set_vec4(p2.color, 0, 0, 1, 1);
-                    set_vec4(v_norm_endpt.color, 0, 0, 1, 1);
+
+                    set_vec4(p2.color, 0, 1, 0, 1);
+                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
 
                     scalar_multiply(V_NORM_SCALE, p2.v_normal, tmp);
                     vector_add(p2.position, tmp, v_norm_endpt.position);
                     v_norm_endpt.position[Z] = p2.position[Z];
                     draw_line(&p2, &v_norm_endpt, DRAW);
                     drawing_normals = OFF;
-                    
                 }
             }
-            else {
-                drawing_backside = OFF;
-                draw_triangle_barycentric (&p0, &p1, &p2);
-                
-//                if (normal_type == V_NORMALS)
-//                {
-//                    drawing_normals = ON;
-//                    POINT v_norm_endpt, vtx;
-//                    float tmp[4];
-//                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-//
-//                    set_vec4(p0.color, 0, 1, 0, 1);
-//                    scalar_multiply(V_NORM_SCALE, p0.v_normal, tmp);
-//                    vector_add(p0.position, tmp, v_norm_endpt.position);
-//                    v_norm_endpt.position[Z] = vtx.position[Z];
-//                    draw_line(&p0, &v_norm_endpt, DRAW);
-//
-//                    set_vec4(p1.color, 0, 1, 0, 1);
-//                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-//
-//                    scalar_multiply(V_NORM_SCALE, p1.v_normal, tmp);
-//                    vector_add(p1.position, tmp, v_norm_endpt.position);
-//                    v_norm_endpt.position[Z] = p1.position[Z];
-//                    draw_line(&p1, &v_norm_endpt, DRAW);
-//
-//                    set_vec4(p2.color, 0, 1, 0, 1);
-//                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-//
-//                    scalar_multiply(V_NORM_SCALE, p2.v_normal, tmp);
-//                    vector_add(p2.position, tmp, v_norm_endpt.position);
-//                    v_norm_endpt.position[Z] = p2.position[Z];
-//                    draw_line(&p2, &v_norm_endpt, DRAW);
-//                    drawing_normals = OFF;
-//
-//                }
-
-            }
-            
 
             if(normal_type == F_NORMALS)
             {
@@ -1166,7 +1121,6 @@ void draw_3D_bb (float bb_color[4])
     {
         for(int i = 0; i < 8; i++)
         {
-//            set_vec4(vertex_list[bb_start_idx + i].color, 0, 0, 0, 1);
             cpy_vec4(vertex_list[bb_start_idx + i].color, bb_color);
         }
         drawing_bounding_box = ON;
