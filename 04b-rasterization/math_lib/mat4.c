@@ -47,8 +47,6 @@ void set(MAT4 *out,
     out->data[13] = m31;
     out->data[14] = m32;
     out->data[15] = m33;
-//    printf("SET\n");
-//    print_mat4(out);
 }
 
 void set_one_col (MAT4 *out, int c, float col[4])
@@ -272,7 +270,7 @@ void set_model_mat (MAT4 *model, float s, float rx, float ry, float rz,
     mat_mul (model, &tmp, model);
 }
 
-void set_camera_mat (MAT4 *cam, CAMERA *c)//, float eye[4], float lookat[4], float up[4])
+void set_camera_mat (MAT4 *cam, CAMERA *c)
 {
     float u[4], v[4];
     float col3[4] = {0, 0, 0, 1};

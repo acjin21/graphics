@@ -83,6 +83,9 @@ char scene_file[MAX_FILE_NAME];
 
 int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 
+float near = 1;
+float far = 40.0;
+int skip;
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -334,10 +337,8 @@ void render_object(OBJECT *o)
 
     if(light_type == LOCAL_L) calculate_light_vectors();
   
-    float near = 5;
-    float far = 20.0;
-    int skip;
-    translate_model((near + far) / 2.0);
+
+    
 
     setup_clip_frustum(near, far);
     set_triangle_clip_flags();
@@ -350,8 +351,8 @@ void render_object(OBJECT *o)
             break;
             
         case PERSPECT:
-            skip = cull_model(near, far);
-            if(skip) return;
+//            skip = cull_model(near, far);
+//            if(skip) return;
             perspective_xform(near, far, -2, 2, -2, 2);
             break;
     }
@@ -365,8 +366,8 @@ void render_object(OBJECT *o)
     start_timer(&px_timer);
     draw_model(draw_mode);
     
-    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
-       && !skip)
+    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID)))
+//       && !skip)
     {
         draw_local_axes();
         float bb_color[4] = {1, 1, 1, 1};
@@ -408,6 +409,7 @@ void init_basic_program (void)
 
 void display_basic_mode (void)
 {
+    
     OBJECT *o = &objects[0];
     o->type = object_type;
     o->scale = (o->scale ? o->scale : 0.5);
@@ -416,6 +418,7 @@ void display_basic_mode (void)
     o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
     o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
+    o->center[Z] = (near + far) / 2.0;
     render_object(o);
 }
 /********************************************/
@@ -491,7 +494,7 @@ void translate_object(float screen_dx, float screen_dy)
     curr_object->translate[Y] += (5 * screen_dy / (WIN_H / 2.0));
 }
 
-float camera_transl = 0.1;
+float camera_transl = 0.3;
 /********************************************/
 /* IO */
 /********************************************/
