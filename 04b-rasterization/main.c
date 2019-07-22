@@ -43,9 +43,7 @@ float start[2], stop[2];
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
-/*
- * display routine
- */
+/* display callback */
 void display(void)
 {
     if( Mojave_WorkAround )
@@ -62,36 +60,28 @@ void display(void)
 
     if(program_type == BENCHMARK)
     {
-        display_timer++;
         
-        if(display_timer % num_samples == 0) /* every 360 display() calls */
+        if(counter % num_samples == 0) /* every 360 display() calls */
         {
-            OBJECT *o = &objects[0]; /* get one object */
-            object_type = (object_type + 1) % N_TYPES; /* cycle through object types for BENCHMARK program */
-            if(object_type == 0 && display_timer > 360)
+            OBJECT *o = &objects[0];
+            object_type = (object_type + 1) % N_TYPES; /* cycle through object types */
+            if(object_type == 0 && counter > 360) /* done cycling */
             {
                 draw_one_frame = 0;
                 return;
             }
             o->rotation[Y] = 0;
-            
             draw_one_frame = 1;
             glutPostRedisplay();
         }
-    }
-    if(program_type != BENCHMARK)
-    {
-        print_settings();
-    }
-
-    if(program_type == BENCHMARK)
-    {
         clear_color_buffer(0.5, 0.5, 0.5, 1);
+
     }
     else
     {
-//        clear_color_buffer(1, 1, 1, 1);
-        clear_color_buffer(0, 0, 0, 1);
+        print_settings();
+        clear_color_buffer(1, 1, 1, 1);
+//        clear_color_buffer(0, 0, 0, 1);
 
     }
 
@@ -102,47 +92,39 @@ void display(void)
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-    start_timer(&sw_renderer_timer);            /* START SW_RENDERER_TIMER */
-    
-    if(program_type == BASIC)
+    start_timer(&sw_renderer_timer);                /* START SW_RENDERER_TIMER */
+    switch (program_type)
     {
-        display_basic_mode();
-    }
-    else if(program_type == BENCHMARK)
-    {
-        display_benchmark_mode(num_samples);
-    }
-    else if(program_type == SCENE)
-    {
-        display_scene_mode();
-    }
-    else if(program_type == OBJ)
-    {
-        display_obj_mode();
+        case BASIC: display_basic_mode();                       break;
+        case BENCHMARK: display_benchmark_mode(num_samples);    break;
+        case SCENE: display_scene_mode();                       break;
+        case OBJ: display_obj_mode();                           break;
+        default: display_basic_mode();                          break;
     }
     apply_post_pipeline_fx();
-    
-    stop_timer(&sw_renderer_timer);         /* STOP SW_RENDERER_TIMER */
-    fprintf(cb_file, "%s ", object_name(object_type));
-    fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
-    start_timer(&gl_timer);
-    
-    //draw color or depth buffer            /* START GL_TIMER */
-    framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
-    stop_timer(&gl_timer);                  /* STOP GL_TIMER */
-    fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
+    stop_timer(&sw_renderer_timer);                 /* STOP SW_RENDERER_TIMER */
+    if(program_type == BENCHMARK)
+    {
+        fprintf(cb_file, "%s ", object_name(object_type));
+        fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
+    }
 
-    /*
-     * show results
-     */
+    start_timer(&gl_timer);                         /* START GL_TIMER */
+    /* draw color or depth buffer */
+    framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
+    stop_timer(&gl_timer);                          /* STOP GL_TIMER */
+    if(program_type == BENCHMARK)
+    {
+        fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
+    }
+
+    /* show reuslts */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
-    if(program_type != BENCHMARK)
-    {
-        draw_one_frame = 0;
-    }
+    if(program_type != BENCHMARK) draw_one_frame = 0;
 }
 
+/* key callback */
 static void key(unsigned char key, int x, int y)
 {
     key_callback(key);
@@ -150,14 +132,7 @@ static void key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-int click_in_bb (int x, int y, OBJECT *o)
-{
-    return (x > o->bb_bl.position[X] &&
-            x < o->bb_tr.position[X] &&
-            y > o->bb_bl.position[Y] &&
-            y < o->bb_tr.position[Y]);
-}
-
+/* mouse motion callback */
 void motion(int x, int y)
 {
     y = WIN_H - y;
@@ -166,7 +141,6 @@ void motion(int x, int y)
     float screen_dx = stop[X] - start[X];
     float screen_dy = stop[Y] - start[Y];
     translate_object(screen_dx, screen_dy);
-    
     start[X] = x;
     start[Y] = y;
     
@@ -174,9 +148,19 @@ void motion(int x, int y)
     glutPostRedisplay();
 }
 
+/* whether mouse click position is in the 2D screen bounding box of object o */
+int click_in_bb (int x, int y, OBJECT *o)
+{
+    return (x > o->bb_bl.position[X] &&
+            x < o->bb_tr.position[X] &&
+            y > o->bb_bl.position[Y] &&
+            y < o->bb_tr.position[Y]);
+}
+
+/* mouse click callback */
 void mouse (int button, int state, int x, int y)
 {
-    y = WIN_H - y;// (flip)
+    y = WIN_H - y;
     if(state == GLUT_DOWN)
     {
         start[X] = x;

@@ -69,10 +69,13 @@ void translate_camera (CAMERA *c, float tx, float ty, float tz)
     // not using translation matrix for performance (dont need a matrix mul)
     // translating camera means moving its center point/eye (dont need to recalc unit basis vecs),
     //  so don't need to worry about homogenous coord (it will be 1, but we just don't add to it
-    float transl[4];
-    set_vec4(transl, tx, ty, tz, 0);
+    float transl[4], tmp[4];
+    set_vec4(transl, tx, ty, 0, 0);
     vector_add(c->pos, transl, c->pos);
+    scalar_multiply(tz, c->v, tmp);
+    vector_add(c->pos, tmp, c->pos);
 }
+
 void reset_camera (CAMERA *c)
 {
     cpy_vec4(c->pos, c->orig_pos);

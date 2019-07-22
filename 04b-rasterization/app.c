@@ -86,6 +86,8 @@ int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 float near = 1;
 float far = 40.0;
 int skip;
+float camera_transl = 0.3;
+
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -169,36 +171,21 @@ char *object_name (int object_type)
 {
     switch (object_type)
     {
-        case QUAD:
-            return "qd";
-        case CUBE:
-            return "cb";
-        case MESH:
-            return "ms";
-        case CYLINDER:
-            return "cl";
-        case CONE:
-            return "cn";
-        case SPHERE:
-            return "sr";
-        case TORUS:
-            return "to";
-        case TEAPOT:
-            return "tp";
-        case CAT:
-            return "ct";
-        case DEER:
-            return "de";
-        case BUNNY :
-            return "bn";
-        case BUDDHA :
-            return "bd";
-        case WOLF :
-            return "wl";
-        case TREE :
-            return "tr";
-        default:
-            return "ERROR: no name corresponding to this object type";
+        case QUAD:      return "qd";
+        case CUBE:      return "cb";
+        case MESH:      return "ms";
+        case CYLINDER:  return "cl";
+        case CONE:      return "cn";
+        case SPHERE:    return "sr";
+        case TORUS:     return "to";
+        case TEAPOT:    return "tp";
+        case CAT:       return "ct";
+        case DEER:      return "de";
+        case BUNNY :    return "bn";
+        case BUDDHA :   return "bd";
+        case WOLF :     return "wl";
+        case TREE :     return "tr";
+        default:        return "N/A";
     }
 }
 /*******************************************************/
@@ -250,6 +237,8 @@ void render_object(OBJECT *o)
 {
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
+    
+    /* get INITIAL center, scale, and radius */
     float cx, cy, cz, scale, r0, r1;
     cx = o->center[X];
     cy = o->center[Y];
@@ -258,6 +247,7 @@ void render_object(OBJECT *o)
     r0 = o->radii[0];
     r1 = o->radii[1];
     
+    /* for per-object texturing in SCENE mode */
     if(program_type == SCENE)
     {
         /* set draw state */
@@ -267,11 +257,13 @@ void render_object(OBJECT *o)
         set_texture();
     }
     
+    /* get initial orientation */
     float rx, ry, rz;
     rx = o->init_orientation[X];
     ry = o->init_orientation[Y];
     rz = o->init_orientation[Z];
     
+    /* appropriate scaling for different OBJ files */
     switch (o->type)
     {
         case CAT:
@@ -283,6 +275,8 @@ void render_object(OBJECT *o)
             break;
     }
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
+    
+    /* set material property vecs */
     set_material(material_type);
     
     switch (o->type)
@@ -302,19 +296,33 @@ void render_object(OBJECT *o)
         case WOLF:      read_obj_file("obj/wolf.obj", &o->model_mat);       break;
         case TREE:      read_obj_file("obj/tree.obj", &o->model_mat);       break;
     }
-    if(o->type == TEAPOT || o->type == CAT || o->type == DEER || o->type == BUNNY
-       || o->type == BUDDHA || o->type == WOLF || o->type == TREE)
+    
+    if(o->type == TEAPOT    || o->type == CAT       || o->type == DEER
+       || o->type == BUNNY  || o->type == BUDDHA    || o->type == WOLF
+       || o->type == TREE)
     {
         reading_obj = TRUE;
-        calculate_face_normals();
-        calculate_vertex_normals();
-        get_tex_coords();
     }
     else
     {
         reading_obj = FALSE;
     }
     
+    /*******************/
+    /* WORLD SPACE */
+    /*******************/
+
+    
+    /* if reading OBJ, for better texture mapping, generate their uv coords */
+    if(reading_obj)
+    {
+        /* need pre-rotation face and vertex normals to get texture coords */
+        calculate_face_normals();
+        calculate_vertex_normals();
+        get_tex_coords();
+    }
+    
+    /* if drawing coordinate axes, insert those POINTs into vertex_list as well */
     if(draw_coord_axes)
     {
         if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
@@ -322,41 +330,45 @@ void render_object(OBJECT *o)
             insert_coord_axes(cx, cy, cz, scale);
         }
     }
-
+    
+    /* world space xforms */
     rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
     translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
     scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
     
-    /*******************/
-    /* CAMERA SPACE */
-    /*****************/
+    /* rotated face and vertex normals */
     calculate_face_normals();
     calculate_vertex_normals();
+    if(light_type == LOCAL_L) calculate_light_vectors();
     
+    set_backface_flags(&camera);
     camera_xform (&camera);
 
-    if(light_type == LOCAL_L) calculate_light_vectors();
-  
-
-    
-
-    setup_clip_frustum(near, far);
+    /*******************/
+    /* CAMERA SPACE */
+    /*******************/
     set_triangle_clip_flags();
     insert_bb_coords();
 
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-10, 10, -10, 10, near, far);
-            break;
+            xform_model(-10, 10, -10, 10, near, far);       break;
             
         case PERSPECT:
 //            skip = cull_model(near, far);
 //            if(skip) return;
-            perspective_xform(near, far, -2, 2, -2, 2);
-            break;
+            perspective_xform(near, far, -2, 2, -2, 2);     break;
     }
+    /*******************/
+    /* NDC SPACE */
+    /*******************/
     viewport_mat_xform(WIN_W, WIN_H);
+    
+    /*******************/
+    /* SCREEN SPACE */
+    /*******************/
+    /* set the screen 2D click space for object */
     set_click_frame (o);
     
     stop_timer(&vtx_timer);
@@ -366,8 +378,9 @@ void render_object(OBJECT *o)
     start_timer(&px_timer);
     draw_model(draw_mode);
     
-    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID)))
-//       && !skip)
+    if(program_type != SCENE ||
+       (program_type == SCENE && o->ID == curr_objectID))
+//       && !skip) /* don't draw bounding box once the object has been culled */
     {
         draw_local_axes();
         float bb_color[4] = {1, 1, 1, 1};
@@ -375,6 +388,58 @@ void render_object(OBJECT *o)
     }
     stop_timer(&px_timer);
     /*-------------------------------*/         /* end pixel processing */
+}
+
+
+/********************************************/
+/* for BASIC mode */
+/********************************************/
+void init_basic_program (void)
+{
+    set_camera (&camera, eye, lookat, world_up);
+    setup_clip_frustum(near, far);
+}
+
+void display_basic_mode (void)
+{
+    OBJECT *o = &objects[0];
+    o->type = object_type;
+    o->scale = (o->scale ? o->scale : 0.5);
+    o->radii[0] = 0.5;
+    o->radii[1] = 1;
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
+    o->center[Z] = (near + far) / 2.0;
+    render_object(o);
+}
+
+/********************************************/
+/* for SCENE mode */
+/********************************************/
+int init_scene_program (int argc, char **argv)
+{
+    set_camera (&camera, eye, lookat, world_up);
+    setup_clip_frustum(near, far);
+
+    strcat(scene_file, argv[2]);
+    read_scene(scene_file);
+    program_type = SCENE;
+    return 0;
+}
+
+void display_scene_mode (void)
+{
+    for(int i = 0; i < num_objects; i++)
+    {
+        objects[i].scale_vec[X] =
+        (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
+        objects[i].scale_vec[Y] =
+        (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
+        objects[i].scale_vec[Z] =
+        (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+        render_object(&objects[i]);
+    }
 }
 
 /********************************************/
@@ -399,56 +464,7 @@ void display_benchmark_mode (int num_samples)
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     render_object(o);
 }
-/********************************************/
-/* for BASIC mode */
-/********************************************/
-void init_basic_program (void)
-{
-    set_camera (&camera, eye, lookat, world_up);
-}
 
-void display_basic_mode (void)
-{
-    
-    OBJECT *o = &objects[0];
-    o->type = object_type;
-    o->scale = (o->scale ? o->scale : 0.5);
-    o->radii[0] = 0.5;
-    o->radii[1] = 1;
-    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
-    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
-    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
-    o->center[Z] = (near + far) / 2.0;
-    render_object(o);
-}
-/********************************************/
-/* for SCENE mode */
-/********************************************/
-int init_scene_program (int argc, char **argv)
-{
-    set_camera (&camera, eye, lookat, world_up);
-
-    strcat(scene_file, argv[2]);
-    read_scene(scene_file);
-    program_type = SCENE;
-    return 0;
-}
-
-void display_scene_mode (void)
-{
-    for(int i = 0; i < num_objects; i++)
-    {
-        objects[i].scale_vec[X] =
-        (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
-        objects[i].scale_vec[Y] =
-        (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
-        objects[i].scale_vec[Z] =
-        (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-        render_object(&objects[i]);
-
-
-    }
-}
 /********************************************/
 /* for OBJ mode */
 /********************************************/
@@ -494,7 +510,6 @@ void translate_object(float screen_dx, float screen_dy)
     curr_object->translate[Y] += (5 * screen_dy / (WIN_H / 2.0));
 }
 
-float camera_transl = 0.3;
 /********************************************/
 /* IO */
 /********************************************/
@@ -665,43 +680,19 @@ void key_callback (unsigned char key)
             
         case 'O': write_obj_file("obj/out.obj");                        break;
         
-        case 'a':
-            rotate_camera (&camera, 0, 5, 0);
-            break;
-        case 'd':
-            rotate_camera (&camera, 0, -5, 0);
-            break;
-        case 'w':
-            rotate_camera (&camera, -5, 0, 0);
-            break;
-        case 's':
-            rotate_camera (&camera, 5, 0, 0);
-            break;
-        case 'e':
-            rotate_camera (&camera, 0, 0, -5);
-            break;
-        case 'r':
-            rotate_camera (&camera, 0, 0, 5);
-            break;
+        case 'a':   rotate_camera (&camera, 0, 5, 0);   break;
+        case 'd':   rotate_camera (&camera, 0, -5, 0);  break;
+        case 'w':   rotate_camera (&camera, -5, 0, 0);  break;
+        case 's':   rotate_camera (&camera, 5, 0, 0);   break;
+        case 'e':   rotate_camera (&camera, 0, 0, -5);  break;
+        case 'r':   rotate_camera (&camera, 0, 0, 5);   break;
 
-        case 'j':
-            translate_camera (&camera, -camera_transl, 0, 0);
-            break;
-        case 'l':
-            translate_camera (&camera, camera_transl, 0, 0);
-            break;
-        case 'i':
-            translate_camera (&camera, 0, camera_transl, 0);
-            break;
-        case 'k':
-            translate_camera (&camera, 0, -camera_transl, 0);
-            break;
-        case '+':
-            translate_camera (&camera, 0, 0, camera_transl);
-            break;
-        case '-':
-            translate_camera (&camera, 0, 0, -camera_transl);
-            break;
+        case 'j':   translate_camera (&camera, -camera_transl, 0, 0);   break;
+        case 'l':   translate_camera (&camera, camera_transl, 0, 0);    break;
+        case 'i':   translate_camera (&camera, 0, camera_transl, 0);    break;
+        case 'k':   translate_camera (&camera, 0, -camera_transl, 0);   break;
+        case '+':   translate_camera (&camera, 0, 0, camera_transl);    break;
+        case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
@@ -710,6 +701,8 @@ void key_callback (unsigned char key)
         case '4': dof_mode = 1 - dof_mode;                              break;
         case '5': bump_mapping = 1 - bump_mapping;                      break;
         case '6': reset_camera(&camera);                                break;
+        case '7': light_type = 1 - light_type;                          break;
+
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
@@ -717,7 +710,7 @@ void key_callback (unsigned char key)
     }
 }
 
-/* after render pipeline */
+/* after render pipeline, called in main */
 void apply_post_pipeline_fx (void)
 {
     if(post_processing == ON)

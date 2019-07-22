@@ -15,6 +15,7 @@ PLANE frustum[6];        //view frustum for clipping
 float point_to_plane_dist (float point[4], PLANE *plane)
 {
     float point_dist_from_orig = vector_dot(point, plane->normal);
+    /* every plane except for far plane */
     if(plane->distance < 0 || (plane->distance > 0 && plane->normal[Z] == 1))
     {
         return point_dist_from_orig - plane->distance;

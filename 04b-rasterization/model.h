@@ -18,6 +18,7 @@ typedef struct face
     
     float f_normal[4]; //face normal in world coordinates
     int clip_flag;
+    float backface_factor;
 } FACE;
 
 /****************************************************************/
@@ -59,6 +60,7 @@ void scale_model_mat (float sx, float sy, float sz);
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
+void set_backface_flags (CAMERA *c);
 void camera_xform (CAMERA *c);
 
 

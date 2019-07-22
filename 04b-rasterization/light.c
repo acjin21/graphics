@@ -6,5 +6,5 @@
 float light[4] = {1, 1, -0.5, 1};
 
 /* point lights */
-float light_pos[4] = {0, 0, 0, 1};
+float light_pos[4] = {0, 5, 0, 1};
 
