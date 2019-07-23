@@ -738,16 +738,6 @@ void viewport_mat_xform (int vp_w, int vp_h)
 /****************************************************************/
 /* for perspective projections */
 /****************************************************************/
-/* translate model in world space by distance units along the Z axis */
-//void translate_model (float distance)
-//{
-//    int max_idx = get_max_idx (normal_type);
-//    
-//    for(int i = 0; i < max_idx; i++)
-//    {
-//        vertex_list[i].world[Z] += distance;
-//    }
-//}
 
 /* determine if object BB is entirely outside view frustrum */
 /*  in eye space; assuming eye/camera is at origin */

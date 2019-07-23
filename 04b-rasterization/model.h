@@ -72,7 +72,8 @@ void xform_model(float x_min, float x_max,
 /* perspective transformations */
 //void translate_model (float distance);
 int cull_model (float near, float far);
-void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max);
+void perspective_xform(float near, float far,
+                       float x_min, float x_max, float y_min, float y_max);
 void viewport_xform(float scale);
 
 void viewport_mat_xform (int vp_w, int vp_h);

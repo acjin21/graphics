@@ -258,59 +258,30 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                  * if point is inside triangle, compute barycentric weighting of vertex attributes (e.g. z, color, s, t)
                  */
                 scalar_divide(area, w, w);
-                p.position[Z] = w[0] * v0->position[Z] +
-                                w[1] * v1->position[Z] +
-                                w[2] * v2->position[Z];
+                
+                p.position[Z] = w[0] * v0->position[Z] + w[1] * v1->position[Z] + w[2] * v2->position[Z];
 
                 //interpolate 1/w for perspective correct
-                p.position[W] = w[0] * v0->position[W] +
-                                w[1] * v1->position[W] +
-                                w[2] * v2->position[W];
-                p.color[R] = w[0] * v0->color[R] +
-                                w[1] * v1->color[R] +
-                                w[2] * v2->color[R];
-                p.color[G] = w[0] * v0->color[G] +
-                                w[1] * v1->color[G] +
-                                w[2] * v2->color[G];
-                p.color[B] = w[0] * v0->color[B] +
-                                w[1] * v1->color[B] +
-                                w[2] * v2->color[B];
-                p.tex[S] = w[0] * v0->tex[S] +
-                                w[1] * v1->tex[S] +
-                                w[2] * v2->tex[S];
-                p.tex[T] = w[0] * v0->tex[T] +
-                                w[1] * v1->tex[T] +
-                                w[2] * v2->tex[T];
+                p.position[W] = w[0] * v0->position[W] + w[1] * v1->position[W] + w[2] * v2->position[W];
                 
-                p.v_normal[X] = w[0] * v0->v_normal[X] +
-                                w[1] * v1->v_normal[X] +
-                                w[2] * v2->v_normal[X];
-                p.v_normal[Y] = w[0] * v0->v_normal[Y] +
-                                w[1] * v1->v_normal[Y] +
-                                w[2] * v2->v_normal[Y];
-                p.v_normal[Z] = w[0] * v0->v_normal[Z] +
-                                w[1] * v1->v_normal[Z] +
-                                w[2] * v2->v_normal[Z];
+                p.color[R] = w[0] * v0->color[R] + w[1] * v1->color[R] + w[2] * v2->color[R];
+                p.color[G] = w[0] * v0->color[G] + w[1] * v1->color[G] + w[2] * v2->color[G];
+                p.color[B] = w[0] * v0->color[B] + w[1] * v1->color[B] + w[2] * v2->color[B];
                 
-                p.light[X] = w[0] * v0->light[X] +
-                             w[1] * v1->light[X] +
-                             w[2] * v2->light[X];
-                p.light[Y] = w[0] * v0->light[Y] +
-                             w[1] * v1->light[Y] +
-                             w[2] * v2->light[Y];
-                p.light[Z] = w[0] * v0->light[Z] +
-                             w[1] * v1->light[Z] +
-                             w[2] * v2->light[Z];
+                p.tex[S] = w[0] * v0->tex[S] + w[1] * v1->tex[S] + w[2] * v2->tex[S];
+                p.tex[T] = w[0] * v0->tex[T] + w[1] * v1->tex[T] + w[2] * v2->tex[T];
                 
-                p.view[X] = w[0] * v0->view[X] +
-                            w[1] * v1->view[X] +
-                            w[2] * v2->view[X];
-                p.view[Y] = w[0] * v0->view[Y] +
-                            w[1] * v1->view[Y] +
-                            w[2] * v2->view[Y];
-                p.view[Z] = w[0] * v0->view[Z] +
-                            w[1] * v1->view[Z] +
-                            w[2] * v2->view[Z];
+                p.v_normal[X] = w[0] * v0->v_normal[X] + w[1] * v1->v_normal[X] + w[2] * v2->v_normal[X];
+                p.v_normal[Y] = w[0] * v0->v_normal[Y] + w[1] * v1->v_normal[Y] + w[2] * v2->v_normal[Y];
+                p.v_normal[Z] = w[0] * v0->v_normal[Z] + w[1] * v1->v_normal[Z] + w[2] * v2->v_normal[Z];
+                
+                p.light[X] = w[0] * v0->light[X] + w[1] * v1->light[X] + w[2] * v2->light[X];
+                p.light[Y] = w[0] * v0->light[Y] + w[1] * v1->light[Y] + w[2] * v2->light[Y];
+                p.light[Z] = w[0] * v0->light[Z] + w[1] * v1->light[Z] + w[2] * v2->light[Z];
+                
+                p.view[X] = w[0] * v0->view[X] + w[1] * v1->view[X] + w[2] * v2->view[X];
+                p.view[Y] = w[0] * v0->view[Y] + w[1] * v1->view[Y] + w[2] * v2->view[Y];
+                p.view[Z] = w[0] * v0->view[Z] + w[1] * v1->view[Z] + w[2] * v2->view[Z];
                 
                 draw_point(&p);
             }

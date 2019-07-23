@@ -343,7 +343,9 @@ void render_object(OBJECT *o)
     
     /* set per triangle dot products to later determine if drawing backface */
     set_backface_flags(&camera);
+    /* set viewing rays for each vertex in world space */
     set_view_rays(&camera);
+    
     camera_xform (&camera);
 
     /*******************/
