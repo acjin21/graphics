@@ -55,7 +55,8 @@ enum Light_Type {LOCAL_L = 0, GLOBAL_L = 1};
 
 /* functions */
 #define ABS(_a) (((_a) < 0.0) ? -(_a) : (_a))
-#define MAX(_a,_l) (_a < _l ? _l : _a)
+#define MAX(_a,_b) ((_a) < (_b) ? (_b) : (_a))
+#define MIN(_a,_b) ((_a) > (_b) ? (_b) : (_a))
 #define CLAMP(a,l,h) ((a) < (l) ? (l) : ((a) > (h) ? (h) : (a)))
 
 #define CLAMP_IMG(val,min_val,max_val)\

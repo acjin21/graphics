@@ -314,7 +314,7 @@ void init_cylinder (float radius, float height_scale, MAT4 *model)
     }
     /* transform from local to world coordinates */
     model_xform(model);
-    
+
     add_mesh_faces(width, height);
 }
 
@@ -490,30 +490,14 @@ void insert_bb_coords (void)
     
     for(int i = 0; i < num_vertices; i++)
     {
-        if(vertex_list[i].world[X] < min_x)
-        {
-            min_x = vertex_list[i].world[X];
-        }
-        else if(vertex_list[i].world[X] > max_x)
-        {
-            max_x = vertex_list[i].world[X];
-        }
-        if(vertex_list[i].world[Y] < min_y)
-        {
-            min_y = vertex_list[i].world[Y];
-        }
-        else if(vertex_list[i].world[Y] > max_y)
-        {
-            max_y = vertex_list[i].world[Y];
-        }
-        if(vertex_list[i].world[Z] < min_z)
-        {
-            min_z = vertex_list[i].world[Z];
-        }
-        else if(vertex_list[i].world[Z] > max_z)
-        {
-            max_z = vertex_list[i].world[Z];
-        }
+        min_x = MIN(vertex_list[i].world[X], min_x);
+        max_x = MAX(vertex_list[i].world[X], max_x);
+
+        min_y = MIN(vertex_list[i].world[Y], min_y);
+        max_y = MAX(vertex_list[i].world[Y], max_y);
+        
+        min_z = MIN(vertex_list[i].world[Z], min_z);
+        max_z = MAX(vertex_list[i].world[Z], max_z);
     }
     // get offset in vertex_list
     if(normal_type == F_NORMALS && draw_coord_axes)
