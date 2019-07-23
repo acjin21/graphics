@@ -218,6 +218,10 @@ float edgeFunction( float a[4], float b[4], float c[4] )
     return (c[X] - a[X]) * (b[Y] - a[Y]) - (c[Y] - a[Y]) * (b[X] - a[X] );
 }
 
+//void bary_interp (float w[4], float a, float b, float c);
+//{
+//    return w[0] * a + w[1] * b + w[2] * c;
+//}
 /*
  * draw_triangle_barycentric()
  */
@@ -257,6 +261,7 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                 p.position[Z] = w[0] * v0->position[Z] +
                                 w[1] * v1->position[Z] +
                                 w[2] * v2->position[Z];
+
                 //interpolate 1/w for perspective correct
                 p.position[W] = w[0] * v0->position[W] +
                                 w[1] * v1->position[W] +
