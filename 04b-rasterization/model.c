@@ -535,14 +535,20 @@ int get_max_idx (int normal_mode)
 /****************************************************************/
 /* model world space transformations */
 /****************************************************************/
+//void world_xforms(float cx, float cy, float cz,
+//                  float rx, float ry, float rz,
+//                  float tx, float ty, float tz,
+//                  float sx, float sy, float sz)
+//{
+//
+//}
 /* 3d rotation x_angle about the x axis, y_angle about the y axis, and
     z_angle about the z axis */
 void rotate_model(float cx, float cy, float cz,
                   float x_angle, float y_angle, float z_angle)
 {
     float nx, ny, nz, in_vec[4];
-    int max_idx = get_max_idx (normal_type);
-    
+    POINT *p;
     /* matrices */
     MAT4 tmp, rotate_about_origin;
     
@@ -554,16 +560,15 @@ void rotate_model(float cx, float cy, float cz,
     set_transl (&tmp, cx, cy, cz);
     mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
 
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
-        POINT *p = &vertex_list[i];
+        p = &vertex_list[i];
         cpy_vec4 (in_vec, p->world);
-        /* matrix transform world coords */
         mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
     }
     for(int i = 0; i < num_peripherals; i++)
     {
-        POINT *p = &peripherals[i];
+        p = &peripherals[i];
         cpy_vec4 (in_vec, p->world);
         mat_vec_mul (&rotate_about_origin, in_vec, peripherals[i].world);
     }
@@ -571,39 +576,43 @@ void rotate_model(float cx, float cy, float cz,
 
 void translate_model_mat (float tx, float ty, float tz)
 {
-    float nx, ny, nz;
-    int max_idx = get_max_idx (normal_type);
+    float nx, ny, nz, in_vec[4];
+    POINT *p;
+    MAT4 translate;
+    set_transl (&translate, tx, ty, tz);
     
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
-        POINT *p = &vertex_list[i];
-        float in_vec[4];
-        
+        p = &vertex_list[i];
         cpy_vec4 (in_vec, p->world);
-        /* matrices */
-        MAT4 translate;
-        
-        set_transl (&translate, tx, ty, tz);
         mat_vec_mul (&translate, in_vec, vertex_list[i].world);
+    }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        p = &peripherals[i];
+        cpy_vec4 (in_vec, p->world);
+        mat_vec_mul (&translate, in_vec, peripherals[i].world);
     }
 }
 
 void scale_model_mat (float sx, float sy, float sz)
 {
-    float nx, ny, nz;
-    int max_idx = get_max_idx (normal_type);
+    float nx, ny, nz, in_vec[4];
+    POINT *p;
+    MAT4 scale;
+    set_scale_nonuniform (&scale, sx, sy, sz);
     
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
-        POINT *p = &vertex_list[i];
-        float in_vec[4];
-        
+        p = &vertex_list[i];
         cpy_vec4 (in_vec, p->world);
-        /* matrices */
-        MAT4 scale;
-        
-        set_scale_nonuniform (&scale, sx, sy, sz);
         mat_vec_mul (&scale, in_vec, vertex_list[i].world);
+    }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        p = &peripherals[i];
+        cpy_vec4 (in_vec, p->world);
+        mat_vec_mul (&scale, in_vec, peripherals[i].world);
     }
 }
 
