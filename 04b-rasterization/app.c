@@ -487,108 +487,48 @@ void key_callback (unsigned char key)
             
             /* rotations */
         case 'x':
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[X] += 10;
-            }
-            else if(manip_mode == TRANSLATE)
-            {
-                curr_object->translate[X] += 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[X] += 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[X] += 10;
+            else if(manip_mode == TRANSLATE) curr_object->translate[X] += 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[X] += 0.25;
             break;
         case 'y':
         {
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[Y] += 10;
-            }
-            else if(manip_mode == TRANSLATE)
-            {
-                curr_object->translate[Y] += 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[Y] += 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[Y] += 10;
+            else if(manip_mode == TRANSLATE) curr_object->translate[Y] += 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[Y] += 0.25;
             break;
         }
         case 'z':
         {
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[Z] += 10;
-            }
-            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
-            {
-                curr_object->translate[Z] += 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[Z] += 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[Z] += 10;
+            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT) curr_object->translate[Z] += 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[Z] += 0.25;
             break;
         }
         case 'X':
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[X] -= 10;
-            }
-            else if(manip_mode == TRANSLATE)
-            {
-                curr_object->translate[X] -= 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[X] -= 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[X] -= 10;
+            else if(manip_mode == TRANSLATE) curr_object->translate[X] -= 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[X] -= 0.25;
             break;
         case 'Y':
         {
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[Y] -= 10;
-            }
-            else if(manip_mode == TRANSLATE)
-            {
-                curr_object->translate[Y] -= 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[Y] -= 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[Y] -= 10;
+            else if(manip_mode == TRANSLATE) curr_object->translate[Y] -= 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[Y] -= 0.25;
             break;
         }
         case 'Z':
         {
-            if(manip_mode == ROTATE)
-            {
-                curr_object->rotation[Z] -= 10;
-            }
-            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT)
-            {
-                curr_object->translate[Z] -= 0.5;
-            }
-            else if(manip_mode == SCALE)
-            {
-                curr_object->scale_vec[Z] -= 0.25;
-            }
+            if(manip_mode == ROTATE) curr_object->rotation[Z] -= 10;
+            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT) curr_object->translate[Z] -= 0.5;
+            else if(manip_mode == SCALE) curr_object->scale_vec[Z] -= 0.25;
             break;
         }
         
             
         case 't':
-            if(program_type == SCENE)
-            {
-                curr_object->texturing = 1 - curr_object->texturing;
-            }
-            else
-            {
-                texturing = 1 - texturing;
-            }
+            if(program_type == SCENE) curr_object->texturing = 1 - curr_object->texturing;
+            else texturing = 1 - texturing;
             break;
             
         case 'T':
