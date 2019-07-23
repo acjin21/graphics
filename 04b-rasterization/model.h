@@ -36,6 +36,7 @@ extern int tex_gen_mode;
 /****************************************************************/
 /* functions */
 /****************************************************************/
+void build_model (OBJECT *o);
 /* model init functions (set initial world space coords) */
 void init_quad(MAT4 *model);
 void init_cube (MAT4 *model);
@@ -67,7 +68,6 @@ void xform_model(float x_min, float x_max,
                  float z_min, float z_max);
 
 /* perspective transformations */
-//void translate_model (float distance);
 int cull_model (float near, float far);
 void perspective_xform(float near, float far,
                        float x_min, float x_max, float y_min, float y_max);

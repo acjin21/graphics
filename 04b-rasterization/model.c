@@ -427,6 +427,38 @@ void init_torus (float tube_radius, float hole_radius, MAT4 *model)
     add_mesh_faces(width, height);
 }
 
+/* build mesh in model-space & xform to world-space coords */
+void build_model (OBJECT *o)
+{
+    set_model_mat (&o->model_mat, o->scale,
+                   o->init_orientation[X],
+                   o->init_orientation[Y],
+                   o->init_orientation[Z],
+                   o->center[X], o->center[Y], o->center[Z]);
+
+    MAT4 *model = &o->model_mat;
+    float height_scale = o->scale;
+    float r0 = o->radii[0];
+    float r1 = o->radii[1];
+    
+    switch (o->type)
+    {
+        case QUAD:      init_quad(model);                           break;
+        case CUBE:      init_cube(model);                           break;
+        case MESH:      init_mesh(model);                           break;
+        case CYLINDER:  init_cylinder(r0, height_scale, model);     break;
+        case CONE:      init_cone(r0, height_scale, model);         break;
+        case SPHERE:    init_sphere(r0, model);                     break;
+        case TORUS:     init_torus(r0, r1, model);                  break;
+        case TEAPOT:    read_obj_file("obj/teapot.obj", model);     break;
+        case CAT:       read_obj_file("obj/cat.obj", model);        break;
+        case DEER:      read_obj_file("obj/deer.obj", model);       break;
+        case BUNNY:     read_obj_file("obj/bunnyNV.obj", model);    break;
+        case BUDDHA:    read_obj_file("obj/buddha.obj", model);     break;
+        case WOLF:      read_obj_file("obj/wolf.obj", model);       break;
+        case TREE:      read_obj_file("obj/tree.obj", model);       break;
+    }
+}
 /*************************************************************************/
 /* insert add'l coordinates into vertex_list (normals, axes, bb) */
 /*************************************************************************/

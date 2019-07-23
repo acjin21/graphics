@@ -88,6 +88,8 @@ float far = 40.0;
 int skip;
 float camera_transl = 0.3;
 
+int draw_peripherals = OFF;
+
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
@@ -230,32 +232,6 @@ void set_texture (void)
     }
 }
 
-/* build mesh in model-space & xform to world-space coords */
-void build_model (OBJECT *o)
-{
-    MAT4 *model = &o->model_mat;
-    float height_scale = o->scale;
-    float r0 = o->radii[0];
-    float r1 = o->radii[1];
-
-    switch (o->type)
-    {
-        case QUAD:      init_quad(model);                           break;
-        case CUBE:      init_cube(model);                           break;
-        case MESH:      init_mesh(model);                           break;
-        case CYLINDER:  init_cylinder(r0, height_scale, model);     break;
-        case CONE:      init_cone(r0, height_scale, model);         break;
-        case SPHERE:    init_sphere(r0, model);                     break;
-        case TORUS:     init_torus(r0, r1, model);                  break;
-        case TEAPOT:    read_obj_file("obj/teapot.obj", model);     break;
-        case CAT:       read_obj_file("obj/cat.obj", model);        break;
-        case DEER:      read_obj_file("obj/deer.obj", model);       break;
-        case BUNNY:     read_obj_file("obj/bunnyNV.obj", model);    break;
-        case BUDDHA:    read_obj_file("obj/buddha.obj", model);     break;
-        case WOLF:      read_obj_file("obj/wolf.obj", model);       break;
-        case TREE:      read_obj_file("obj/tree.obj", model);       break;
-    }
-}
 /*******************************************************/
 /* Render object using 3d graphics pipeline */
 /*******************************************************/
@@ -264,32 +240,13 @@ void render_object(OBJECT *o)
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
     
-    /* get INITIAL center, scale, and radius */
-    float cx, cy, cz, scale, r0, r1;
-    cx = o->center[X];
-    cy = o->center[Y];
-    cz = o->center[Z];
-    scale = o->scale;
-    r0 = o->radii[0];
-    r1 = o->radii[1];
-    /* get initial orientation */
-    float rx, ry, rz;
-    rx = o->init_orientation[X];
-    ry = o->init_orientation[Y];
-    rz = o->init_orientation[Z];
-    
     /* appropriate scaling for different OBJ files */
     switch (o->type)
     {
-        case CAT:
-        case WOLF:
-            scale *= 0.01;
-            break;
-        case DEER:
-            scale *= 0.005;
-            break;
+        case CAT:   o->scale *= 0.01;  break;
+        case WOLF:  o->scale *= 0.01;  break;
+        case DEER:  o->scale *= 0.005; break;
     }
-    set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
     build_model(o);
 
     /* for per-object texturing in SCENE mode */
@@ -305,7 +262,8 @@ void render_object(OBJECT *o)
     set_material(material_type);
     /* all OBJ models are at the end of the list */
     reading_obj = o->type >= TEAPOT;
-    
+    draw_peripherals = program_type != SCENE ||
+                        (program_type == SCENE && o->ID == curr_objectID)
     /*******************/
     /* WORLD SPACE */
     /*******************/
@@ -318,14 +276,9 @@ void render_object(OBJECT *o)
         calculate_vertex_normals();
         get_tex_coords();
     }
-    
-    /* if drawing coordinate axes, insert those POINTs into vertex_list as well */
-    if(draw_coord_axes)
+    if(draw_coord_axes && draw_peripherals)
     {
-        if(program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
-        {
-            insert_coord_axes(cx, cy, cz, scale);
-        }
+        insert_coord_axes(o->center[X], o->center[Y], o->center[Z], o->scale);
     }
     
     /* world space xforms */
@@ -359,6 +312,7 @@ void render_object(OBJECT *o)
             if(skip) return;
             perspective_xform(near, far, -2, 2, -2, 2);     break;
     }
+    
     /*******************/
     /* NDC SPACE */
     /*******************/
@@ -377,19 +331,15 @@ void render_object(OBJECT *o)
     start_timer(&px_timer);
     draw_model(draw_mode);
     
-    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
-       && !skip) /* don't draw bounding box once the object has been culled */
+    if(draw_peripherals && !skip)
     {
         draw_local_axes();
-//        float bb_color[4] = {1, 1, 1, 1};
         float bb_color[4] = {0, 0, 0, 1};
-
         draw_3D_bb(bb_color);
     }
     stop_timer(&px_timer);
     /*-------------------------------*/         /* end pixel processing */
 }
-
 
 /********************************************/
 /* for BASIC mode */
@@ -404,7 +354,7 @@ void display_basic_mode (void)
 {
     OBJECT *o = &objects[0];
     o->type = object_type;
-    o->scale = (o->scale ? o->scale : 0.5);
+    o->scale = 0.5;
     o->radii[0] = 0.5;
     o->radii[1] = 1;
     o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
