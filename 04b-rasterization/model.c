@@ -42,6 +42,9 @@ float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
 float normal_list[MAX_N_VERTS][4];
 
+int num_peripherals = 4;
+POINT peripherals[MAX_N_VERTS];
+
 /* counts */
 int num_triangles = 0;          // total num of triangles (curr. faces)
 int num_vertices = 0;           // total number of model vertices (not including norms or axes)
@@ -466,18 +469,10 @@ void insert_normal_coords(void)
 /* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
-    if(normal_type == F_NORMALS)
-    {
-        axes_start_idx = num_vertices + 2 * num_face_normals;
-    }
-    else
-    {
-        axes_start_idx = num_vertices;
-    }
-    set_vec4(vertex_list[axes_start_idx].world, cx, cy, cz, 1 );
-    set_vec4(vertex_list[axes_start_idx + 1].world, cx + 2, cy, cz, 1);
-    set_vec4(vertex_list[axes_start_idx + 2].world, cx, cy + 2, cz, 1);
-    set_vec4(vertex_list[axes_start_idx + 3].world, cx, cy, cz + 2, 1);
+    set_vec4(peripherals[0].world, cx, cy, cz, 1 );
+    set_vec4(peripherals[1].world, cx + 2, cy, cz, 1);
+    set_vec4(peripherals[2].world, cx, cy + 2, cz, 1);
+    set_vec4(peripherals[3].world, cx, cy, cz + 2, 1);
 }
 
 // do this in world space
@@ -576,28 +571,32 @@ int get_max_idx (int normal_mode)
 void rotate_model(float cx, float cy, float cz,
                   float x_angle, float y_angle, float z_angle)
 {
-    float nx, ny, nz;
+    float nx, ny, nz, in_vec[4];
     int max_idx = get_max_idx (normal_type);
     
+    /* matrices */
+    MAT4 tmp, rotate_about_origin;
+    
+    set_identity(&rotate_about_origin);
+    set_transl (&tmp, -cx, -cy, -cz);
+    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+    set_3d_rot(&tmp, x_angle, y_angle, z_angle);
+    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+    set_transl (&tmp, cx, cy, cz);
+    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+
     for(int i = 0; i < max_idx; i++)
     {
         POINT *p = &vertex_list[i];
-        float in_vec[4];
-        
         cpy_vec4 (in_vec, p->world);
-        /* matrices */
-        MAT4 tmp, rotate_about_origin;
-        
-        set_identity(&rotate_about_origin);
-        set_transl (&tmp, -cx, -cy, -cz);
-        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
-        set_3d_rot(&tmp, x_angle, y_angle, z_angle);
-        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
-        set_transl (&tmp, cx, cy, cz);
-        mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
-
         /* matrix transform world coords */
         mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
+    }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        POINT *p = &peripherals[i];
+        cpy_vec4 (in_vec, p->world);
+        mat_vec_mul (&rotate_about_origin, in_vec, peripherals[i].world);
     }
 }
 
@@ -710,7 +709,12 @@ void camera_xform (CAMERA *c)
     for(int i = 0; i < max_idx; i++)
     {
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
-        vertex_list[i].position[W] = 1.0;
+        vertex_list[i].world[W] = 1.0;
+    }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
+        peripherals[i].world[W] = 1.0;
     }
 }
 
@@ -732,7 +736,13 @@ void xform_model(float x_min, float x_max,
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
         vertex_list[i].position[W] = 1.0;
     }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        mat_vec_mul (&ortho, peripherals[i].world, peripherals[i].position);
+        peripherals[i].position[W] = 1.0;
+    }
 }
+
 void viewport_mat_xform (int vp_w, int vp_h)
 {
     MAT4 viewport;
@@ -748,6 +758,16 @@ void viewport_mat_xform (int vp_w, int vp_h)
         // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
         float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
         vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
+    }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        mat_vec_mul (&viewport, peripherals[i].position, peripherals[i].position);
+        
+        // do translation separately so that position[W] = 1/w for persp corr.
+        //      does not interfere with viewport_x, viewport_y calculation
+        // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
+        float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+        vector_add(peripherals[i].position, translation_vec, peripherals[i].position);
     }
 }
 
@@ -788,13 +808,13 @@ int cull_model (float near, float far)
 void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
     int max_idx = get_max_idx (normal_type);
-
+    MAT4 perspective;
+    set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
+    float w;
     for(int i = 0; i < max_idx; i++)
     {
-        MAT4 perspective;
-        set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
-        float w = vertex_list[i].position[W];
+        w = vertex_list[i].position[W];
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
         // {x/w, y/w, z/w, 1}
         if(perspective_correct && texturing)
@@ -803,6 +823,18 @@ void perspective_xform(float near, float far, float x_min, float x_max, float y_
             // {x/w, y/w, z/w, 1/w}
         }
     }
+    for(int i = 0; i < num_peripherals; i++)
+    {
+        set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
+        mat_vec_mul (&perspective, peripherals[i].world, peripherals[i].position);
+        w = peripherals[i].position[W];
+        scalar_divide (w, peripherals[i].position, peripherals[i].position);
+        if(perspective_correct && texturing)
+        {
+            peripherals[i].position[W] = 1.0 / w;
+        }
+    }
+    
 }
 
 /* scale normalized view coordinates to screen coordinates */
@@ -1101,24 +1133,21 @@ void draw_model(int mode)
 /* draw object space coord axes */
 void draw_local_axes (void)
 {
-    if(axes_start_idx != 0 && draw_coord_axes)
+    if(draw_coord_axes)
     {
         drawing_axes = ON;
         //draw coord axes of model
-        set_vec4(vertex_list[axes_start_idx].color, 1, 0, 0, 1);
-        set_vec4(vertex_list[axes_start_idx + 1].color, 1, 0, 0, 1);
-        draw_line(&vertex_list[axes_start_idx],
-                  &vertex_list[axes_start_idx + 1], DRAW);
+        set_vec4(peripherals[0].color, 1, 0, 0, 1);
+        set_vec4(peripherals[1].color, 1, 0, 0, 1);
+        draw_line(&peripherals[0], &peripherals[1], DRAW);
         
-        set_vec4(vertex_list[axes_start_idx].color, 0, 1, 0, 1);
-        set_vec4(vertex_list[axes_start_idx + 2].color, 0, 1, 0, 1);
-        draw_line(&vertex_list[axes_start_idx],
-                  &vertex_list[axes_start_idx + 2], DRAW);
+        set_vec4(peripherals[0].color, 0, 1, 0, 1);
+        set_vec4(peripherals[2].color, 0, 1, 0, 1);
+        draw_line(&peripherals[0], &peripherals[2], DRAW);
         
-        set_vec4(vertex_list[axes_start_idx].color, 0, 0, 1, 1);
-        set_vec4(vertex_list[axes_start_idx + 3].color, 0, 0, 1, 1);
-        draw_line(&vertex_list[axes_start_idx],
-                  &vertex_list[axes_start_idx + 3], DRAW);
+        set_vec4(peripherals[0].color, 0, 0, 1, 1);
+        set_vec4(peripherals[3].color, 0, 0, 1, 1);
+        draw_line(&peripherals[0], &peripherals[3], DRAW);
         drawing_axes = OFF;
     }
 }

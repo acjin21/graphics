@@ -230,6 +230,32 @@ void set_texture (void)
     }
 }
 
+/* build mesh in model-space & xform to world-space coords */
+void build_model (OBJECT *o)
+{
+    MAT4 *model = &o->model_mat;
+    float height_scale = o->scale;
+    float r0 = o->radii[0];
+    float r1 = o->radii[1];
+
+    switch (o->type)
+    {
+        case QUAD:      init_quad(model);                           break;
+        case CUBE:      init_cube(model);                           break;
+        case MESH:      init_mesh(model);                           break;
+        case CYLINDER:  init_cylinder(r0, height_scale, model);     break;
+        case CONE:      init_cone(r0, height_scale, model);         break;
+        case SPHERE:    init_sphere(r0, model);                     break;
+        case TORUS:     init_torus(r0, r1, model);                  break;
+        case TEAPOT:    read_obj_file("obj/teapot.obj", model);     break;
+        case CAT:       read_obj_file("obj/cat.obj", model);        break;
+        case DEER:      read_obj_file("obj/deer.obj", model);       break;
+        case BUNNY:     read_obj_file("obj/bunnyNV.obj", model);    break;
+        case BUDDHA:    read_obj_file("obj/buddha.obj", model);     break;
+        case WOLF:      read_obj_file("obj/wolf.obj", model);       break;
+        case TREE:      read_obj_file("obj/tree.obj", model);       break;
+    }
+}
 /*******************************************************/
 /* Render object using 3d graphics pipeline */
 /*******************************************************/
@@ -246,17 +272,6 @@ void render_object(OBJECT *o)
     scale = o->scale;
     r0 = o->radii[0];
     r1 = o->radii[1];
-    
-    /* for per-object texturing in SCENE mode */
-    if(program_type == SCENE)
-    {
-        /* set draw state */
-        texturing = o->texturing;
-        texture_idx = o->texture_idx;
-        tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
-        set_texture();
-    }
-    
     /* get initial orientation */
     float rx, ry, rz;
     rx = o->init_orientation[X];
@@ -275,44 +290,26 @@ void render_object(OBJECT *o)
             break;
     }
     set_model_mat (&o->model_mat, scale, rx, ry, rz, cx, cy, cz);
-    
+    build_model(o);
+
+    /* for per-object texturing in SCENE mode */
+    if(program_type == SCENE)
+    {
+        /* set draw state */
+        texturing = o->texturing;
+        texture_idx = o->texture_idx;
+        tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
+        set_texture();
+    }
     /* set material property vecs */
     set_material(material_type);
-    
-    switch (o->type)
-    {
-        case QUAD:      init_quad(&o->model_mat);                           break;
-        case CUBE:      init_cube (&o->model_mat);                          break;
-        case MESH:      init_mesh (&o->model_mat);                          break;
-        case CYLINDER:  init_cylinder(r0, scale, &o->model_mat);            break;
-        case CONE:      init_cone (r0, scale, &o->model_mat);               break;
-        case SPHERE:    init_sphere (r0, &o->model_mat);                    break;
-        case TORUS:     init_torus(r0, r1, &o->model_mat);                  break;
-        case TEAPOT:    read_obj_file("obj/teapot.obj", &o->model_mat);     break;
-        case CAT:       read_obj_file("obj/cat.obj", &o->model_mat);        break;
-        case DEER:      read_obj_file("obj/deer.obj", &o->model_mat);       break;
-        case BUNNY:     read_obj_file("obj/bunnyNV.obj", &o->model_mat);    break;
-        case BUDDHA:    read_obj_file("obj/buddha.obj", &o->model_mat);     break;
-        case WOLF:      read_obj_file("obj/wolf.obj", &o->model_mat);       break;
-        case TREE:      read_obj_file("obj/tree.obj", &o->model_mat);       break;
-    }
-    
-    if(o->type == TEAPOT    || o->type == CAT       || o->type == DEER
-       || o->type == BUNNY  || o->type == BUDDHA    || o->type == WOLF
-       || o->type == TREE)
-    {
-        reading_obj = TRUE;
-    }
-    else
-    {
-        reading_obj = FALSE;
-    }
+    /* all OBJ models are at the end of the list */
+    reading_obj = o->type >= TEAPOT;
     
     /*******************/
     /* WORLD SPACE */
     /*******************/
 
-    
     /* if reading OBJ, for better texture mapping, generate their uv coords */
     if(reading_obj)
     {
