@@ -42,7 +42,7 @@ float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
 float normal_list[MAX_N_VERTS][4];
 
-int num_peripherals = 4;
+int num_peripherals = 12;
 POINT peripherals[MAX_N_VERTS];
 
 /* counts */
@@ -500,32 +500,16 @@ void insert_bb_coords (void)
         max_z = MAX(vertex_list[i].world[Z], max_z);
 
     }
-    // get offset in vertex_list
-    if(normal_type == F_NORMALS && draw_coord_axes)
-    {
-        bb_start_idx = num_vertices + 2 * num_face_normals + 4;
-    }
-    else if(normal_type == F_NORMALS)
-    {
-        bb_start_idx = num_vertices + 2 * num_face_normals;
-    }
-    else if(draw_coord_axes)
-    {
-        bb_start_idx = num_vertices + 4;
-    }
-    else
-    {
-        bb_start_idx = num_vertices;
-    }
-    
-    set_vec4(vertex_list[bb_start_idx].world, min_x, max_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
-    set_vec4(vertex_list[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
+    // get offset in peripherals list
+    bb_start_idx = draw_coord_axes ? 4 : 0;
+    set_vec4(peripherals[bb_start_idx].world, min_x, max_y, min_z, 1);
+    set_vec4(peripherals[bb_start_idx + 1].world, max_x, max_y, min_z, 1);
+    set_vec4(peripherals[bb_start_idx + 2].world, max_x, min_y, min_z, 1);
+    set_vec4(peripherals[bb_start_idx + 3].world, min_x, min_y, min_z, 1);
+    set_vec4(peripherals[bb_start_idx + 4].world, min_x, max_y, max_z, 1);
+    set_vec4(peripherals[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
+    set_vec4(peripherals[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
+    set_vec4(peripherals[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
 }
 
 /* return the greatest index that points to relevant data in vertex_list */
@@ -766,23 +750,23 @@ int cull_model (float near, float far)
 {
     int b = bb_start_idx;
     /* near and far clipping planes */
-    if(vertex_list[b+6].world[Z] < near || vertex_list[b].world[Z] > far)
+    if(peripherals[b+6].world[Z] < near || peripherals[b].world[Z] > far)
     {
         return 1;
     }
     /* left and right clipping planes */
-    if(-vertex_list[b].world[X] > vertex_list[b].world[Z] &&
-       -vertex_list[b + 4].world[X] > vertex_list[b + 4].world[Z] &&
-       vertex_list[b + 1].world[X] > vertex_list[b+1].world[Z] &&
-       vertex_list[b + 5].world[X] > vertex_list[b+5].world[Z])
+    if(-peripherals[b].world[X] > peripherals[b].world[Z] &&
+       -peripherals[b + 4].world[X] > peripherals[b + 4].world[Z] &&
+       peripherals[b + 1].world[X] > peripherals[b+1].world[Z] &&
+       peripherals[b + 5].world[X] > peripherals[b+5].world[Z])
     {
         return 1;
     }
     /* top and bottom clipping planes */
-    if(-vertex_list[b + 2].world[Y] > vertex_list[b + 2].world[Z] &&
-       -vertex_list[b + 6].world[Y] > vertex_list[b + 6].world[Z] &&
-       vertex_list[b + 1].world[Y] > vertex_list[b + 1].world[Z] &&
-       vertex_list[b + 5].world[Y] > vertex_list[b + 5].world[Z])
+    if(-peripherals[b + 2].world[Y] > peripherals[b + 2].world[Z] &&
+       -peripherals[b + 6].world[Y] > peripherals[b + 6].world[Z] &&
+       peripherals[b + 1].world[Y] > peripherals[b + 1].world[Z] &&
+       peripherals[b + 5].world[Y] > peripherals[b + 5].world[Z])
     {
         return 1;
     }
@@ -1140,50 +1124,46 @@ void draw_local_axes (void)
 /* set 2D click frame for sensing mouse clicks in main.c */
 void set_click_frame (OBJECT *o)
 {
-    cpy_vec4(o->bb_tr.position, vertex_list[bb_start_idx + 1].position);
-    cpy_vec4(o->bb_bl.position, vertex_list[bb_start_idx + 3].position);
-//    printf("type: %i | ID: %i | tr: (%.2f, %.2f) | bl: (%.2f, %.2f)\n",
-//           o->type, o->ID,
-//           o->bb_tr.position[X], o->bb_tr.position[Y],
-//           o->bb_bl.position[X], o->bb_bl.position[Y]);
+    cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
+    cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */
 void draw_3D_bb (float bb_color[4])
 {
-    if(bb_start_idx != 0 && draw_bounding_box)
+    if(draw_bounding_box)
     {
         for(int i = 0; i < 8; i++)
         {
-            cpy_vec4(vertex_list[bb_start_idx + i].color, bb_color);
+            cpy_vec4(peripherals[bb_start_idx + i].color, bb_color);
         }
         drawing_bounding_box = ON;
-        draw_line(&vertex_list[bb_start_idx + 0],
-                  &vertex_list[bb_start_idx + 1], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 1],
-                  &vertex_list[bb_start_idx + 2], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 2],
-                  &vertex_list[bb_start_idx + 3], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 3],
-                  &vertex_list[bb_start_idx + 0], DRAW);
+        draw_line(&peripherals[bb_start_idx + 0],
+                  &peripherals[bb_start_idx + 1], DRAW);
+        draw_line(&peripherals[bb_start_idx + 1],
+                  &peripherals[bb_start_idx + 2], DRAW);
+        draw_line(&peripherals[bb_start_idx + 2],
+                  &peripherals[bb_start_idx + 3], DRAW);
+        draw_line(&peripherals[bb_start_idx + 3],
+                  &peripherals[bb_start_idx + 0], DRAW);
         
-        draw_line(&vertex_list[bb_start_idx + 0],
-                  &vertex_list[bb_start_idx + 4], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 1],
-                  &vertex_list[bb_start_idx + 5], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 2],
-                  &vertex_list[bb_start_idx + 6], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 3],
-                  &vertex_list[bb_start_idx + 7], DRAW);
+        draw_line(&peripherals[bb_start_idx + 0],
+                  &peripherals[bb_start_idx + 4], DRAW);
+        draw_line(&peripherals[bb_start_idx + 1],
+                  &peripherals[bb_start_idx + 5], DRAW);
+        draw_line(&peripherals[bb_start_idx + 2],
+                  &peripherals[bb_start_idx + 6], DRAW);
+        draw_line(&peripherals[bb_start_idx + 3],
+                  &peripherals[bb_start_idx + 7], DRAW);
         
-        draw_line(&vertex_list[bb_start_idx + 4],
-                  &vertex_list[bb_start_idx + 5], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 5],
-                  &vertex_list[bb_start_idx + 6], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 6],
-                  &vertex_list[bb_start_idx + 7], DRAW);
-        draw_line(&vertex_list[bb_start_idx + 7],
-                  &vertex_list[bb_start_idx + 4], DRAW);
+        draw_line(&peripherals[bb_start_idx + 4],
+                  &peripherals[bb_start_idx + 5], DRAW);
+        draw_line(&peripherals[bb_start_idx + 5],
+                  &peripherals[bb_start_idx + 6], DRAW);
+        draw_line(&peripherals[bb_start_idx + 6],
+                  &peripherals[bb_start_idx + 7], DRAW);
+        draw_line(&peripherals[bb_start_idx + 7],
+                  &peripherals[bb_start_idx + 4], DRAW);
         drawing_bounding_box = OFF;
     }
 }
