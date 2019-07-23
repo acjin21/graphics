@@ -1,4 +1,4 @@
-OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c main.c model.c light.c scene.c material.c post-processing.c math_lib/mat4.c time.c benchmark.c app.c camera.c frustum.c fourier.c
+OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c main.c model.c light.c scene.c material.c post-processing.c math_lib/mat4.c time.c benchmark.c app.c camera.c frustum.c fourier.c math_lib/mat3.c
 
 run-basic: 
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BASIC
@@ -17,4 +17,7 @@ debug:
 
 print-debug:
 	gcc -DPRINT_DEBUG_OBJ -framework OpenGL -framework GLUT $(OBJECTS) -o build/model_print-debug
+
+test-math:
+	gcc -DTESTING camera.c vector.c math_lib/mat3.c math_lib/mat4.c math_lib/test.c -o test/math && ./test/math
 

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "../macros.h"
 #include "../vector.h"
+#include "mat3.h"
 
 void print_mat4 (MAT4 *mat)
 {
@@ -322,6 +323,94 @@ void set_viewport_mat (MAT4 *viewport, int view_w, int view_h)
 
 
 
+float cofactor_mat4 (MAT4 *m, int r, int c)
+{
+    int sign = ((r + c) % 2 == 0) ? 1 : -1;
+    MAT3 minor;
+    int i = 0;
+    //create the minor
+    for(int ri = 0; ri < 4; ri++)
+    {
+        if(ri == r) continue;
+        for(int ci = 0; ci < 4; ci++)
+        {
+            if(ci == c) continue;
+            set_mat3_idx(&minor, i++, m->data[ri * 4 + ci]);
+        }
+    }
+//    printf("\n====== MINOR: =======\n");
+//    print_mat3(&minor);
+//    printf("=====================\n");
+    return sign * determinant(&minor);
+}
+
+float determinant_mat4 (MAT4 *m)
+{
+    float det = 0;
+    for(int i = 0; i < 4; i++)
+    {
+        det += (m->data[i] * cofactor_mat4(m, 0, i));
+    }
+    return det;
+}
+
+void scalar_multiply_mat4 (MAT4 *out, float s, MAT4 *in)
+{
+    for(int i = 0; i < 16; i++)
+    {
+        out->data[i] = s * in->data[i];
+    }
+}
+
+void invert_mat4 (MAT4 *out, MAT4 *in)
+{
+    float cof00, cof01, cof02, cof03,
+    cof10, cof11, cof12, cof13,
+    cof20, cof21, cof22, cof23,
+    cof30, cof31, cof32, cof33;
+    // get cofactors
+    cof00 = cofactor_mat4(in, 0, 0);
+    cof01 = cofactor_mat4(in, 0, 1);
+    cof02 = cofactor_mat4(in, 0, 2);
+    cof03 = cofactor_mat4(in, 0, 3);
+    cof10 = cofactor_mat4(in, 1, 0);
+    cof11 = cofactor_mat4(in, 1, 1);
+    cof12 = cofactor_mat4(in, 1, 2);
+    cof13 = cofactor_mat4(in, 1, 3);
+    cof20 = cofactor_mat4(in, 2, 0);
+    cof21 = cofactor_mat4(in, 2, 1);
+    cof22 = cofactor_mat4(in, 2, 2);
+    cof23 = cofactor_mat4(in, 2, 3);
+    cof30 = cofactor_mat4(in, 3, 0);
+    cof31 = cofactor_mat4(in, 3, 1);
+    cof32 = cofactor_mat4(in, 3, 2);
+    cof33 = cofactor_mat4(in, 3, 3);
+
+
+    // calculate determinant
+    float det =
+            in->data[0] * cof00 +
+            in->data[1] * cof01 +
+            in->data[2] * cof02 +
+            in->data[3] * cof03;
+    
+    // check to see if matrix is invertible
+    if(det == 0)
+    {
+        printf("invert_mat4 error: singular matrix\n");
+        return;
+    }
+    // calculate 1 / det
+    float factor = 1.0 / det;
+    
+    // set out (making sure to transpose adjugate matrix)
+    set(out,
+        cof00, cof10, cof20, cof30,
+        cof01, cof11, cof21, cof31,
+        cof02, cof12, cof22, cof32,
+        cof03, cof13, cof23, cof33);
+    scalar_multiply_mat4 (out, factor, out);
+}
 
 
 
