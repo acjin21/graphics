@@ -24,6 +24,8 @@
 #include "app.h"
 #include "benchmark.h"
 
+#include "fourier.h"
+//#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -40,6 +42,7 @@ int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
 
 int num_samples = 360;
 float start[2], stop[2];
+IMAGE texture;
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
@@ -188,6 +191,7 @@ int main(int argc, char **argv)
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
         program_type = BASIC;
+
     }
     else if(argc == 2 && !strcmp("BENCHMARK", argv[1]))
     {
@@ -196,6 +200,28 @@ int main(int argc, char **argv)
     else if(argc > 2 && !strcmp("SCENE", argv[1]))
     {
         program_type = SCENE;
+    }
+    else if(argc == 2 && !strcmp("FOURIER", argv[1]))
+    {
+        //        read_ppm ("ppm/rocks_color.ppm", &texture);
+        //        texture.width = 64;
+        //        texture.height = 64;
+        checkerboard_texture(&texture);
+        
+        convert_to_float_image(&texture, &x);
+        dft_2D(&x, &r, &i);
+        power_spectrum(&r, &i, &p);
+        
+        convert_to_image( &r, &texture);
+        write_ppm ("dft/checkerboard_raw.ppm", &texture);
+        convert_to_image( &p, &texture);
+        write_ppm ("dft/checkerboard_power.ppm", &texture);
+        
+        invdft_2D(&r, &i, &x, &y);
+        convert_to_image( &x, &texture);
+        write_ppm ("dft/checkerboard_dft.ppm", &texture);
+        
+        program_type = BASIC;
     }
     else if(argc < 3)
     {

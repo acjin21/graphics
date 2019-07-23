@@ -28,18 +28,18 @@ void random_texture (IMAGE *img)
 void checkerboard_texture (IMAGE *img)
 {
 
-    img->width = 256;
-    img->height = 256;
+    img->width = 32;
+    img->height = 32;
     
     int num_squares = 8;
     int px_per_sq = img->width / num_squares;
     
     int color;
-    for(int j = 0; j < 256; j++)
+    for(int j = 0; j < img->height; j++)
     {
-        color = ((j / px_per_sq) % 2 == 0) ? 0 : 255;
+        color = ((j / px_per_sq) % 2 == 0) ? 255 : 0;
         
-        for(int i = 0; i < 256; i++)
+        for(int i = 0; i < img->height; i++)
         {
             if(i % px_per_sq == 0 && i / px_per_sq != 0)
             {

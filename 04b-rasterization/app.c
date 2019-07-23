@@ -196,8 +196,10 @@ char *object_name (int object_type)
 /* to rotate between ppm files */
 char file_names[N_PPM_FILES][100] =
 {
-    "ppm/rocks_color.ppm",
-    "ppm/blackbuck.ascii.ppm",
+    "dft/dft_out",
+    "dft/dft_checkerboard",
+//    "ppm/rocks_color.ppm",
+//    "ppm/blackbuck.ascii.ppm",
     "ppm/out.ppm",
     "ppm/feep.ascii.ppm",
     "ppm/feep2.ascii.ppm",
@@ -213,21 +215,21 @@ char file_names[N_PPM_FILES][100] =
 
 void set_texture (void)
 {
-    texture_idx %= N_TEXTURES;
-    if (texture_idx < N_PPM_FILES)
-    {
-        char *ppm_file = file_names[texture_idx];
-        /* to rotate between ppm files */
-        read_ppm(ppm_file, &texture);
-    }
-    else if (texture_idx == N_PPM_FILES)
-    {
-        random_texture(&texture);
-    }
-    else if (texture_idx == N_PPM_FILES + 1)
-    {
-        checkerboard_texture(&texture);
-    }
+//    texture_idx %= N_TEXTURES;
+//    if (texture_idx < N_PPM_FILES)
+//    {
+//        char *ppm_file = file_names[texture_idx];
+//        /* to rotate between ppm files */
+//        read_ppm(ppm_file, &texture);
+//    }
+//    else if (texture_idx == N_PPM_FILES)
+//    {
+//        random_texture(&texture);
+//    }
+//    else if (texture_idx == N_PPM_FILES + 1)
+//    {
+//        checkerboard_texture(&texture);
+//    }
 }
 
 /*******************************************************/
