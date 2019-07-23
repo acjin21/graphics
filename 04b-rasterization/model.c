@@ -760,17 +760,17 @@ int cull_model (float near, float far)
         return 1;
     }
     /* left and right clipping planes */
-    if(-vertex_list[b].world[X] > vertex_list[b].world[Z] ||
-       -vertex_list[b + 4].world[X] > vertex_list[b + 4].world[Z] ||
-       vertex_list[b + 1].world[X] > vertex_list[b+1].world[Z] ||
+    if(-vertex_list[b].world[X] > vertex_list[b].world[Z] &&
+       -vertex_list[b + 4].world[X] > vertex_list[b + 4].world[Z] &&
+       vertex_list[b + 1].world[X] > vertex_list[b+1].world[Z] &&
        vertex_list[b + 5].world[X] > vertex_list[b+5].world[Z])
     {
         return 1;
     }
     /* top and bottom clipping planes */
-    if(-vertex_list[b + 2].world[Y] > vertex_list[b + 2].world[Z] ||
-       -vertex_list[b + 6].world[Y] > vertex_list[b + 6].world[Z] ||
-       vertex_list[b + 1].world[Y] > vertex_list[b + 1].world[Z] ||
+    if(-vertex_list[b + 2].world[Y] > vertex_list[b + 2].world[Z] &&
+       -vertex_list[b + 6].world[Y] > vertex_list[b + 6].world[Z] &&
+       vertex_list[b + 1].world[Y] > vertex_list[b + 1].world[Z] &&
        vertex_list[b + 5].world[Y] > vertex_list[b + 5].world[Z])
     {
         return 1;

@@ -358,8 +358,8 @@ void render_object(OBJECT *o)
             xform_model(-10, 10, -10, 10, near, far);       break;
             
         case PERSPECT:
-//            skip = cull_model(near, far);
-//            if(skip) return;
+            skip = cull_model(near, far);
+            if(skip) return;
             perspective_xform(near, far, -2, 2, -2, 2);     break;
     }
     /*******************/
@@ -380,12 +380,13 @@ void render_object(OBJECT *o)
     start_timer(&px_timer);
     draw_model(draw_mode);
     
-    if(program_type != SCENE ||
-       (program_type == SCENE && o->ID == curr_objectID))
-//       && !skip) /* don't draw bounding box once the object has been culled */
+    if((program_type != SCENE || (program_type == SCENE && o->ID == curr_objectID))
+       && !skip) /* don't draw bounding box once the object has been culled */
     {
         draw_local_axes();
-        float bb_color[4] = {1, 1, 1, 1};
+//        float bb_color[4] = {1, 1, 1, 1};
+        float bb_color[4] = {0, 0, 0, 1};
+
         draw_3D_bb(bb_color);
     }
     stop_timer(&px_timer);
