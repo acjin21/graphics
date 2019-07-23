@@ -39,11 +39,11 @@ extern int tex_gen_mode;
 /* model init functions (set initial world space coords) */
 void init_quad(MAT4 *model);
 void init_cube (MAT4 *model);
-void init_mesh (float scale, float cx, float cy, float cz);
-void init_cylinder (float radius, float scale, float cx, float cy, float cz);
-void init_cone (float radius, float scale, float cx, float cy, float cz);
-void init_sphere (float radius, float cx, float cy, float cz);
-void init_torus (float tube_r, float hole_r, float cx, float cy, float cz);
+void init_mesh (MAT4 *model);
+void init_cylinder (float radius, float height_scale, MAT4 *model);
+void init_cone (float radius, float height_scale, MAT4 *model);
+void init_sphere (float radius, MAT4 *model);
+void init_torus (float tube_radius, float hole_radius, MAT4 *model);
 
 /* insert peripheral coordinates */
 void insert_normal_coords(void);

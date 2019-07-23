@@ -248,7 +248,7 @@ void add_mesh_faces (int w, int h)
 }
 
 /* init a n x n wavy mesh that starts at angle mesh_da */
-void init_mesh (float scale, float cx, float cy, float cz)
+void init_mesh (MAT4 *model)
 {
     int n = 32;
     int width = n;
@@ -263,11 +263,11 @@ void init_mesh (float scale, float cx, float cy, float cz)
             float v = (float) r / (height - 1);
             
             POINT *p = &vertex_list[(r * n) + c];
-
+            
             /* world coordinates */
-            p->world[X] = scale * u + cx;
-            p->world[Y] = scale * v + cy;
-            p->world[Z] = cos(v * 2 * PI) * sin(u * 2 * PI) + cz;
+            p->world[X] = u;
+            p->world[Y] = v;
+            p->world[Z] = cos(v * 2 * PI) * sin(u * 2 * PI);
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -275,11 +275,14 @@ void init_mesh (float scale, float cx, float cy, float cz)
             set_vec4(color_list[(r * width) + c], u, v, 0, 1);
         }
     }
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     add_mesh_faces(width, height);
 }
 
 /* init a cylinder */
-void init_cylinder (float radius, float scale, float cx, float cy, float cz)
+void init_cylinder (float radius, float height_scale, MAT4 *model)
 {
     int n = 32;
     int width = n;
@@ -296,9 +299,9 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = radius * cos(u * 2 * PI) + cx;
-            p->world[Y] = radius * sin(u * 2 * PI) + cy;
-            p->world[Z] = scale * v + cz;
+            p->world[X] = radius * cos(u * 2 * PI);
+            p->world[Y] = radius * sin(u * 2 * PI);
+            p->world[Z] = height_scale * v;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -306,11 +309,14 @@ void init_cylinder (float radius, float scale, float cx, float cy, float cz)
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     add_mesh_faces(width, height);
 }
 
 /* init a cone */
-void init_cone (float radius, float scale, float cx, float cy, float cz)
+void init_cone (float radius, float height_scale, MAT4 *model)
 {
     int n = 32;
     int width = n;
@@ -328,9 +334,9 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
             
             /* world coordinates */
             float new_rad = radius * ((float)height - 1 - r) / (height - 1);
-            p->world[X] = new_rad * cos(u * 2 * PI) + cx;
-            p->world[Y] = new_rad * sin(u * 2 * PI) + cy;
-            p->world[Z] = scale * v + cz;
+            p->world[X] = new_rad * cos(u * 2 * PI);
+            p->world[Y] = new_rad * sin(u * 2 * PI);
+            p->world[Z] = height_scale * v;
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -338,11 +344,14 @@ void init_cone (float radius, float scale, float cx, float cy, float cz)
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     add_mesh_faces(width, height);
 }
 
 /* init a sphere */
-void init_sphere (float radius, float cx, float cy, float cz)
+void init_sphere (float radius, MAT4 *model)
 {
     int n = 32;
     int width = n;
@@ -360,9 +369,9 @@ void init_sphere (float radius, float cx, float cy, float cz)
             POINT *p = &vertex_list[(r * n) + c];
             
             /* world coordinates */
-            p->world[X] = radius * cos(u * 1 * PI) + cx;
-            p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI) + cy;
-            p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI) + cz;
+            p->world[X] = radius * cos(u * 1 * PI);
+            p->world[Y] = radius * cos(v * 2 * PI) * sin(u * PI);
+            p->world[Z] = radius * sin(v * 2 * PI) * sin(u * PI);
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -370,17 +379,21 @@ void init_sphere (float radius, float cx, float cy, float cz)
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     add_mesh_faces(width, height);
 }
 
 /* init a torus */
-void init_torus (float tube_radius, float hole_radius,  float cx, float cy, float cz)
+void init_torus (float tube_radius, float hole_radius, MAT4 *model)
 {
     int n = 32;
     int width = n;
     int height = n;
     tube_radius *= 0.5;
     float count = 0;
+    
     /* add vertices */
     num_vertices = n * n;
     for(int r = 0; r < height; r++)
@@ -393,10 +406,10 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
             POINT *p = &vertex_list[(r * n) + c];
             /* world coordinates */
             p->world[X] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
-                            cos(v * 2 * PI) + cx;
-            p->world[Y] = tube_radius * sin(u * 2 * PI) + cy;
+                            cos(v * 2 * PI);
+            p->world[Y] = tube_radius * sin(u * 2 * PI);
             p->world[Z] = (tube_radius * cos(u * 2 * PI) + 0.5 * hole_radius) *
-                            sin(v * 2 * PI) + cz;
+                            sin(v * 2 * PI);
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
@@ -405,6 +418,9 @@ void init_torus (float tube_radius, float hole_radius,  float cx, float cy, floa
         }
         count += 0.05;
     }
+    /* transform from local to world coordinates */
+    model_xform(model);
+    
     add_mesh_faces(width, height);
 }
 

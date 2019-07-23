@@ -283,11 +283,11 @@ void render_object(OBJECT *o)
     {
         case QUAD:      init_quad(&o->model_mat);                           break;
         case CUBE:      init_cube (&o->model_mat);                          break;
-        case MESH:      init_mesh(scale, cx, cy, cz);                       break;
-        case CYLINDER:  init_cylinder(r0, scale, cx, cy, cz);               break;
-        case CONE:      init_cone (r0, scale, cx, cy, cz);                  break;
-        case SPHERE:    init_sphere (r0, cx, cy, cz);                       break;
-        case TORUS:     init_torus(r0, r1, cx, cy, cz);                     break;
+        case MESH:      init_mesh (&o->model_mat);                          break;
+        case CYLINDER:  init_cylinder(r0, scale, &o->model_mat);            break;
+        case CONE:      init_cone (r0, scale, &o->model_mat);               break;
+        case SPHERE:    init_sphere (r0, &o->model_mat);                    break;
+        case TORUS:     init_torus(r0, r1, &o->model_mat);                  break;
         case TEAPOT:    read_obj_file("obj/teapot.obj", &o->model_mat);     break;
         case CAT:       read_obj_file("obj/cat.obj", &o->model_mat);        break;
         case DEER:      read_obj_file("obj/deer.obj", &o->model_mat);       break;
