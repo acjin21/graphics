@@ -51,10 +51,7 @@ void insert_coord_axes (float cx, float cy, float cz, float scale);
 void insert_bb_coords (void);
 
 /* world space transformations */
-void rotate_model(float cx, float cy, float cz,
-                  float x_angle, float y_angle, float z_angle);
-void translate_model_mat (float tx, float ty, float tz);
-void scale_model_mat (float sx, float sy, float sz);
+void world_xforms(OBJECT *o);
 
 /* calculate/set normals */
 void calculate_face_normals (void);

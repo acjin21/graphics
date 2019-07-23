@@ -329,9 +329,7 @@ void render_object(OBJECT *o)
     }
     
     /* world space xforms */
-    rotate_model(cx, cy, cz, o->rotation[X], o->rotation[Y], o->rotation[Z]);
-    translate_model_mat(o->translate[X], o->translate[Y], o->translate[Z]);
-    scale_model_mat(o->scale_vec[X], o->scale_vec[Y], o->scale_vec[Z]);
+    world_xforms(o);
     
     /* rotated face and vertex normals */
     calculate_face_normals();

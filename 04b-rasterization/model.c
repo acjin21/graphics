@@ -535,84 +535,54 @@ int get_max_idx (int normal_mode)
 /****************************************************************/
 /* model world space transformations */
 /****************************************************************/
-//void world_xforms(float cx, float cy, float cz,
-//                  float rx, float ry, float rz,
-//                  float tx, float ty, float tz,
-//                  float sx, float sy, float sz)
-//{
-//
-//}
-/* 3d rotation x_angle about the x axis, y_angle about the y axis, and
-    z_angle about the z axis */
-void rotate_model(float cx, float cy, float cz,
-                  float x_angle, float y_angle, float z_angle)
+void world_xforms(OBJECT *o)
 {
-    float nx, ny, nz, in_vec[4];
+    float in_vec[4], cx, cy, cz, rx, ry, rz, tx, ty, tz, sx, sy, sz;
     POINT *p;
     /* matrices */
-    MAT4 tmp, rotate_about_origin;
+    MAT4 tmp, rotate, translate, scale, manip;
     
-    set_identity(&rotate_about_origin);
+    cx = o->center[X];
+    cy = o->center[Y];
+    cz = o->center[Z];
+    rx = o->rotation[X];
+    ry = o->rotation[Y];
+    rz = o->rotation[Z];
+    tx = o->translate[X];
+    ty = o->translate[Y];
+    tz = o->translate[Z];
+    sx = o->scale_vec[X];
+    sy = o->scale_vec[Y];
+    sz = o->scale_vec[Z];
+
+    /* rotation matrix */
+    set_identity(&rotate);
     set_transl (&tmp, -cx, -cy, -cz);
-    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
-    set_3d_rot(&tmp, x_angle, y_angle, z_angle);
-    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
+    mat_mul (&rotate, &tmp, &rotate);
+    set_3d_rot(&tmp, rx, ry, rz);
+    mat_mul (&rotate, &tmp, &rotate);
     set_transl (&tmp, cx, cy, cz);
-    mat_mul (&rotate_about_origin, &tmp, &rotate_about_origin);
-
-    for(int i = 0; i < num_vertices; i++)
-    {
-        p = &vertex_list[i];
-        cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&rotate_about_origin, in_vec, vertex_list[i].world);
-    }
-    for(int i = 0; i < num_peripherals; i++)
-    {
-        p = &peripherals[i];
-        cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&rotate_about_origin, in_vec, peripherals[i].world);
-    }
-}
-
-void translate_model_mat (float tx, float ty, float tz)
-{
-    float nx, ny, nz, in_vec[4];
-    POINT *p;
-    MAT4 translate;
+    mat_mul (&rotate, &tmp, &rotate);
+    /* translation matrix */
     set_transl (&translate, tx, ty, tz);
-    
-    for(int i = 0; i < num_vertices; i++)
-    {
-        p = &vertex_list[i];
-        cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&translate, in_vec, vertex_list[i].world);
-    }
-    for(int i = 0; i < num_peripherals; i++)
-    {
-        p = &peripherals[i];
-        cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&translate, in_vec, peripherals[i].world);
-    }
-}
-
-void scale_model_mat (float sx, float sy, float sz)
-{
-    float nx, ny, nz, in_vec[4];
-    POINT *p;
-    MAT4 scale;
+    /* scale matrix */
     set_scale_nonuniform (&scale, sx, sy, sz);
     
+    /* combine all matrices */
+    mat_mul (&manip, &rotate, &scale);
+    mat_mul (&manip, &translate, &manip);
+
     for(int i = 0; i < num_vertices; i++)
     {
         p = &vertex_list[i];
         cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&scale, in_vec, vertex_list[i].world);
+        mat_vec_mul (&manip, in_vec, vertex_list[i].world);
     }
     for(int i = 0; i < num_peripherals; i++)
     {
         p = &peripherals[i];
         cpy_vec4 (in_vec, p->world);
-        mat_vec_mul (&scale, in_vec, peripherals[i].world);
+        mat_vec_mul (&manip, in_vec, peripherals[i].world);
     }
 }
 
