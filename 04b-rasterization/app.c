@@ -263,7 +263,7 @@ void render_object(OBJECT *o)
     /* all OBJ models are at the end of the list */
     reading_obj = o->type >= TEAPOT;
     draw_peripherals = program_type != SCENE ||
-                        (program_type == SCENE && o->ID == curr_objectID)
+    (program_type == SCENE && o->ID == curr_objectID);
     /*******************/
     /* WORLD SPACE */
     /*******************/
