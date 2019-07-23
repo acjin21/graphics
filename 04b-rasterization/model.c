@@ -498,6 +498,7 @@ void insert_bb_coords (void)
         
         min_z = MIN(vertex_list[i].world[Z], min_z);
         max_z = MAX(vertex_list[i].world[Z], max_z);
+
     }
     // get offset in vertex_list
     if(normal_type == F_NORMALS && draw_coord_axes)
