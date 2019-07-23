@@ -183,7 +183,7 @@ void spherical_map (float normal[4], float tex[4])
 void reflection_map (float normal[4], float tex[4])
 {
     float reflect[4];
-    vector_reflect(eye, normal, reflect);
+    vector_reflect(camera.pos, normal, reflect);
     spherical_map(reflect, tex);
 }
 

@@ -90,7 +90,7 @@ char *tex_gen_name (int mode);
 
 /* lighting */
 void calculate_light_vectors (void);
-
+void set_view_rays (CAMERA *c);
 
 /* obj io */
 void read_obj_file (char *file_name, MAT4 *model);

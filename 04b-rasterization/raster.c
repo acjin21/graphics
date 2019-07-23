@@ -297,6 +297,16 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                              w[1] * v1->light[Z] +
                              w[2] * v2->light[Z];
                 
+                p.view[X] = w[0] * v0->view[X] +
+                            w[1] * v1->view[X] +
+                            w[2] * v2->view[X];
+                p.view[Y] = w[0] * v0->view[Y] +
+                            w[1] * v1->view[Y] +
+                            w[2] * v2->view[Y];
+                p.view[Z] = w[0] * v0->view[Z] +
+                            w[1] * v1->view[Z] +
+                            w[2] * v2->view[Z];
+                
                 draw_point(&p);
             }
         }

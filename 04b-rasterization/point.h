@@ -25,6 +25,8 @@ typedef struct point {
     float color[4];
     float tex[4];
     
+    float view[4];
+    
     int tri_list[100]; // indices of neighboring triangles
     int num_tris; // number of neighboring triangles
     
@@ -61,7 +63,7 @@ extern IMAGE bump_map;
 /* Functions                                                      */
 /*************************************************************************/
 void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4]);
-void set_specular_term (float normal[4], float light[4], float spec_term[4]);
+void set_specular_term (float normal[4], float light[4], float spec_term[4], float view[4]);
 void shade_point (float diffuse[4], float spec[4], POINT *p);
 
 void draw_point (POINT *p);

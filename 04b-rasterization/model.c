@@ -903,6 +903,19 @@ void set_triangle_clip_flags (void)
         }
     }
 }
+// set each point's eye ray in world space
+void set_view_rays (CAMERA *c)
+{
+    float eye_ray[4];
+    for(int i = 0; i < num_vertices; i++)
+    {
+        POINT *p = &vertex_list[i];
+    
+        vector_subtract(c->pos, p->world, eye_ray);
+        normalize(eye_ray);
+        cpy_vec4(p->view, eye_ray);
+    }
+}
 
 /* called when everything is in world space */
 void set_backface_flags (CAMERA *c)
@@ -910,12 +923,13 @@ void set_backface_flags (CAMERA *c)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE *f = &face_list[i];
-        POINT p0 = vertex_list[f->vertices[0]];
-        POINT p1 = vertex_list[f->vertices[1]];
-        POINT p2 = vertex_list[f->vertices[2]];
+        POINT *p0 = &vertex_list[f->vertices[0]];
+        POINT *p1 = &vertex_list[f->vertices[1]];
+        POINT *p2 = &vertex_list[f->vertices[2]];
         
         float eye_ray[4], dot;
-        vector_subtract(c->pos, p0.world, eye_ray);
+        
+        vector_subtract(c->pos, p0->world, eye_ray);
         normalize(eye_ray);
         dot = vector_dot(eye_ray, f->f_normal);
         f->backface_factor = dot;
@@ -976,12 +990,12 @@ void draw_model(int mode)
                 {
                     /* using one of vertices' light vecs instead of global light dir */
                     set_diffuse_term (f.f_normal, p0.light, tmp_diff);
-                    set_specular_term (f.f_normal, p0.light, tmp_spec);
+                    set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view);
                 }
                 else if(light_type == GLOBAL_L)
                 {
                     set_diffuse_term (f.f_normal, light, tmp_diff);
-                    set_specular_term (f.f_normal, light, tmp_spec);
+                    set_specular_term (f.f_normal, light, tmp_spec, p0.view);
                 }
                 
                 //modulate interpolated color * texture

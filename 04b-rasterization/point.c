@@ -73,12 +73,13 @@ void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float light[4], float spec_term[4])
+void set_specular_term (float normal[4], float light[4], float spec_term[4], float view[4])
 {
     float specular, refl[4];
     normalize(light);
+    normalize(view);
     vector_reflect(light, normal, refl);
-    specular = MAX(vector_dot(eye, refl), 0);
+    specular = MAX(vector_dot(view, refl), 0);
     specular = pow(specular, shinyness);
     if(material)
     {
@@ -164,13 +165,15 @@ void draw_point (POINT *p)
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)
         {
+//            printf("p->view: %.2f, %.2f, %.2f, %.2f\n", p->view[X], p->view[Y], p->view[Z], p->view[W]);
             set_diffuse_term(p->v_normal, p->light, tmp_diff);
-            set_specular_term(p->v_normal, p->light, tmp_spec);
+            set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
         }
         else if (light_type == GLOBAL_L)
         {
             set_diffuse_term(p->v_normal, light, tmp_diff);
-            set_specular_term(p->v_normal, light, tmp_spec);
+//            printf("p->view: %.2f, %.2f, %.2f, %.2f\n", p->view[X], p->view[Y], p->view[Z], p->view[W]);
+            set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
         }
         
         //modulate texture with color and brightness
