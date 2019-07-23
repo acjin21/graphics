@@ -263,11 +263,10 @@ void render_object(OBJECT *o)
     /* all OBJ models are at the end of the list */
     reading_obj = o->type >= TEAPOT;
     draw_peripherals = program_type != SCENE ||
-    (program_type == SCENE && o->ID == curr_objectID);
+                        (program_type == SCENE && o->ID == curr_objectID);
     /*******************/
     /* WORLD SPACE */
     /*******************/
-
     /* if reading OBJ, for better texture mapping, generate their uv coords */
     if(reading_obj)
     {
@@ -280,8 +279,6 @@ void render_object(OBJECT *o)
     {
         insert_coord_axes(o->center[X], o->center[Y], o->center[Z], o->scale);
     }
-    
-    /* world space xforms */
     world_xforms(o);
     
     /* rotated face and vertex normals */
@@ -289,11 +286,8 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     if(light_type == LOCAL_L) calculate_light_vectors();
     
-    /* set per triangle dot products to later determine if drawing backface */
     set_backface_flags(&camera);
-    /* set viewing rays for each vertex in world space */
     set_view_rays(&camera);
-    
     camera_xform (&camera);
 
     /*******************/
@@ -321,9 +315,7 @@ void render_object(OBJECT *o)
     /*******************/
     /* SCREEN SPACE */
     /*******************/
-    /* set the screen 2D click space for object */
     set_click_frame (o);
-    
     stop_timer(&vtx_timer);
     /*-------------------------------*/         /* end vertex processing */
     
