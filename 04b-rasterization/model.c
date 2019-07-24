@@ -630,25 +630,17 @@ void calculate_face_normals (void)
 {
     for(int i = 0; i < num_triangles ; i++)
     {
-        int p0_idx = face_list[i].vertices[0];
-        int p1_idx = face_list[i].vertices[1];
-        int p2_idx = face_list[i].vertices[2];
-        
-        POINT *p0 = &vertex_list[p0_idx];
-        POINT *p1 = &vertex_list[p1_idx];
-        POINT *p2 = &vertex_list[p2_idx];
-        
         float v1[4], v2[4], f_normal[4];
-        vector_subtract(p1->world, p0->world, v1);
-  
-        vector_subtract(p2->world, p0->world, v2);
-        
-        vector_cross(v1, v2, f_normal);
 
+        POINT *p0 = &vertex_list[face_list[i].vertices[0]];
+        POINT *p1 = &vertex_list[face_list[i].vertices[1]];
+        POINT *p2 = &vertex_list[face_list[i].vertices[2]];
+
+        vector_subtract(p1->world, p0->world, v1);
+        vector_subtract(p2->world, p0->world, v2);
+        vector_cross(v1, v2, f_normal);
         normalize(f_normal);
- 
         cpy_vec4(face_list[i].f_normal, f_normal);
-        
     }
 }
 
@@ -687,10 +679,8 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 void camera_xform (CAMERA *c)
 {
-//    MAT4 cam;
     set_camera_mat (&cam, c);
-    int max_idx = get_max_idx (normal_type);
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
@@ -711,11 +701,9 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
-//    MAT4 ortho;
     set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
     
-    int max_idx = get_max_idx (normal_type);
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
         vertex_list[i].position[W] = 1.0;
@@ -729,12 +717,10 @@ void xform_model(float x_min, float x_max,
 
 void viewport_mat_xform (int vp_w, int vp_h)
 {
-//    MAT4 viewport;
     set_viewport_mat (&viewport, vp_w, vp_h);
     float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
 
-    int max_idx = get_max_idx (normal_type);
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
         
@@ -787,13 +773,12 @@ int cull_model (float near, float far)
 /* perspective transform from world to screen coordinates */
 void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
-    int max_idx = get_max_idx (normal_type);
-//    MAT4 perspective;
     set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
-    for(int i = 0; i < max_idx; i++)
+    for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
         w = vertex_list[i].position[W];
+
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
         // {x/w, y/w, z/w, 1}
         if(perspective_correct && texturing)
@@ -804,30 +789,15 @@ void perspective_xform(float near, float far, float x_min, float x_max, float y_
     }
     for(int i = 0; i < num_peripherals; i++)
     {
+        float local_w;
         set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
         mat_vec_mul (&perspective, peripherals[i].world, peripherals[i].position);
-        w = peripherals[i].position[W];
-        scalar_divide (w, peripherals[i].position, peripherals[i].position);
+        local_w = peripherals[i].position[W];
+        scalar_divide (local_w, peripherals[i].position, peripherals[i].position);
         if(perspective_correct && texturing)
         {
-            peripherals[i].position[W] = 1.0 / w;
+            peripherals[i].position[W] = 1.0 / local_w;
         }
-    }
-    
-}
-
-/* scale normalized view coordinates to screen coordinates */
-/*  (for perspective proj)                                 */
-void viewport_xform(float scale)
-{
-    int max_idx = get_max_idx (normal_type);
-
-    for(int i = 0; i < max_idx; i++)
-    {
-        vertex_list[i].position[X] *= scale;
-        vertex_list[i].position[Y] *= scale;
-        vertex_list[i].position[Z] *= 1;
-//        vertex_list[i].position[W] = 1.0;
     }
 }
 
@@ -839,7 +809,6 @@ void set_triangle_clip_flags (void)
     int num_addl = 0;
     for(int i = 0; i < num_triangles; i++)
     {
-//        printf("num_addl = %.2i\n", num_addl);
         if(num_addl > max_n_addl_tris) return;
         FACE f = face_list[i];
         
@@ -1180,14 +1149,14 @@ void draw_3D_bb (float bb_color[4])
     }
 }
 
-//viewport (screen space) -> world
+//viewport (screen space) -> camera space (stored in world)
 void unproject_screen_coords (float out[4], float in[4])
 {
-    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
-    vector_add(in, translation_vec, in);
-
     MAT4 forward, backward, inv_viewport;
-    print_mat4(&viewport);
+    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
+    
+    vector_add(in, translation_vec, in);
+    
     if(proj_mode == ORTHO)
     {
         mat_mul(&forward, &ortho, &viewport);
@@ -1196,19 +1165,13 @@ void unproject_screen_coords (float out[4], float in[4])
     }
     else
     {
-        printf("perspective\n");
         mat_mul(&forward, &perspective, &viewport);
         invert_mat4(&backward, &viewport);
         mat_vec_mul(&backward, in, out);
-        printf("%.2f\n", w);
         scalar_multiply(w, out, out);
         invert_mat4(&backward, &perspective);
         mat_vec_mul(&backward, out, out);
     }
-//    mat_mul(&forward, &cam, &forward);
-    
-    
-
 }
 /****************************************************************/
 /* Texture Generation */
