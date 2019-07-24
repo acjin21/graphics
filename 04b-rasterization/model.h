@@ -82,6 +82,8 @@ void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
 
+void unproject_screen_coords (float out[4], float in[4]);
+
 /* texture generation */
 void get_tex_coords (void);
 char *tex_gen_name (int mode);

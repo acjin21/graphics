@@ -54,6 +54,10 @@ int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
+
+MAT4 cam, ortho, perspective, viewport;
+float w;
+
 /****************************************************************/
 /* helper functions */
 /****************************************************************/
@@ -683,7 +687,7 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 void camera_xform (CAMERA *c)
 {
-    MAT4 cam;
+//    MAT4 cam;
     set_camera_mat (&cam, c);
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
@@ -707,7 +711,7 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
-    MAT4 ortho;
+//    MAT4 ortho;
     set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
     
     int max_idx = get_max_idx (normal_type);
@@ -725,9 +729,10 @@ void xform_model(float x_min, float x_max,
 
 void viewport_mat_xform (int vp_w, int vp_h)
 {
-    MAT4 viewport;
+//    MAT4 viewport;
     set_viewport_mat (&viewport, vp_w, vp_h);
-    
+    float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+
     int max_idx = get_max_idx (normal_type);
     for(int i = 0; i < max_idx; i++)
     {
@@ -735,18 +740,13 @@ void viewport_mat_xform (int vp_w, int vp_h)
         
         // do translation separately so that position[W] = 1/w for persp corr.
         //      does not interfere with viewport_x, viewport_y calculation
-        // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
-        float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+        // TODO: do we always want to add this translation vector regardless of
+        //      whether we're working with points or directions?
         vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
     }
     for(int i = 0; i < num_peripherals; i++)
     {
         mat_vec_mul (&viewport, peripherals[i].position, peripherals[i].position);
-        
-        // do translation separately so that position[W] = 1/w for persp corr.
-        //      does not interfere with viewport_x, viewport_y calculation
-        // TODO: do we always want to add this translation vector regardless of whether we're working with points or directions?
-        float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
         vector_add(peripherals[i].position, translation_vec, peripherals[i].position);
     }
 }
@@ -788,9 +788,8 @@ int cull_model (float near, float far)
 void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
     int max_idx = get_max_idx (normal_type);
-    MAT4 perspective;
+//    MAT4 perspective;
     set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
-    float w;
     for(int i = 0; i < max_idx; i++)
     {
         mat_vec_mul (&perspective, vertex_list[i].world, vertex_list[i].position);
@@ -1137,6 +1136,8 @@ void set_click_frame (OBJECT *o)
 {
     cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
     cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
+    cpy_vec4(o->bb_tr.world, peripherals[bb_start_idx + 1].world);
+    cpy_vec4(o->bb_bl.world, peripherals[bb_start_idx + 3].world);
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */
@@ -1179,6 +1180,36 @@ void draw_3D_bb (float bb_color[4])
     }
 }
 
+//viewport (screen space) -> world
+void unproject_screen_coords (float out[4], float in[4])
+{
+    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
+    vector_add(in, translation_vec, in);
+
+    MAT4 forward, backward, inv_viewport;
+    print_mat4(&viewport);
+    if(proj_mode == ORTHO)
+    {
+        mat_mul(&forward, &ortho, &viewport);
+        invert_mat4(&backward, &forward);
+        mat_vec_mul(&backward, in, out);
+    }
+    else
+    {
+        printf("perspective\n");
+        mat_mul(&forward, &perspective, &viewport);
+        invert_mat4(&backward, &viewport);
+        mat_vec_mul(&backward, in, out);
+        printf("%.2f\n", w);
+        scalar_multiply(w, out, out);
+        invert_mat4(&backward, &perspective);
+        mat_vec_mul(&backward, out, out);
+    }
+//    mat_mul(&forward, &cam, &forward);
+    
+    
+
+}
 /****************************************************************/
 /* Texture Generation */
 /****************************************************************/

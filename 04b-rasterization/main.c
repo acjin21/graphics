@@ -25,6 +25,7 @@
 #include "benchmark.h"
 
 #include "fourier.h"
+#include "model.h"
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
@@ -152,12 +153,15 @@ void motion(int x, int y)
 }
 
 /* whether mouse click position is in the 2D screen bounding box of object o */
-int click_in_bb (int x, int y, OBJECT *o)
+int click_in_bb (float x, float y, OBJECT *o)
 {
-    return (x > o->bb_bl.position[X] &&
-            x < o->bb_tr.position[X] &&
-            y > o->bb_bl.position[Y] &&
-            y < o->bb_tr.position[Y]);
+    printf("type: %i\nbb_bl: %.2f, %.2f\nbb_tr:%.2f, %.2f\n", o->type,
+           o->bb_bl.world[X], o->bb_bl.world[Y],
+           o->bb_tr.world[X], o->bb_tr.world[Y]);
+    return (x > o->bb_bl.world[X] &&
+            x < o->bb_tr.world[X] &&
+            y > o->bb_bl.world[Y] &&
+            y < o->bb_tr.world[Y]);
 }
 
 /* mouse click callback */
@@ -166,13 +170,19 @@ void mouse (int button, int state, int x, int y)
     y = WIN_H - y;
     if(state == GLUT_DOWN)
     {
+        printf("(%i, %i)\n", x, y);
+        float screen_coords[4] = {(float)x, (float)y, 0, 0};
+        float res[4];
+        unproject_screen_coords(res, screen_coords);
+        printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
+
         start[X] = x;
         start[Y] = y;
         
         float closest_z = FLT_MAX;
         for(int i = 0; i < num_objects; i++)
         {
-            if(click_in_bb(x, y, &objects[i]))
+            if(click_in_bb(res[X], res[Y], &objects[i]))
             {
                 if(objects[i].center[Z] < closest_z)
                 {
