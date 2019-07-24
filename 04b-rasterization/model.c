@@ -56,7 +56,7 @@ int axes_start_idx = 0;         // vertex_list index of the first axes POINT
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
 MAT4 cam, ortho, perspective, viewport;
-float w;
+//float w;
 
 /****************************************************************/
 /* helper functions */
@@ -773,6 +773,7 @@ int cull_model (float near, float far)
 /* perspective transform from world to screen coordinates */
 float perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
+    float w;
     set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
     for(int i = 0; i < num_vertices; i++)
     {
