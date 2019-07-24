@@ -26,6 +26,7 @@
 
 #include "fourier.h"
 #include "model.h"
+#include "vector.h"
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
@@ -85,8 +86,6 @@ void display(void)
     {
         print_settings();
         clear_color_buffer(1, 1, 1, 1);
-//        clear_color_buffer(0, 0, 0, 1);
-
     }
 
     clear_depth_buffer(1.0);
@@ -139,12 +138,26 @@ static void key(unsigned char key, int x, int y)
 /* mouse motion callback */
 void motion(int x, int y)
 {
+    OBJECT *curr_object = get_curr_object(curr_objectID);
+
     y = WIN_H - y;
     stop[X] = x;
     stop[Y] = y;
-    float screen_dx = stop[X] - start[X];
-    float screen_dy = stop[Y] - start[Y];
-    translate_object(screen_dx, screen_dy);
+    
+    float vp_start[4], vp_stop[4], ws_start[4], ws_stop[4];
+    set_vec4(vp_start, start[X], start[Y], 0, 1);
+    set_vec4(vp_stop, stop[X], stop[Y], 0, 1);
+
+    //convert vp_start to ws_start
+    unproject_screen_to_world (ws_start, vp_start, curr_object->w);
+    //convert vp_stop to ws_stop
+    unproject_screen_to_world (ws_stop, vp_stop, curr_object->w);
+
+    //calculate ws_dx, ws_dy, call translate_object_mouse
+    float ws_dx = ws_stop[X] - ws_start[X];
+    float ws_dy = ws_stop[Y] - ws_start[Y];
+
+    translate_object_mouse(ws_dx, ws_dy);
     start[X] = x;
     start[Y] = y;
     
@@ -155,9 +168,9 @@ void motion(int x, int y)
 /* whether mouse click position is in the 2D screen bounding box of object o */
 int click_in_bb (float x, float y, OBJECT *o)
 {
-    printf("type: %i\nbb_bl: %.2f, %.2f\nbb_tr:%.2f, %.2f\n", o->type,
-           o->bb_bl.world[X], o->bb_bl.world[Y],
-           o->bb_tr.world[X], o->bb_tr.world[Y]);
+//    printf("type: %i\nbb_bl: %.2f, %.2f\nbb_tr:%.2f, %.2f\n", o->type,
+//           o->bb_bl.world[X], o->bb_bl.world[Y],
+//           o->bb_tr.world[X], o->bb_tr.world[Y]);
     return (x > o->bb_bl.world[X] &&
             x < o->bb_tr.world[X] &&
             y > o->bb_bl.world[Y] &&
@@ -170,7 +183,6 @@ void mouse (int button, int state, int x, int y)
     y = WIN_H - y;
     if(state == GLUT_DOWN)
     {
-        printf("(%i, %i)\n", x, y);
         float screen_coords[4] = {(float)x, (float)y, 0, 0};
         float res[4];
 
@@ -181,14 +193,12 @@ void mouse (int button, int state, int x, int y)
 
         for(int i = 0; i < num_objects; i++)
         {
-            printf("screen coords (%.2f, %.2f)\n", screen_coords[X], screen_coords[Y]);
-
-            unproject_screen_coords(res, screen_coords, objects[i].w);
-            printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
+//            printf("screen coords (%.2f, %.2f)\n", screen_coords[X], screen_coords[Y]);
+            unproject_screen_to_camera (res, screen_coords, objects[i].w);
+//            printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
 
             if(click_in_bb(res[X], res[Y], &objects[i]))
             {
-
                 if(objects[i].center[Z] < closest_z)
                 {
                     closest_z = objects[i].center[Z];

@@ -799,7 +799,7 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
             peripherals[i].position[W] = 1.0 / local_w;
         }
     }
-    printf("w: %.2f\n", w);
+//    printf("w: %.2f\n", w);
     return w;
 }
 
@@ -1152,7 +1152,7 @@ void draw_3D_bb (float bb_color[4])
 }
 
 //viewport (screen space) -> camera space (stored in world)
-void unproject_screen_coords (float out[4], float in[4], float w)
+void unproject_screen_to_camera (float out[4], float in[4], float w)
 {
     float tmp[4];
     cpy_vec4(tmp, in);
@@ -1176,7 +1176,15 @@ void unproject_screen_coords (float out[4], float in[4], float w)
         invert_mat4(&backward, &perspective);
         mat_vec_mul(&backward, out, out);
     }
-    
+}
+
+
+void unproject_screen_to_world (float out[4], float in[4], float w)
+{
+    MAT4 backward;
+    unproject_screen_to_camera (out, in, w);
+    invert_mat4(&backward, &cam);
+    mat_vec_mul(&backward, out, out);
 }
 /****************************************************************/
 /* Texture Generation */

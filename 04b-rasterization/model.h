@@ -81,7 +81,8 @@ void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
 
-void unproject_screen_coords (float out[4], float in[4], float w);
+void unproject_screen_to_camera (float out[4], float in[4], float w);
+void unproject_screen_to_world (float out[4], float in[4], float w);
 
 /* texture generation */
 void get_tex_coords (void);

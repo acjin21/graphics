@@ -63,6 +63,7 @@ int dof_mode = OFF;             // depth_of_field
 
 /* manipulating objects one at a time */
 int curr_objectID = 0;            //ID of current object
+OBJECT *curr_object;
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
@@ -237,6 +238,8 @@ void set_texture (void)
 /*******************************************************/
 void render_object(OBJECT *o)
 {
+//    curr_object = get_curr_object(curr_objectID);
+//    o = curr_object;
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
     
@@ -380,6 +383,7 @@ void display_scene_mode (void)
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+//        curr_objectID = i;
         render_object(&objects[i]);
     }
 }
@@ -445,11 +449,11 @@ void display_obj_mode (void)
 }
 
 /* for mouse io in main.c */
-void translate_object(float screen_dx, float screen_dy)
+void translate_object_mouse (float ws_dx, float ws_dy)
 {
     OBJECT *curr_object = get_curr_object(curr_objectID);
-    curr_object->translate[X] += (5 * screen_dx / (WIN_W / 2.0));
-    curr_object->translate[Y] += (5 * screen_dy / (WIN_H / 2.0));
+    curr_object->translate[X] += ws_dx;
+    curr_object->translate[Y] += ws_dy;
 }
 
 /********************************************/

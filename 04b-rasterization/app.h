@@ -73,8 +73,7 @@ void display_basic_mode (void);
 void display_scene_mode (void);
 void display_obj_mode (void);
 
-void translate_object(float screen_dx, float screen_dy);
-
+void translate_object_mouse (float ws_dx, float ws_dy);
 
 void key_callback (unsigned char key);
 void init_basic_program(void);
