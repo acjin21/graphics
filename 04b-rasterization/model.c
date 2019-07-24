@@ -771,7 +771,7 @@ int cull_model (float near, float far)
 }
 
 /* perspective transform from world to screen coordinates */
-void perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
+float perspective_xform(float near, float far, float x_min, float x_max, float y_min, float y_max)
 {
     set_perspective_mat (&perspective, near, far, x_min, x_max, y_min, y_max);
     for(int i = 0; i < num_vertices; i++)
@@ -799,6 +799,8 @@ void perspective_xform(float near, float far, float x_min, float x_max, float y_
             peripherals[i].position[W] = 1.0 / local_w;
         }
     }
+    printf("w: %.2f\n", w);
+    return w;
 }
 
 /* set the clip_flags of all triangles in model */
@@ -1150,28 +1152,31 @@ void draw_3D_bb (float bb_color[4])
 }
 
 //viewport (screen space) -> camera space (stored in world)
-void unproject_screen_coords (float out[4], float in[4])
+void unproject_screen_coords (float out[4], float in[4], float w)
 {
+    float tmp[4];
+    cpy_vec4(tmp, in);
     MAT4 forward, backward, inv_viewport;
     float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
     
-    vector_add(in, translation_vec, in);
+    vector_add(tmp, translation_vec, tmp);
     
     if(proj_mode == ORTHO)
     {
         mat_mul(&forward, &ortho, &viewport);
         invert_mat4(&backward, &forward);
-        mat_vec_mul(&backward, in, out);
+        mat_vec_mul(&backward, tmp, out);
     }
     else
     {
         mat_mul(&forward, &perspective, &viewport);
         invert_mat4(&backward, &viewport);
-        mat_vec_mul(&backward, in, out);
+        mat_vec_mul(&backward, tmp, out);
         scalar_multiply(w, out, out);
         invert_mat4(&backward, &perspective);
         mat_vec_mul(&backward, out, out);
     }
+    
 }
 /****************************************************************/
 /* Texture Generation */

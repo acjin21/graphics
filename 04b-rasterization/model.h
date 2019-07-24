@@ -69,7 +69,7 @@ void xform_model(float x_min, float x_max,
 
 /* perspective transformations */
 int cull_model (float near, float far);
-void perspective_xform(float near, float far,
+float perspective_xform(float near, float far,
                        float x_min, float x_max, float y_min, float y_max);
 
 void viewport_mat_xform (int vp_w, int vp_h);
@@ -81,7 +81,7 @@ void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
 
-void unproject_screen_coords (float out[4], float in[4]);
+void unproject_screen_coords (float out[4], float in[4], float w);
 
 /* texture generation */
 void get_tex_coords (void);

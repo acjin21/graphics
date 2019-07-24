@@ -173,17 +173,22 @@ void mouse (int button, int state, int x, int y)
         printf("(%i, %i)\n", x, y);
         float screen_coords[4] = {(float)x, (float)y, 0, 0};
         float res[4];
-        unproject_screen_coords(res, screen_coords);
-        printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
 
         start[X] = x;
         start[Y] = y;
         
         float closest_z = FLT_MAX;
+
         for(int i = 0; i < num_objects; i++)
         {
+            printf("screen coords (%.2f, %.2f)\n", screen_coords[X], screen_coords[Y]);
+
+            unproject_screen_coords(res, screen_coords, objects[i].w);
+            printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
+
             if(click_in_bb(res[X], res[Y], &objects[i]))
             {
+
                 if(objects[i].center[Z] < closest_z)
                 {
                     closest_z = objects[i].center[Z];

@@ -35,6 +35,8 @@ typedef struct object {
     MAT4 model_mat;
     MAT4 ws_transform; // holds transformations within world space (i.e. rotation, etc)
     
+    float w;
+    
     int texturing;
     int texture_idx;
     int cube_map;
