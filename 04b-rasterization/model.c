@@ -605,7 +605,7 @@ void world_xforms(OBJECT *o)
     set_scale_nonuniform (&scale, sx, sy, sz);
     
     /* combine all matrices */
-    mat_mul (&manip, &rotate, &scale);
+    mat_mul (&manip, &scale, &rotate);
     mat_mul (&manip, &translate, &manip);
 
     for(int i = 0; i < num_vertices; i++)
@@ -803,6 +803,75 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
     return w;
 }
 
+//viewport (screen space) -> camera space (stored in world)
+void unproject_screen_to_camera (float out[4], float in[4], float w)
+{
+    float tmp[4];
+    cpy_vec4(tmp, in);
+    MAT4 forward, backward, inv_viewport;
+    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
+    
+    vector_add(tmp, translation_vec, tmp);
+    
+    if(proj_mode == ORTHO)
+    {
+        mat_mul(&forward, &ortho, &viewport);
+        invert_mat4(&backward, &forward);
+        mat_vec_mul(&backward, tmp, out);
+    }
+    else
+    {
+        mat_mul(&forward, &perspective, &viewport);
+        invert_mat4(&backward, &viewport);
+        mat_vec_mul(&backward, tmp, out);
+        scalar_multiply(w, out, out);
+        invert_mat4(&backward, &perspective);
+        mat_vec_mul(&backward, out, out);
+    }
+}
+
+
+void unproject_screen_to_world (float out[4], float in[4], float w)
+{
+    MAT4 backward;
+    unproject_screen_to_camera (out, in, w);
+    invert_mat4(&backward, &cam);
+    mat_vec_mul(&backward, out, out);
+}
+
+/* called when everything is in world space */
+void set_backface_flags (CAMERA *c)
+{
+    for(int i = 0; i < num_triangles; i++)
+    {
+        FACE *f = &face_list[i];
+        POINT *p0 = &vertex_list[f->vertices[0]];
+        POINT *p1 = &vertex_list[f->vertices[1]];
+        POINT *p2 = &vertex_list[f->vertices[2]];
+        
+        float eye_ray[4], dot;
+        
+        vector_subtract(c->pos, p0->world, eye_ray);
+        normalize(eye_ray);
+        dot = vector_dot(eye_ray, f->f_normal);
+        f->backface_factor = dot;
+    }
+}
+
+// set each point's eye ray in world space
+void set_view_rays (CAMERA *c)
+{
+    float eye_ray[4];
+    for(int i = 0; i < num_vertices; i++)
+    {
+        POINT *p = &vertex_list[i];
+        
+        vector_subtract(c->pos, p->world, eye_ray);
+        normalize(eye_ray);
+        cpy_vec4(p->view, eye_ray);
+    }
+}
+
 /* set the clip_flags of all triangles in model */
 void set_triangle_clip_flags (void)
 {
@@ -825,7 +894,7 @@ void set_triangle_clip_flags (void)
         cpy_vec4(p0.tex, tex_list[f.tex[0]]);
         cpy_vec4(p1.tex, tex_list[f.tex[1]]);
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
-
+        
         verts[0] = p0;
         verts[1] = p1;
         verts[2] = p2;
@@ -887,40 +956,7 @@ void set_triangle_clip_flags (void)
                 }
             }
             num_face_normals = num_triangles;
-
         }
-    }
-}
-// set each point's eye ray in world space
-void set_view_rays (CAMERA *c)
-{
-    float eye_ray[4];
-    for(int i = 0; i < num_vertices; i++)
-    {
-        POINT *p = &vertex_list[i];
-    
-        vector_subtract(c->pos, p->world, eye_ray);
-        normalize(eye_ray);
-        cpy_vec4(p->view, eye_ray);
-    }
-}
-
-/* called when everything is in world space */
-void set_backface_flags (CAMERA *c)
-{
-    for(int i = 0; i < num_triangles; i++)
-    {
-        FACE *f = &face_list[i];
-        POINT *p0 = &vertex_list[f->vertices[0]];
-        POINT *p1 = &vertex_list[f->vertices[1]];
-        POINT *p2 = &vertex_list[f->vertices[2]];
-        
-        float eye_ray[4], dot;
-        
-        vector_subtract(c->pos, p0->world, eye_ray);
-        normalize(eye_ray);
-        dot = vector_dot(eye_ray, f->f_normal);
-        f->backface_factor = dot;
     }
 }
 /****************************************************************/
@@ -1151,41 +1187,6 @@ void draw_3D_bb (float bb_color[4])
     }
 }
 
-//viewport (screen space) -> camera space (stored in world)
-void unproject_screen_to_camera (float out[4], float in[4], float w)
-{
-    float tmp[4];
-    cpy_vec4(tmp, in);
-    MAT4 forward, backward, inv_viewport;
-    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
-    
-    vector_add(tmp, translation_vec, tmp);
-    
-    if(proj_mode == ORTHO)
-    {
-        mat_mul(&forward, &ortho, &viewport);
-        invert_mat4(&backward, &forward);
-        mat_vec_mul(&backward, tmp, out);
-    }
-    else
-    {
-        mat_mul(&forward, &perspective, &viewport);
-        invert_mat4(&backward, &viewport);
-        mat_vec_mul(&backward, tmp, out);
-        scalar_multiply(w, out, out);
-        invert_mat4(&backward, &perspective);
-        mat_vec_mul(&backward, out, out);
-    }
-}
-
-
-void unproject_screen_to_world (float out[4], float in[4], float w)
-{
-    MAT4 backward;
-    unproject_screen_to_camera (out, in, w);
-    invert_mat4(&backward, &cam);
-    mat_vec_mul(&backward, out, out);
-}
 /****************************************************************/
 /* Texture Generation */
 /****************************************************************/

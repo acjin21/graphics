@@ -58,9 +58,13 @@ void world_xforms(OBJECT *o);
 void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
+/* functions that rely on world space coords */
 void set_backface_flags (CAMERA *c);
+void set_view_rays (CAMERA *c);
+
 void camera_xform (CAMERA *c);
 
+void set_triangle_clip_flags (void);
 
 /* orthographic transformations */
 void xform_model(float x_min, float x_max,
@@ -71,9 +75,11 @@ void xform_model(float x_min, float x_max,
 int cull_model (float near, float far);
 float perspective_xform(float near, float far,
                        float x_min, float x_max, float y_min, float y_max);
-
 void viewport_mat_xform (int vp_w, int vp_h);
-void set_triangle_clip_flags (void);
+
+/* inverse projections */
+void unproject_screen_to_camera (float out[4], float in[4], float w);
+void unproject_screen_to_world (float out[4], float in[4], float w);
 
 /* draw functions */
 void draw_model(int mode);
@@ -81,16 +87,12 @@ void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
 
-void unproject_screen_to_camera (float out[4], float in[4], float w);
-void unproject_screen_to_world (float out[4], float in[4], float w);
-
 /* texture generation */
 void get_tex_coords (void);
 char *tex_gen_name (int mode);
 
 /* lighting */
 void calculate_light_vectors (void);
-void set_view_rays (CAMERA *c);
 
 /* obj io */
 void read_obj_file (char *file_name, MAT4 *model);

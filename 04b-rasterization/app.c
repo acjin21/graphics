@@ -63,7 +63,6 @@ int dof_mode = OFF;             // depth_of_field
 
 /* manipulating objects one at a time */
 int curr_objectID = 0;            //ID of current object
-OBJECT *curr_object;
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
@@ -238,8 +237,6 @@ void set_texture (void)
 /*******************************************************/
 void render_object(OBJECT *o)
 {
-//    curr_object = get_curr_object(curr_objectID);
-//    o = curr_object;
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
     
