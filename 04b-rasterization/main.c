@@ -48,6 +48,7 @@ IMAGE texture;
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
+
 /* display callback */
 void display(void)
 {
@@ -116,12 +117,27 @@ void display(void)
     /* draw color or depth buffer */
     framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                          /* STOP GL_TIMER */
+    
+    gl_print_settings();
+    
+    char res[100];
+    gl_printf(650, 775, "BENCHMARK:");
+    sprintf(res, "sw renderer: %.5f", elapsed_time(&sw_renderer_timer));
+    gl_printf(655, 760, res);
+    sprintf(res, "gl: %.5f", elapsed_time(&gl_timer));
+    gl_printf(655, 745, res);
+            
+    sprintf(res, "vertex: %.5f", elapsed_time(&vtx_timer));
+    gl_printf(655, 730, res);
+    sprintf(res, "pixel: %.5f", elapsed_time(&px_timer));
+    gl_printf(655, 715, res);
+    
     if(program_type == BENCHMARK)
     {
         fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
     }
 
-    /* show reuslts */
+    /* show results */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
     if(program_type != BENCHMARK) draw_one_frame = 0;

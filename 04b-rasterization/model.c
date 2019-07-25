@@ -831,7 +831,7 @@ void unproject_screen_to_camera (float out[4], float in[4], float w)
     }
 }
 
-
+/* project screen space coordinates "in" to world space coords "out" */
 void unproject_screen_to_world (float out[4], float in[4], float w)
 {
     MAT4 backward;

@@ -3,6 +3,7 @@
 
 #include "benchmark.h"
 #include "scene.h"
+#include "time.h"
 
 #define INIT_DZ 8
 #define MAX_FILE_NAME 100
@@ -52,11 +53,15 @@ extern int normal_type;         // whether drawing normals or not
 extern int draw_mode;    /* draw model as wireframe or filled (FRAME/FILL) */
 extern int proj_mode;   /* projection type (ORTHO/PERSPECT) */
 
+extern TIMER vtx_timer;
+extern TIMER px_timer;
 /*************/
 /* Functions */
 /*************/
 /* UI */
+void gl_printf( int x, int y, char *s );
 void print_settings(void);
+void gl_print_settings (void);
 
 /* for benchmarking */
 void set_display_mode (DISPLAY_MODE *display_mode);

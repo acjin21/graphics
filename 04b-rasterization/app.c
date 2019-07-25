@@ -9,7 +9,7 @@
 
 //#include "macros.h"
 #include "util.h"       // random_float
-#include "time.h"
+//#include "time.h"
 #include "vector.h"
 
 #include "material.h"
@@ -93,6 +93,40 @@ int draw_peripherals = OFF;
 /*************************************************************************/
 /* helper functions                                                    */
 /*************************************************************************/
+/*
+ * gl_printf
+ */
+void gl_printf( int x, int y, char *s )
+{
+    int len = strlen( s );
+    
+    glDisable( GL_LIGHTING );
+    
+    glColor4f( 0, 0, 0, 1 );
+    
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix();
+    glLoadIdentity();
+    
+    gluOrtho2D( 0, WIN_W, 0, WIN_H );
+    
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glRasterPos2i( x, y );
+    
+    for( int i = 0; i < len; i++ )
+    {
+        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
+    }
+    
+    glPopMatrix();
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix();
+    glMatrixMode( GL_MODELVIEW );
+    
+}
 /* console logging for some of the more ambiguous knobs */
 void print_settings(void)
 {
@@ -140,6 +174,29 @@ void print_settings(void)
     printf("Debug Mode ([enter]):\t%s\n",
            debugging_mode ? "ON" : "OFF");
     printf("\n============================\n");
+}
+char settings_str[1000000000];
+
+void gl_print_settings (void)
+{
+//    for(int m = 0; m < NUM_MODES; m++)
+//    {
+//
+//    }
+    sprintf(settings_str, "%s",
+            proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
+    gl_printf(5, 100, "Projection Mode (p):");
+    gl_printf(120, 100, settings_str);
+
+    sprintf(settings_str, "%s",
+            perspective_correct ? "ON" : "OFF");
+    gl_printf(5, 115, "Perspect. Correct (c):");
+    gl_printf(120, 115, settings_str );
+
+    sprintf(settings_str, "%s",
+            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
+    gl_printf(5, 130, "Manip Mode ([tab]):" );
+    gl_printf(120, 130, settings_str );
 }
 
 /* for running benchmarks */
@@ -316,7 +373,9 @@ void render_object(OBJECT *o)
     /* SCREEN SPACE */
     /*******************/
     set_click_frame (o);
+    
     stop_timer(&vtx_timer);
+    
     /*-------------------------------*/         /* end vertex processing */
     
     /*-------------------------------*/         /* start pixel processing */
@@ -330,6 +389,7 @@ void render_object(OBJECT *o)
         draw_3D_bb(bb_color);
     }
     stop_timer(&px_timer);
+    
     /*-------------------------------*/         /* end pixel processing */
 }
 
