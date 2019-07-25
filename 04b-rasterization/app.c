@@ -203,6 +203,11 @@ void gl_print_settings (void)
             mode_deferred_render ? "DEFER" : "FORWARD" );
     gl_printf(5, 145, "Render Mode ([8]):" );
     gl_printf(120, 145, settings_str );
+    
+    sprintf(settings_str, "%s",
+            light_type ? "LOCAL" : "GLOBAL" );
+    gl_printf(5, 160, "Light Mode ([7]):" );
+    gl_printf(120, 160, settings_str );
 }
 
 /* for running benchmarks */
