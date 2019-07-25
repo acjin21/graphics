@@ -54,8 +54,13 @@ void display(void)
 {
     if( Mojave_WorkAround )
     {
-        glutReshapeWindow(2 * window_size,2 * window_size);
+        glutReshapeWindow(2 * window_size, 2 * window_size);
         Mojave_WorkAround = 0;
+        
+        //eliminate weird resizing in the beginning
+        draw_one_frame = 1;
+        glutPostRedisplay();
+        return;
     }
 
     if( draw_one_frame == 0 ) return;
@@ -107,17 +112,15 @@ void display(void)
     }
     apply_post_pipeline_fx();
     stop_timer(&sw_renderer_timer);                 /* STOP SW_RENDERER_TIMER */
-    if(program_type == BENCHMARK)
-    {
-        fprintf(cb_file, "%s ", object_name(object_type));
-        fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
-    }
 
     start_timer(&gl_timer);                         /* START GL_TIMER */
     /* draw color or depth buffer */
     framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                          /* STOP GL_TIMER */
     
+    /*******************************************************/
+    /* print on screen */
+    /*******************************************************/
     gl_print_settings();
     
     char res[100];
@@ -131,9 +134,14 @@ void display(void)
     gl_printf(655, 730, res);
     sprintf(res, "pixel: %.5f", elapsed_time(&px_timer));
     gl_printf(655, 715, res);
-    
+
+    /*******************************************************/
+    /* write to cb file */
+    /*******************************************************/
     if(program_type == BENCHMARK)
     {
+        fprintf(cb_file, "%s ", object_name(object_type));
+        fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
         fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
     }
 
