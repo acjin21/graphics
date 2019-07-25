@@ -15,6 +15,7 @@
 #include "light.h"
 #include "material.h"
 #include "frustum.h"
+#include "opengl.h"
 //#include "camera.h"
 /****************************************************************/
 /* defines */
@@ -719,9 +720,11 @@ void viewport_mat_xform (int vp_w, int vp_h)
 {
     set_viewport_mat (&viewport, vp_w, vp_h);
     float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
-
+    //first copy into ndc
     for(int i = 0; i < num_vertices; i++)
     {
+        cpy_vec4(vertex_list[i].ndc, vertex_list[i].position);
+
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
         
         // do translation separately so that position[W] = 1/w for persp corr.
@@ -966,7 +969,6 @@ void set_triangle_clip_flags (void)
 /* draw wire-frame or filled in model (mode = FRAME or FILL) */
 void draw_model(int mode)
 {
-//    printf("num_triangles: %i\n", num_triangles);
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
@@ -1000,9 +1002,9 @@ void draw_model(int mode)
         // FRAME = 0, FILL = 1
         if(mode == FRAME)
         {
-            draw_line(&p0, &p1, DRAW);
-            draw_line(&p1, &p2, DRAW);
-            draw_line(&p0, &p2, DRAW);
+            draw_line_wrapper(&p0, &p1, DRAW);
+            draw_line_wrapper(&p1, &p2, DRAW);
+            draw_line_wrapper(&p0, &p2, DRAW);
         }
         else if(mode == FILL)
         {
@@ -1054,15 +1056,12 @@ void draw_model(int mode)
                     vector_add(p2.color, ambient, p2.color);
                 }
             }
-        
-        
             if(f.backface_factor < 0) //pointing away from us
             {
                 drawing_backside = ON;
                 scalar_add(f.backface_factor / 2.0, p0.color, p0.color);
                 scalar_add(f.backface_factor / 2.0, p1.color, p1.color);
                 scalar_add(f.backface_factor / 2.0, p2.color, p2.color);
-                
                 draw_triangle_wrapper (&p0, &p2, &p1);
             }
             else {

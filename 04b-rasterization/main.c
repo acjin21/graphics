@@ -59,6 +59,7 @@ IMAGE texture;
 /* display callback */
 void display(void)
 {
+
     if( Mojave_WorkAround )
     {
         glutReshapeWindow(2 * window_size, 2 * window_size);
@@ -91,17 +92,17 @@ void display(void)
             glutPostRedisplay();
         }
     }
+    glClearDepth( 1.0 );
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     if(renderer == ALL_SW)
     {
         clear_color_buffer(1, 1, 1, 1);
         if(mode_deferred_render)    clear_g_buffer(1, 1, 1, 1);
         clear_depth_buffer(1.0);
     }
-    else //gl takes care of pixel processing
-    {
-        glClearColor(1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
+
     glPointSize(2.0);
     counter++;
     
@@ -162,6 +163,7 @@ void display(void)
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
     if(program_type != BENCHMARK) draw_one_frame = 0;
+    printf("======= END DISPLAY CALL =========\n");
 }
 
 /* key callback */
@@ -308,12 +310,11 @@ int main(int argc, char **argv)
     glutKeyboardFunc(key);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
+    gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
     
-    /* init OpenGL */
-    init_gl_state();
-    passthrough_gl_state();
-    
+
+//    change_gl_state();
     if(program_type == BASIC)
     {
         init_basic_program();
@@ -358,6 +359,10 @@ int main(int argc, char **argv)
     read_ppm("ppm/rocks_bump.ppm", &bump_map);
     
     set_texture();
+    
+    /* init OpenGL */
+    init_gl_state();
+    passthrough_gl_state();
     
     /* open output file for benchmarking */
     char file_name[MAX_FILE_NAME] = "benchmarking/rotate2_cb1.txt";

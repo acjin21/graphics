@@ -17,7 +17,7 @@
 
 #include "point.h"
 
-enum Renderer {ALL_SW = 0, SW_HW = 2, ALL_HW = 3};
+enum Renderer {ALL_SW = 0, SW_HW = 1, ALL_HW = 2};
 extern int renderer;
 
 void draw_line_gl (POINT *v0, POINT *v1);

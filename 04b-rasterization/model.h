@@ -29,9 +29,7 @@ extern int modulate_type;
 extern int tex_gen_mode;
 
 /* for point.c */
-extern int modulate_type;
 extern int drawing_backside;
-extern int tex_gen_mode;
 
 /****************************************************************/
 /* functions */

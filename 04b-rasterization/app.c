@@ -29,6 +29,7 @@
 extern FILE *cb_file;
 extern int object_type;
 extern int counter;
+extern float window_size;
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -214,7 +215,7 @@ void gl_print_settings (void)
     
     sprintf(settings_str, "%s",
             renderer ? (renderer == 1 ? "SW_HW" : "ALL_HW") : "ALL_SW" );
-    gl_printf(5, next_y, "Renderer ([NA]):" );
+    gl_printf(5, next_y, "Renderer ([9]):" );
     gl_printf(120, next_y, settings_str );
     next_y += 15;
 
@@ -370,7 +371,7 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-10, 10, -10, 10, near, far);       break;
+            xform_model(-1, 1, -1, 1, near, far);           break;
             
         case PERSPECT:
             skip = cull_model(near, far);
@@ -394,6 +395,7 @@ void render_object(OBJECT *o)
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
+    printf("draw model\n");
     draw_model(draw_mode);
     
     if(draw_peripherals && !skip)
@@ -669,7 +671,7 @@ void key_callback (unsigned char key)
         case '6': reset_camera(&camera);                                break;
         case '7': light_type = 1 - light_type;                          break;
         case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
-        case '9': renderer = (renderer + 1) % 3;                        break;
+        case '9': renderer = (renderer + 1) % 2;                        break;
             
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;

@@ -2,7 +2,14 @@
 #include "point.h"
 #include "texture.h"
 #include "app.h"
+#include "model.h"
+#include "vector.h"
+
 #include <stdlib.h>
+#include <stdio.h>
+
+extern float window_size;
+float zero_vect[4] = {0, 0, 0, 0};
 int renderer = ALL_SW;
 
 typedef struct gl_image {
@@ -24,10 +31,18 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
 {
     glBegin( GL_TRIANGLES );
     glColor4fv( v0->color );
+    printf("Tex coords: ");
+    print_vec4(v0->tex);
+    printf("Tex coords: v1 ");
+    print_vec4(v1->tex);
+    printf("Tex coords: v2 ");
+    print_vec4(v2->tex);
     if( texturing ) glTexCoord4fv( v0->tex );
     if( shading_mode == PHONG ) glNormal3fv( v0->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( v0->position[X] + 0.5, v0->position[Y] + 0.5, v0->position[Z] );
+    {
+        glVertex3f( v0->position[X] - WIN_W / 2 - 0.5, v0->position[Y] - WIN_H / 2 - 0.5, -v0->position[Z] );
+    }
     else
         glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
     
@@ -35,7 +50,7 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
     if( texturing ) glTexCoord4fv( v1->tex );
     if( shading_mode == PHONG ) glNormal3fv( v1->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( v1->position[X] + 0.5, v1->position[Y] + 0.5, v1->position[Z] );
+        glVertex3f( v1->position[X] - WIN_W / 2 - 0.5, v1->position[Y] - WIN_H / 2 - 0.5, -v1->position[Z] );
     else
         glVertex3f( v1->world[X], v1->world[Y], -v1->world[Z] );
     
@@ -43,7 +58,7 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
     if( texturing ) glTexCoord4fv( v2->tex );
     if( shading_mode == PHONG ) glNormal3fv( v2->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( v2->position[X] + 0.5, v2->position[Y] + 0.5, v2->position[Z] );
+        glVertex3f( v2->position[X] - WIN_W / 2 - 0.5, v2->position[Y] - WIN_H / 2 - 0.5, -v2->position[Z] );
     else
         glVertex3f( v2->world[X], v2->world[Y], -v2->world[Z] );
     glEnd();
@@ -62,7 +77,7 @@ void draw_line_gl( POINT *start, POINT *end )
     if( texturing ) glTexCoord4fv( start->tex );
     if( shading_mode == PHONG ) glNormal3fv( start->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( start->position[X] + 0.5, start->position[Y] + 0.5, start->position[Z] );
+        glVertex3f( start->position[X] - WIN_W / 2 - 0.5, start->position[Y] - WIN_H / 2 - 0.5, -start->position[Z] );
     else
         glVertex3f( start->world[X], start->world[Y], -start->world[Z] );
     
@@ -73,7 +88,7 @@ void draw_line_gl( POINT *start, POINT *end )
     if( texturing ) glTexCoord4fv( end->tex );
     if( shading_mode == PHONG ) glNormal3fv( end->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( end->position[X] + 0.5, end->position[Y] + 0.5, end->position[Z] );
+        glVertex3f( end->position[X] - WIN_W / 2 - 0.5, end->position[Y] - WIN_H / 2 - 0.5, -end->position[Z] );
     else //ALL_HW
         glVertex3f( end->world[X], end->world[Y], -end->world[Z] );
     glEnd();
@@ -81,20 +96,30 @@ void draw_line_gl( POINT *start, POINT *end )
 
 void passthrough_gl_state(void)
 {
-    if( sw_vertex_processing )
+    printf("PASSTHROUGH GL\n");
+    
+#if 0
+    if(renderer == ALL_SW)
     {
         glMatrixMode( GL_PROJECTION );
         glLoadIdentity();
-        glOrtho( -window_size, window_size, -window_size, window_size, -40, 40 );
+        gluOrtho2D(-window_size,window_size,-window_size,window_size);
+
+    }
+    if( renderer == SW_HW )
+    {
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        gluOrtho2D(-window_size,window_size,-window_size,window_size);
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     }
-    else
+    else if (renderer == ALL_HW)
     {
         glMatrixMode( GL_PROJECTION );
         glLoadIdentity();
         
-        if( perspective )
+        if( proj_mode == PERSPECT )
         {
             glFrustum( -1, 1, -1, 1, near, far );
         }
@@ -105,6 +130,7 @@ void passthrough_gl_state(void)
         
         glMatrixMode( GL_MODELVIEW );
     }
+#endif
     
     /*
      * reset GL state to "pass-through" defaults
@@ -131,6 +157,8 @@ void passthrough_gl_state(void)
 
 void change_gl_state(void)
 {
+    printf("CHANGE GL\n");
+
     /*
      + sw_vertex_processing
      + sw_pixel_processing
@@ -149,19 +177,21 @@ void change_gl_state(void)
      + per_pixel_lighting
      local_light
      */
-    
+
+#if 0
     /*
      * GL projection state
      */
     if(renderer == ALL_SW)
     {
         gluOrtho2D(-window_size,window_size,-window_size,window_size);
+        return;
     }
     else if( renderer == SW_HW )
     {
         glMatrixMode( GL_PROJECTION );
         glLoadIdentity();
-        glOrtho( -window_size, window_size, -window_size, window_size, -40, 40 );
+        gluOrtho2D(-window_size,window_size,-window_size,window_size);
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     }
@@ -181,6 +211,7 @@ void change_gl_state(void)
         
         glMatrixMode( GL_MODELVIEW );
     }
+#endif
     
     /*
      * GL polygon state
@@ -211,7 +242,7 @@ void change_gl_state(void)
      */
     if( shading_mode == FLAT )
     {
-        glShadeModel( GL_FLAT );
+        glShadeModel( GL_SMOOTH );
     }
     
     if( shading_mode == PHONG )
@@ -227,7 +258,7 @@ void change_gl_state(void)
         /*
          * cube map state
          */
-        if( tex_gen_mode == ENV_MAP_CUBEMAP )
+        if(0)// tex_gen_mode == CUBE_MAP )
         {
             glDisable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, 0 );
@@ -238,6 +269,7 @@ void change_gl_state(void)
         }
         else
         {
+
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textureID );
             
@@ -247,9 +279,9 @@ void change_gl_state(void)
         }
         
         glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ? GL_MODULATE : GL_DECAL );
-        glHint( GL_PERSPECTIVE_CORRECTION_HINT, (correction) ? GL_NICEST : GL_FASTEST );
+        glHint( GL_PERSPECTIVE_CORRECTION_HINT, (perspective_correct) ? GL_NICEST : GL_FASTEST );
         
-        if( tex_gen )
+        if( tex_gen_mode > 0 && tex_gen_mode != CUBE_MAP )
         {
             glEnable( GL_TEXTURE_GEN_S );
             glEnable( GL_TEXTURE_GEN_T );
@@ -267,39 +299,6 @@ void change_gl_state(void)
         glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
     }
 }
-//{
-//    if (depth_test) glEnable(GL_DEPTH_TEST);
-//    else glDisable(GL_DEPTH_TEST);
-//
-//    if (shading_mode == FLAT) glShadeModel (GL_FLAT);
-//    else if (shading_mode == PHONG) glShadeModel (GL_SMOOTH);
-//
-//    if (texturing)
-//    {
-//        glEnable(GL_TEXTURE_2D);
-//        glBindTexture(GL_TEXTURE_2D, 0);
-//        if(modulate)
-//        {
-//            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-//        }
-//        else
-//        {
-//            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-//        }
-//        if (perspective_correct)
-//        {
-//            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-//        }
-//        else
-//        {
-//            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-//        }
-//    }
-//
-//    if (alpha_blend) glEnable (GL_BLEND);
-//    else glDisable(GL_BLEND);
-
-//}
 
 /*
  * convert_image_to_gl
@@ -327,7 +326,7 @@ void convert_image_to_gl( IMAGE *input, GL_IMAGE *output )
 }
 
 
-#if 1
+
 /*
  * init_gl_state
  */
@@ -354,6 +353,7 @@ void init_gl_state( void )
     /*
      * GL view state
      */
+#if 0
     glViewport( 0, 0, WIN_W, WIN_H );
     if(renderer == ALL_SW)
     {
@@ -383,12 +383,13 @@ void init_gl_state( void )
         
         glMatrixMode( GL_MODELVIEW );
     }
-    
+#endif
     /*
      * GL texture state
      */
     glEnable(GL_TEXTURE_2D);
     glGenTextures( 1, &textureID );
+//    glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, textureID );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL,   0 );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,    0 );
@@ -475,4 +476,3 @@ void init_gl_state( void )
     glBlendFunc( GL_CONSTANT_COLOR, GL_CONSTANT_COLOR );
 }
 
-#endif
