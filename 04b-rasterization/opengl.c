@@ -5,6 +5,18 @@
 #include <stdlib.h>
 int renderer = ALL_SW;
 
+typedef struct gl_image {
+    int             width;
+    int             height;
+    unsigned char   *data;
+} GL_IMAGE;
+
+GLuint textureID;
+GLuint cubemapID;
+GL_IMAGE gl_texture;
+
+
+
 /*
  * draw_triangle_gl()
  */
@@ -69,48 +81,225 @@ void draw_line_gl( POINT *start, POINT *end )
 
 void passthrough_gl_state(void)
 {
-    glDisable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_BLEND);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    if( sw_vertex_processing )
+    {
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        glOrtho( -window_size, window_size, -window_size, window_size, -40, 40 );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadIdentity();
+    }
+    else
+    {
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        
+        if( perspective )
+        {
+            glFrustum( -1, 1, -1, 1, near, far );
+        }
+        else
+        {
+            glOrtho( -near, near, -near, near, near, far );
+        }
+        
+        glMatrixMode( GL_MODELVIEW );
+    }
+    
+    /*
+     * reset GL state to "pass-through" defaults
+     */
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glDisable( GL_DEPTH_TEST );
+    glShadeModel( GL_FLAT );
+    glDisable( GL_TEXTURE_2D );
+    glBindTexture( GL_TEXTURE_2D, 0 );
+    glDisable( GL_TEXTURE_CUBE_MAP );
+    glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+    glDisable( GL_TEXTURE_GEN_S );
+    glDisable( GL_TEXTURE_GEN_T );
+    glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
+    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_FOG );
+    glDisable( GL_BLEND );
+    glDisable( GL_LIGHTING );
+    glDisable( GL_NORMALIZE );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
+    glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
 }
 
 void change_gl_state(void)
 {
-    if (depth_test) glEnable(GL_DEPTH_TEST);
-    else glDisable(GL_DEPTH_TEST);
+    /*
+     + sw_vertex_processing
+     + sw_pixel_processing
+     + modulate
+     + perspective
+     + correction
+     + alpha_blending
+     + depth_testing
+     + texturing
+     + tex_gen
+     + env_mapping
+     + wireframe
+     bump_mapping
+     + draw_specular
+     + per_vertex_lighting
+     + per_pixel_lighting
+     local_light
+     */
     
-    if (shading_mode == FLAT) glShadeModel (GL_FLAT);
-    else if (shading_mode == PHONG) glShadeModel (GL_SMOOTH);
-    
-    if (texturing)
+    /*
+     * GL projection state
+     */
+    if(renderer == ALL_SW)
     {
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        if(modulate)
+        gluOrtho2D(-window_size,window_size,-window_size,window_size);
+    }
+    else if( renderer == SW_HW )
+    {
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        glOrtho( -window_size, window_size, -window_size, window_size, -40, 40 );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadIdentity();
+    }
+    else if (renderer == ALL_HW)
+    {
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        
+        if( proj_mode == PERSPECT )
         {
-            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+            glFrustum( -1, 1, -1, 1, near, far );
         }
         else
         {
-            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+            glOrtho( -near, near, -near, near, near, far );
         }
-        if (perspective_correct)
-        {
-            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-        }
-        else
-        {
-            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-        }
+        
+        glMatrixMode( GL_MODELVIEW );
     }
     
-    if (alpha_blend) glEnable (GL_BLEND);
-    else glDisable(GL_BLEND);
-
+    /*
+     * GL polygon state
+     */
+    if( draw_mode == FRAME )
+    {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    }
+    else
+    {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    }
+    
+    /*
+     * GL depth state
+     */
+    if( depth_test )
+    {
+        glEnable( GL_DEPTH_TEST );
+    }
+    else
+    {
+        glDisable( GL_DEPTH_TEST );
+    }
+    
+    /*
+     * GL shading state
+     */
+    if( shading_mode == FLAT )
+    {
+        glShadeModel( GL_FLAT );
+    }
+    
+    if( shading_mode == PHONG )
+    {
+        glShadeModel( GL_SMOOTH );
+    }
+    
+    /*
+     * GL texturing state
+     */
+    if( texturing )
+    {
+        /*
+         * cube map state
+         */
+        if( tex_gen_mode == ENV_MAP_CUBEMAP )
+        {
+            glDisable( GL_TEXTURE_2D );
+            glBindTexture( GL_TEXTURE_2D, 0 );
+            
+            glEnable( GL_TEXTURE_CUBE_MAP );
+            glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
+            glBindTexture( GL_TEXTURE_CUBE_MAP, cubemapID );
+        }
+        else
+        {
+            glEnable( GL_TEXTURE_2D );
+            glBindTexture( GL_TEXTURE_2D, textureID );
+            
+            glDisable( GL_TEXTURE_CUBE_MAP );
+            glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
+            glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+        }
+        
+        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ? GL_MODULATE : GL_DECAL );
+        glHint( GL_PERSPECTIVE_CORRECTION_HINT, (correction) ? GL_NICEST : GL_FASTEST );
+        
+        if( tex_gen )
+        {
+            glEnable( GL_TEXTURE_GEN_S );
+            glEnable( GL_TEXTURE_GEN_T );
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
+        }
+    }
+    else
+    {
+        glDisable( GL_TEXTURE_2D );
+        glBindTexture( GL_TEXTURE_2D, 0 );
+        
+        glDisable( GL_TEXTURE_CUBE_MAP );
+        glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
+        glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+    }
 }
+//{
+//    if (depth_test) glEnable(GL_DEPTH_TEST);
+//    else glDisable(GL_DEPTH_TEST);
+//
+//    if (shading_mode == FLAT) glShadeModel (GL_FLAT);
+//    else if (shading_mode == PHONG) glShadeModel (GL_SMOOTH);
+//
+//    if (texturing)
+//    {
+//        glEnable(GL_TEXTURE_2D);
+//        glBindTexture(GL_TEXTURE_2D, 0);
+//        if(modulate)
+//        {
+//            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+//        }
+//        else
+//        {
+//            glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+//        }
+//        if (perspective_correct)
+//        {
+//            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+//        }
+//        else
+//        {
+//            glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+//        }
+//    }
+//
+//    if (alpha_blend) glEnable (GL_BLEND);
+//    else glDisable(GL_BLEND);
+
+//}
 
 /*
  * convert_image_to_gl
@@ -137,14 +326,16 @@ void convert_image_to_gl( IMAGE *input, GL_IMAGE *output )
     }
 }
 
+
+#if 1
 /*
  * init_gl_state
  */
 void init_gl_state( void )
 {
-    float clear_color[4] = { 0, 0, 0, 1 };
+    float clear_color[4] = { 1, 1, 1, 1 };
     float window_size = 400;
-    int textureID = 0;
+
     
     /*
      * GL draw state
@@ -164,8 +355,11 @@ void init_gl_state( void )
      * GL view state
      */
     glViewport( 0, 0, WIN_W, WIN_H );
-    
-    if( renderer == SW_HW )
+    if(renderer == ALL_SW)
+    {
+        gluOrtho2D(-window_size,window_size,-window_size,window_size);
+    }
+    else if( renderer == SW_HW )
     {
         glMatrixMode( GL_PROJECTION );
         glLoadIdentity();
@@ -173,7 +367,7 @@ void init_gl_state( void )
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     }
-    else
+    else if (renderer == ALL_HW)
     {
         glMatrixMode( GL_PROJECTION );
         glLoadIdentity();
@@ -235,7 +429,7 @@ void init_gl_state( void )
     
     for( int i = 0; i < 6; i++ )
     {
-        convert_image_to_gl( &mipmap[i], &gl_texture );
+        convert_image_to_gl( &cube_map[i], &gl_texture );
         
         glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                      0,
@@ -281,3 +475,4 @@ void init_gl_state( void )
     glBlendFunc( GL_CONSTANT_COLOR, GL_CONSTANT_COLOR );
 }
 
+#endif

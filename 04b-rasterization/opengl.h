@@ -25,4 +25,5 @@ void draw_triangle_gl (POINT *v0, POINT *v1, POINT *v2);
 
 void passthrough_gl_state(void);
 void change_gl_state(void);
+void init_gl_state( void );
 #endif

@@ -1063,11 +1063,11 @@ void draw_model(int mode)
                 scalar_add(f.backface_factor / 2.0, p1.color, p1.color);
                 scalar_add(f.backface_factor / 2.0, p2.color, p2.color);
                 
-                draw_triangle_barycentric (&p0, &p2, &p1);
+                draw_triangle_wrapper (&p0, &p2, &p1);
             }
             else {
                 drawing_backside = OFF;
-                draw_triangle_barycentric (&p0, &p1, &p2);
+                draw_triangle_wrapper (&p0, &p1, &p2);
                 
                 if (normal_type == V_NORMALS)
                 {

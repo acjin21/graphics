@@ -308,11 +308,12 @@ int main(int argc, char **argv)
     glutKeyboardFunc(key);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
-    /*
-     * setup OpenGL state
-     */
-    gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
+    
+    /* init OpenGL */
+    init_gl_state();
+    passthrough_gl_state();
+    
     if(program_type == BASIC)
     {
         init_basic_program();

@@ -669,10 +669,22 @@ void key_callback (unsigned char key)
         case '6': reset_camera(&camera);                                break;
         case '7': light_type = 1 - light_type;                          break;
         case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
+        case '9': renderer = (renderer + 1) % 3;                        break;
+            
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
+    }
+    if(renderer != ALL_SW)
+    {
+        change_gl_state();
+//        passthrough_gl_state();
+
+    }
+    else
+    {
+        passthrough_gl_state();
     }
 }
 
