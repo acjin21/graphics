@@ -5,9 +5,15 @@
 #define GL_SILENCE_DEPRECATION
 #endif
 
+#ifndef WINDOWS
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#endif
+
+#ifdef WINDOWS
+#include <GL/glut.h>
+#endif 
 
 #include "macros.h"
 /****************************************************************/
