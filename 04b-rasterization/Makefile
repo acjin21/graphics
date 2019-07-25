@@ -21,3 +21,5 @@ print-debug:
 test-math:
 	gcc -DTESTING camera.c vector.c math_lib/mat3.c math_lib/mat4.c math_lib/test.c -o test/math && ./test/math
 
+run-windows:
+	gcc -std=c11 -DWINDOWS -c -o $(OBJECTS) -I"C:\Program Files\MinGW\freeglut\include"
