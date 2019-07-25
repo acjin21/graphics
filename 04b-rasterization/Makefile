@@ -1,4 +1,4 @@
-OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c main.c model.c light.c scene.c material.c post-processing.c math_lib/mat4.c time.c benchmark.c app.c camera.c frustum.c fourier.c math_lib/mat3.c
+OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c main.c model.c light.c scene.c material.c post-processing.c math_lib/mat4.c time.c benchmark.c app.c camera.c frustum.c fourier.c math_lib/mat3.c g_buffer.c
 
 run-basic: 
 	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BASIC

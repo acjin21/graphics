@@ -12,7 +12,7 @@
 #include "color.h"
 #include "depth.h"
 #include "material.h"
-
+#include "g_buffer.h"
 /*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/
@@ -131,6 +131,17 @@ void draw_point (POINT *p)
     
     /* early return if fail depth test */
     if(depth_test && p->position[Z] > depth_buffer[r][c]) return;
+    if(depth_test)
+    {
+        depth_buffer[r][c] = p->position[Z];
+    }
+    /* write to g buffer if deferred rendering */
+    if(mode_deferred_render)
+    {
+        p->rendered_flag = 1;
+        g_buffer[r][c] = *p;
+        return;
+    }
     
     /* bump map */
     if(normal_type != V_NORMALS && bump_mapping)
@@ -165,14 +176,12 @@ void draw_point (POINT *p)
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)
         {
-//            printf("p->view: %.2f, %.2f, %.2f, %.2f\n", p->view[X], p->view[Y], p->view[Z], p->view[W]);
             set_diffuse_term(p->v_normal, p->light, tmp_diff);
             set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
         }
         else if (light_type == GLOBAL_L)
         {
             set_diffuse_term(p->v_normal, light, tmp_diff);
-//            printf("p->view: %.2f, %.2f, %.2f, %.2f\n", p->view[X], p->view[Y], p->view[Z], p->view[W]);
             set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
         }
         
@@ -212,6 +221,7 @@ void draw_point (POINT *p)
     
     if(!drawing_normals && !drawing_bounding_box && !drawing_axes && texturing)
     {
+//        printf("texture\n");
         float s, t;
         int u, v;
 
@@ -297,10 +307,7 @@ void draw_point (POINT *p)
 
     }
     
-    if(depth_test)
-    {
-        depth_buffer[r][c] = p->position[Z];
-    }
+
 }
 
 

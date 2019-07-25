@@ -27,6 +27,7 @@
 #include "fourier.h"
 #include "model.h"
 #include "vector.h"
+#include "g_buffer.h"
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
@@ -71,7 +72,6 @@ void display(void)
 
     if(program_type == BENCHMARK)
     {
-        
         if(counter % num_samples == 0) /* every 360 display() calls */
         {
             OBJECT *o = &objects[0];
@@ -86,7 +86,6 @@ void display(void)
             glutPostRedisplay();
         }
         clear_color_buffer(0.5, 0.5, 0.5, 1);
-
     }
     else
     {
@@ -94,6 +93,10 @@ void display(void)
         clear_color_buffer(1, 1, 1, 1);
     }
 
+    if(mode_deferred_render)
+    {
+        clear_g_buffer(1, 1, 1, 1);
+    }
     clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
@@ -114,6 +117,11 @@ void display(void)
     stop_timer(&sw_renderer_timer);                 /* STOP SW_RENDERER_TIMER */
 
     start_timer(&gl_timer);                         /* START GL_TIMER */
+    
+    if(mode_deferred_render)
+    {
+        draw_g_buffer();
+    }
     /* draw color or depth buffer */
     framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     stop_timer(&gl_timer);                          /* STOP GL_TIMER */
@@ -227,6 +235,7 @@ void mouse (int button, int state, int x, int y)
                 {
                     closest_z = objects[i].center[Z];
                     curr_objectID = i;
+                    printf("curr object %i\n", curr_objectID);
                 }
             }
         }

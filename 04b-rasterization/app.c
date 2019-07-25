@@ -21,6 +21,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "frustum.h" // for setup_clip_frustum
+#include "g_buffer.h" //just for mode_deferred_render
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -197,6 +198,11 @@ void gl_print_settings (void)
             manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
     gl_printf(5, 130, "Manip Mode ([tab]):" );
     gl_printf(120, 130, settings_str );
+    
+    sprintf(settings_str, "%s",
+            mode_deferred_render ? "DEFER" : "FORWARD" );
+    gl_printf(5, 145, "Render Mode ([8]):" );
+    gl_printf(120, 145, settings_str );
 }
 
 /* for running benchmarks */
@@ -307,14 +313,7 @@ void render_object(OBJECT *o)
     build_model(o);
 
     /* for per-object texturing in SCENE mode */
-    if(program_type == SCENE)
-    {
-        /* set draw state */
-        texturing = o->texturing;
-        texture_idx = o->texture_idx;
-        tex_gen_mode = (o->cube_map ? CUBE_MAP : NAIVE);
-        set_texture();
-    }
+
     /* set material property vecs */
     set_material(material_type);
     /* all OBJ models are at the end of the list */
@@ -434,13 +433,19 @@ void display_scene_mode (void)
 {
     for(int i = 0; i < num_objects; i++)
     {
+
+        /* set draw state */
+//        texturing = objects[i].texturing;
+//        texture_idx = objects[i].texture_idx;
+//        tex_gen_mode = (objects[i].cube_map ? CUBE_MAP : NAIVE);
+//        set_texture();
+        
         objects[i].scale_vec[X] =
         (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
         objects[i].scale_vec[Y] =
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-//        curr_objectID = i;
         render_object(&objects[i]);
     }
 }
@@ -588,7 +593,10 @@ void key_callback (unsigned char key)
         
             
         case 't':
-            if(program_type == SCENE) curr_object->texturing = 1 - curr_object->texturing;
+            if(0)//program_type == SCENE)
+            {
+                curr_object->texturing = 1 - curr_object->texturing;
+            }
             else texturing = 1 - texturing;
             break;
             
@@ -645,7 +653,7 @@ void key_callback (unsigned char key)
         case '5': bump_mapping = 1 - bump_mapping;                      break;
         case '6': reset_camera(&camera);                                break;
         case '7': light_type = 1 - light_type;                          break;
-
+        case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;

@@ -910,7 +910,7 @@ void set_triangle_clip_flags (void)
         else //if partially, then clipped = 1
         {
             face_list[i].clip_flag = 1;
-            if(debugging_mode)
+            if(1) //debugging_mode)
             {
                 int num_clipped = clip_triangle (verts);
                 if(num_clipped == 0)
