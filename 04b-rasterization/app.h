@@ -55,6 +55,10 @@ extern int proj_mode;   /* projection type (ORTHO/PERSPECT) */
 
 extern TIMER vtx_timer;
 extern TIMER px_timer;
+
+extern IMAGE texture;                  // final display texture
+extern float near;
+extern float far;
 /*************/
 /* Functions */
 /*************/

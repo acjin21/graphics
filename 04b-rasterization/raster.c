@@ -1,6 +1,6 @@
 #include "raster.h"
 #include <stdio.h>
-
+#include "opengl.h"
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -218,10 +218,19 @@ float edgeFunction( float a[4], float b[4], float c[4] )
     return (c[X] - a[X]) * (b[Y] - a[Y]) - (c[Y] - a[Y]) * (b[X] - a[X] );
 }
 
-//void bary_interp (float w[4], float a, float b, float c);
-//{
-//    return w[0] * a + w[1] * b + w[2] * c;
-//}
+/* to choose between our draw_triangle and opengl's draw_triangle */
+void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2)
+{
+    if(renderer == SW_HW)
+    {
+        draw_triangle_gl(v0, v1, v2);
+    }
+    else if(renderer == ALL_SW)
+    {
+        draw_triangle_barycentric(v0, v1, v2);
+    }
+}
+
 /*
  * draw_triangle_barycentric()
  */

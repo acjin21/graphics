@@ -34,6 +34,7 @@
 #include "model.h"
 #include "vector.h"
 #include "g_buffer.h"
+#include "opengl.h"
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
@@ -55,7 +56,6 @@ IMAGE texture;
 /*************************************************************************/
 /* GLUT functions                                                        */
 /*************************************************************************/
-
 /* display callback */
 void display(void)
 {
@@ -75,7 +75,6 @@ void display(void)
     /*******************************************************/
     /* animation switching */
     /*******************************************************/
-
     if(program_type == BENCHMARK)
     {
         if(counter % num_samples == 0) /* every 360 display() calls */
@@ -91,26 +90,26 @@ void display(void)
             draw_one_frame = 1;
             glutPostRedisplay();
         }
-        clear_color_buffer(0.5, 0.5, 0.5, 1);
     }
-    else
+    if(renderer == ALL_SW)
     {
-        print_settings();
         clear_color_buffer(1, 1, 1, 1);
+        if(mode_deferred_render)    clear_g_buffer(1, 1, 1, 1);
+        clear_depth_buffer(1.0);
     }
-
-    if(mode_deferred_render)
+    else //gl takes care of pixel processing
     {
-        clear_g_buffer(1, 1, 1, 1);
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
-    clear_depth_buffer(1.0);
     glPointSize(2.0);
     counter++;
     
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-    start_timer(&sw_renderer_timer);                /* START SW_RENDERER_TIMER */
+/* START SW_RENDERER_TIMER */
+    start_timer(&sw_renderer_timer);
     switch (program_type)
     {
         case BASIC: display_basic_mode();                       break;
@@ -119,19 +118,19 @@ void display(void)
         case OBJ: display_obj_mode();                           break;
         default: display_basic_mode();                          break;
     }
-    apply_post_pipeline_fx();
-    stop_timer(&sw_renderer_timer);                 /* STOP SW_RENDERER_TIMER */
-
-    start_timer(&gl_timer);                         /* START GL_TIMER */
+    if(renderer == ALL_SW)     apply_post_pipeline_fx();
+    stop_timer(&sw_renderer_timer);
+/* STOP SW_RENDERER_TIMER */
     
-    if(mode_deferred_render)
+/* START GL_TIMER */
+    start_timer(&gl_timer);
+    if(renderer == ALL_SW)
     {
-        draw_g_buffer();
+        if(mode_deferred_render)    draw_g_buffer();
+        framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     }
-    /* draw color or depth buffer */
-    framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
-    stop_timer(&gl_timer);                          /* STOP GL_TIMER */
-    
+    stop_timer(&gl_timer);
+/* STOP GL_TIMER */
     /*******************************************************/
     /* print on screen */
     /*******************************************************/
@@ -312,7 +311,6 @@ int main(int argc, char **argv)
     /*
      * setup OpenGL state
      */
-    glClearColor(0.7, 0.7, 0.7, 1);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
     if(program_type == BASIC)

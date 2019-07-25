@@ -22,6 +22,7 @@
 #include "camera.h"
 #include "frustum.h" // for setup_clip_frustum
 #include "g_buffer.h" //just for mode_deferred_render
+#include "opengl.h"
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -208,6 +209,12 @@ void gl_print_settings (void)
     sprintf(settings_str, "%s",
             light_type ? "LOCAL" : "GLOBAL" );
     gl_printf(5, next_y, "Light Mode ([7]):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+    
+    sprintf(settings_str, "%s",
+            renderer ? (renderer == 1 ? "SW_HW" : "ALL_HW") : "ALL_SW" );
+    gl_printf(5, next_y, "Renderer ([NA]):" );
     gl_printf(120, next_y, settings_str );
     next_y += 15;
 
