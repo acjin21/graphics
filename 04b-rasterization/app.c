@@ -180,34 +180,37 @@ char settings_str[1000000000];
 
 void gl_print_settings (void)
 {
-//    for(int m = 0; m < NUM_MODES; m++)
-//    {
-//
-//    }
+    int next_y = 100;
     sprintf(settings_str, "%s",
             proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    gl_printf(5, 100, "Projection Mode (p):");
-    gl_printf(120, 100, settings_str);
-
+    gl_printf(5, next_y, "Projection Mode (p):");
+    gl_printf(120, next_y, settings_str);
+    next_y += 15;
+    
     sprintf(settings_str, "%s",
             perspective_correct ? "ON" : "OFF");
-    gl_printf(5, 115, "Perspect. Correct (c):");
-    gl_printf(120, 115, settings_str );
+    gl_printf(5, next_y, "Perspect. Correct (c):");
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
 
     sprintf(settings_str, "%s",
             manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
-    gl_printf(5, 130, "Manip Mode ([tab]):" );
-    gl_printf(120, 130, settings_str );
-    
+    gl_printf(5, next_y, "Manip Mode ([tab]):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+
     sprintf(settings_str, "%s",
             mode_deferred_render ? "DEFER" : "FORWARD" );
-    gl_printf(5, 145, "Render Mode ([8]):" );
-    gl_printf(120, 145, settings_str );
-    
+    gl_printf(5, next_y, "Render Mode ([8]):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+
     sprintf(settings_str, "%s",
             light_type ? "LOCAL" : "GLOBAL" );
-    gl_printf(5, 160, "Light Mode ([7]):" );
-    gl_printf(120, 160, settings_str );
+    gl_printf(5, next_y, "Light Mode ([7]):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+
 }
 
 /* for running benchmarks */
