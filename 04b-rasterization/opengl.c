@@ -33,8 +33,9 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
 {
     glBegin( GL_TRIANGLES );
     glColor4fv( v0->color );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v0->color    );
     if( texturing ) glTexCoord4fv( v0->tex );
-    if( shading_mode == PHONG ) glNormal3fv( v0->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v0->v_normal );
     if( renderer == SW_HW )
     {
         glVertex3f( v0->position[X] - WIN_W / 2 - 0.5, v0->position[Y] - WIN_H / 2 - 0.5, -v0->position[Z] );
@@ -43,16 +44,20 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
         glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
     
     glColor4fv( v1->color );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v1->color    );
+
     if( texturing ) glTexCoord4fv( v1->tex );
-    if( shading_mode == PHONG ) glNormal3fv( v1->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v1->v_normal );
     if( renderer == SW_HW )
         glVertex3f( v1->position[X] - WIN_W / 2 - 0.5, v1->position[Y] - WIN_H / 2 - 0.5, -v1->position[Z] );
     else
         glVertex3f( v1->world[X], v1->world[Y], -v1->world[Z] );
     
     glColor4fv( v2->color );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v2->color    );
+
     if( texturing ) glTexCoord4fv( v2->tex );
-    if( shading_mode == PHONG ) glNormal3fv( v2->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v2->v_normal );
     if( renderer == SW_HW )
         glVertex3f( v2->position[X] - WIN_W / 2 - 0.5, v2->position[Y] - WIN_H / 2 - 0.5, -v2->position[Z] );
     else
@@ -72,7 +77,7 @@ void draw_line_gl( POINT *start, POINT *end )
     glColor4fv( start->color );
     if( texturing )
         glTexCoord4fv( start->tex );
-    if( shading_mode == PHONG ) glNormal3fv( start->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( start->v_normal );
     if( renderer == SW_HW )
         glVertex3f( start->position[X] - WIN_W / 2 - 0.5, start->position[Y] - WIN_H / 2 - 0.5, -start->position[Z] );
     else
@@ -83,7 +88,7 @@ void draw_line_gl( POINT *start, POINT *end )
      */
     glColor4fv( end->color );
     if( texturing ) glTexCoord4fv( end->tex );
-    if( shading_mode == PHONG ) glNormal3fv( end->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( end->v_normal );
     if( renderer == SW_HW )
         glVertex3f( end->position[X] - WIN_W / 2 - 0.5, end->position[Y] - WIN_H / 2 - 0.5, -end->position[Z] );
     else //ALL_HW
@@ -147,7 +152,6 @@ void passthrough_gl_state(void)
     glDisable( GL_FOG );
     glDisable( GL_BLEND );
     glDisable( GL_LIGHTING );
-//    glDisable (GL_LIGHT0);
     glDisable( GL_NORMALIZE );
     glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
     glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
@@ -329,15 +333,16 @@ void change_gl_state(void)
 
         if( light_type == LOCAL_L )
         {
-            cpy_vec4( light_pos, gl_light );
+            cpy_vec4( gl_light, light_pos );
         }
         else
         {
-            cpy_vec4( light, gl_light );
+            cpy_vec4( gl_light, light );
             gl_light[W] = 0;
         }
 
-//        gl_light[X] *= -1;
+        gl_light[Z] *= -1;
+        gl_light[X] *= -1;
 
         glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
         glEnable( GL_LIGHTING );
@@ -350,22 +355,31 @@ void change_gl_state(void)
         
         glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
 
-//        if(material)
-//        {
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    material_ambient    );
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
-//        }
-//
-//        if( specular_highlight )
-//        {
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   material_specular   );
-//            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  shinyness           );
-//        }
-//        else
-//        {
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
-//            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
-//        }
+        float diff[4];
+        float amb[4] = {0.5, 0.5, 0.5, 0.5};
+        
+        if(material)
+        {
+            cpy_vec4(amb, material_ambient);
+            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
+        }
+        glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    amb    );
+
+
+        
+
+        
+
+        if( specular_highlight )
+        {
+            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   material_specular   );
+            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  shinyness           );
+        }
+        else
+        {
+            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
+            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
+        }
     }
     else
     {
