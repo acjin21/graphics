@@ -7,7 +7,7 @@
 /*************************************************************************/
 float shinyness = (0.4 * 128);
 
-float light_ambient[4]      = { 1, 1, 1, 1 };
+float light_ambient[4]      = { 0.5, 0.5, 0.5, 1 };
 float light_diffuse[4]      = { 1, 1, 1, 1 };
 float light_specular[4]     = { 1, 1, 1, 1 };
 
