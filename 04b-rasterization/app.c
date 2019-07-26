@@ -218,6 +218,46 @@ void gl_print_settings (void)
     gl_printf(5, next_y, "Renderer ([9]):" );
     gl_printf(120, next_y, settings_str );
     next_y += 15;
+    
+    sprintf(settings_str, "%s",
+            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE" );
+    gl_printf(5, next_y, "Shading Type (h):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+    
+    sprintf(settings_str, "%s",
+            tex_gen_name(tex_gen_mode) );
+    gl_printf(5, next_y, "Tex Gen Mode (0):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+    
+
+    printf("Manip Mode ([tab]):\t%s\n",
+           manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
+
+    printf("Alpha Blending (b):\t%s\n",
+           alpha_blend ? "ON" : "OFF");
+    printf("Depth Testing (d):\t%s\n",
+           depth_test ? "ON" : "OFF");\
+
+    printf("Texturing (t/P):\t%s\n",
+           texturing ? "ON" : "OFF");
+ 
+    printf("Modulate Type (m/M):\t%s\n",
+           modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
+    printf("Bump Mapping (5):\t%s\n",
+           bump_mapping ? "ON" : "OFF");
+ 
+    printf("Spec Highlight (S):\t%s\n",
+           specular_highlight ? "ON" : "OFF");
+    printf("Fog Mode (F):\t\t%s\n",
+           fog ? "ON" : "OFF");
+    printf("Material Type (1/2):\t%s\n",
+           material ? material_name(material_type) : "OFF");
+    printf("Post-Processing (3):\t%s\n",
+           post_processing ? "ON" : "OFF");
+    printf("DOF (4):\t\t%s\n",
+           dof_mode ? "ON" : "OFF");
 
 }
 
@@ -395,7 +435,6 @@ void render_object(OBJECT *o)
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
-    printf("draw model\n");
     draw_model(draw_mode);
     
     if(draw_peripherals && !skip)

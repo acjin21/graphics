@@ -237,7 +237,6 @@ float edgeFunction( float a[4], float b[4], float c[4] )
 /* to choose between our draw_triangle and opengl's draw_triangle */
 void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2)
 {
-    printf("draw_triangle_wrapper-- renderer: %i\n", renderer);
     if(renderer == SW_HW)
     {
         draw_triangle_gl(v0, v1, v2);
@@ -253,7 +252,6 @@ void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2)
  */
 void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
 {
-    printf("v0: %.2f, %.2f, %.2f, %.2f\n", v0->position[X], v0->position[Y], v0->position[Z], v0->position[W]);
     int     minx = MIN3(v0->position[X],v1->position[X],v2->position[X]);
     int     miny = MIN3(v0->position[Y],v1->position[Y],v2->position[Y]);
     int     maxx = MAX3(v0->position[X],v1->position[X],v2->position[X]);

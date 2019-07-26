@@ -31,7 +31,7 @@
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
-int tex_gen_mode = SPHERICAL;
+int tex_gen_mode = NAIVE;
 
 int max_n_addl_tris = 1000;
 /* data */
@@ -148,10 +148,10 @@ void init_quad(MAT4 *model)
     
     reset_num_tris(num_vertices);
     num_triangles = 0;
-    set_vec4(tex_list[0], 0, 0, 0, 0);
-    set_vec4(tex_list[1], 1, 0, 0, 0);
-    set_vec4(tex_list[2], 1, 1, 0, 0);
-    set_vec4(tex_list[3], 0, 1, 0, 0);
+    set_vec4(tex_list[0], 0, 0, 0, 1);
+    set_vec4(tex_list[1], 0.9, 0, 0, 1);
+    set_vec4(tex_list[2],  0.9,  0.9, 0, 1);
+    set_vec4(tex_list[3], 0,  0.9, 0, 1);
     
     add_face(0, 1, 2,    0, 1, 2,    0, 1, 2,   0, 0, 0);
     add_face(0, 2, 3,    0, 1, 2,    0, 2, 3,   0, 0, 0);
@@ -181,10 +181,10 @@ void init_cube (MAT4 *model)
     
     /* set tex coordinates to four corners of texture */
     //0.1, 0.9 for the rock bump map
-    set_vec4(tex_list[0], 0.1, 0.1, 0, 0);
-    set_vec4(tex_list[1], 0.9, 0.1, 0, 0);
-    set_vec4(tex_list[2], 0.9, 0.9, 0, 0);
-    set_vec4(tex_list[3], 0.1, 0.9, 0, 0);
+    set_vec4(tex_list[0], 0.1, 0.1, 0, 1);
+    set_vec4(tex_list[1], 0.9, 0.1, 0, 1);
+    set_vec4(tex_list[2], 0.9, 0.9, 0, 1);
+    set_vec4(tex_list[3], 0.1, 0.9, 0, 1);
 
     num_tex_coords = 4;
 
@@ -279,7 +279,7 @@ void init_mesh (MAT4 *model)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * width) + c], u, v, 0, 0);
+            set_vec4(tex_list[(r * width) + c], u, v, 0, 1);
             set_vec4(color_list[(r * width) + c], u, v, 0, 1);
         }
     }
@@ -313,7 +313,7 @@ void init_cylinder (float radius, float height_scale, MAT4 *model)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 1);
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
@@ -348,7 +348,7 @@ void init_cone (float radius, float height_scale, MAT4 *model)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 1);
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
@@ -383,7 +383,7 @@ void init_sphere (float radius, MAT4 *model)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 1);
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
     }
@@ -421,7 +421,7 @@ void init_torus (float tube_radius, float hole_radius, MAT4 *model)
             p->world[W] = 1.0;
             
             /* set colors and textures for each vertex */
-            set_vec4(tex_list[(r * n) + c], u, v, 0, 0);
+            set_vec4(tex_list[(r * n) + c], u, v, 0, 1);
             set_vec4(color_list[(r * n) + c], u, v, 0, 1);
         }
         count += 0.05;

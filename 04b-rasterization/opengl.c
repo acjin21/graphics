@@ -4,6 +4,8 @@
 #include "app.h"
 #include "model.h"
 #include "vector.h"
+#include "light.h"
+#include "material.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,12 +33,6 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
 {
     glBegin( GL_TRIANGLES );
     glColor4fv( v0->color );
-    printf("Tex coords: ");
-    print_vec4(v0->tex);
-    printf("Tex coords: v1 ");
-    print_vec4(v1->tex);
-    printf("Tex coords: v2 ");
-    print_vec4(v2->tex);
     if( texturing ) glTexCoord4fv( v0->tex );
     if( shading_mode == PHONG ) glNormal3fv( v0->v_normal );
     if( renderer == SW_HW )
@@ -74,7 +70,8 @@ void draw_line_gl( POINT *start, POINT *end )
      * start vertex
      */
     glColor4fv( start->color );
-    if( texturing ) glTexCoord4fv( start->tex );
+    if( texturing )
+        glTexCoord4fv( start->tex );
     if( shading_mode == PHONG ) glNormal3fv( start->v_normal );
     if( renderer == SW_HW )
         glVertex3f( start->position[X] - WIN_W / 2 - 0.5, start->position[Y] - WIN_H / 2 - 0.5, -start->position[Z] );
@@ -242,7 +239,7 @@ void change_gl_state(void)
      */
     if( shading_mode == FLAT )
     {
-        glShadeModel( GL_SMOOTH );
+        glShadeModel( GL_FLAT );
     }
     
     if( shading_mode == PHONG )
@@ -255,10 +252,12 @@ void change_gl_state(void)
      */
     if( texturing )
     {
+//        glDisable( GL_LIGHTING );
+
         /*
          * cube map state
          */
-        if(0)// tex_gen_mode == CUBE_MAP )
+        if( tex_gen_mode == CUBE_MAP )
         {
             glDisable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, 0 );
@@ -269,7 +268,6 @@ void change_gl_state(void)
         }
         else
         {
-
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textureID );
             
@@ -277,17 +275,17 @@ void change_gl_state(void)
             glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
             glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
         }
-        
+
         glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ? GL_MODULATE : GL_DECAL );
         glHint( GL_PERSPECTIVE_CORRECTION_HINT, (perspective_correct) ? GL_NICEST : GL_FASTEST );
-        
-        if( tex_gen_mode > 0 && tex_gen_mode != CUBE_MAP )
-        {
-            glEnable( GL_TEXTURE_GEN_S );
-            glEnable( GL_TEXTURE_GEN_T );
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
-        }
+
+//        if( tex_gen_mode  )
+//        {
+//            glEnable( GL_TEXTURE_GEN_S );
+//            glEnable( GL_TEXTURE_GEN_T );
+//            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
+//            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); //  GL_OBJECT_LINEAR, GL_EYE_LINEAR, GL_SPHERE_MAP, GL_NORMAL_MAP, or GL_REFLECTION_MAP
+//        }
     }
     else
     {
@@ -298,6 +296,88 @@ void change_gl_state(void)
         glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
         glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
     }
+    
+    /*
+     * GL fog state
+     */
+    if( fog )
+    {
+        glEnable( GL_FOG );
+    }
+    else
+    {
+        glDisable( GL_FOG );
+    }
+    
+    /*
+     * GL blend state
+     */
+    if( alpha_blend )
+    {
+        glEnable( GL_BLEND );
+    }
+    else
+    {
+        glDisable( GL_BLEND );
+    }
+    
+    /*
+     * GL lighting state
+//     */
+//    if( shading_mode == FLAT || shading_mode == PHONG )
+//    {
+//        float gl_light[4];
+//
+//        if( light_type == LOCAL_L )
+//        {
+//            cpy_vec4( light_pos, gl_light );
+//        }
+//        else
+//        {
+//            cpy_vec4( light, gl_light );
+//            gl_light[W] = 0;
+//        }
+//
+//        gl_light[X] *= -1;
+//
+//        glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
+//        glEnable( GL_LIGHTING );
+//        glEnable( GL_LIGHT0 );
+//        glEnable( GL_NORMALIZE );
+//
+//        glLightfv( GL_LIGHT0, GL_AMBIENT,   light_ambient   );
+//        glLightfv( GL_LIGHT0, GL_DIFFUSE,   light_diffuse   );
+//        glLightfv( GL_LIGHT0, GL_SPECULAR,  light_specular  );
+//
+//        glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
+//
+//        if(material)
+//        {
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    material_ambient    );
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
+//        }
+//        else
+//        {
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    zero_vect    );
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    zero_vect    );
+//        }
+//
+//
+//        if( specular_highlight )
+//        {
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   material_specular   );
+//            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  shinyness           );
+//        }
+//        else
+//        {
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
+//            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
+//        }
+//    }
+//    else
+//    {
+//        glDisable( GL_LIGHTING );
+//    }
 }
 
 /*
@@ -389,7 +469,6 @@ void init_gl_state( void )
      */
     glEnable(GL_TEXTURE_2D);
     glGenTextures( 1, &textureID );
-//    glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, textureID );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL,   0 );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,    0 );
