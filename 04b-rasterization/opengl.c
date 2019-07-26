@@ -147,6 +147,7 @@ void passthrough_gl_state(void)
     glDisable( GL_FOG );
     glDisable( GL_BLEND );
     glDisable( GL_LIGHTING );
+//    glDisable (GL_LIGHT0);
     glDisable( GL_NORMALIZE );
     glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
     glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
@@ -252,8 +253,6 @@ void change_gl_state(void)
      */
     if( texturing )
     {
-//        glDisable( GL_LIGHTING );
-
         /*
          * cube map state
          */
@@ -324,44 +323,38 @@ void change_gl_state(void)
     /*
      * GL lighting state
 //     */
-//    if( shading_mode == FLAT || shading_mode == PHONG )
-//    {
-//        float gl_light[4];
-//
-//        if( light_type == LOCAL_L )
-//        {
-//            cpy_vec4( light_pos, gl_light );
-//        }
-//        else
-//        {
-//            cpy_vec4( light, gl_light );
-//            gl_light[W] = 0;
-//        }
-//
+    if( shading_mode == FLAT || shading_mode == PHONG )
+    {
+        float gl_light[4];
+
+        if( light_type == LOCAL_L )
+        {
+            cpy_vec4( light_pos, gl_light );
+        }
+        else
+        {
+            cpy_vec4( light, gl_light );
+            gl_light[W] = 0;
+        }
+
 //        gl_light[X] *= -1;
-//
-//        glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
-//        glEnable( GL_LIGHTING );
-//        glEnable( GL_LIGHT0 );
-//        glEnable( GL_NORMALIZE );
-//
-//        glLightfv( GL_LIGHT0, GL_AMBIENT,   light_ambient   );
-//        glLightfv( GL_LIGHT0, GL_DIFFUSE,   light_diffuse   );
-//        glLightfv( GL_LIGHT0, GL_SPECULAR,  light_specular  );
-//
-//        glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
-//
+
+        glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
+        glEnable( GL_LIGHTING );
+        glEnable( GL_LIGHT0 );
+        glEnable( GL_NORMALIZE );
+
+        glLightfv( GL_LIGHT0, GL_AMBIENT,   light_ambient   );
+        glLightfv( GL_LIGHT0, GL_DIFFUSE,   light_diffuse   );
+        glLightfv( GL_LIGHT0, GL_SPECULAR,  light_specular  );
+        
+        glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
+
 //        if(material)
 //        {
 //            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    material_ambient    );
 //            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
 //        }
-//        else
-//        {
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    zero_vect    );
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    zero_vect    );
-//        }
-//
 //
 //        if( specular_highlight )
 //        {
@@ -373,11 +366,11 @@ void change_gl_state(void)
 //            glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
 //            glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
 //        }
-//    }
-//    else
-//    {
-//        glDisable( GL_LIGHTING );
-//    }
+    }
+    else
+    {
+        glDisable( GL_LIGHTING );
+    }
 }
 
 /*
