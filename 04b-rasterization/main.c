@@ -143,7 +143,7 @@ void display(void)
     gl_printf(655, 760, res);
 //    sprintf(res, "gl: %.5f", elapsed_time(&gl_timer));
 //    gl_printf(655, 745, res);
-            
+    
     sprintf(res, "vertex: %.5f", elapsed_time(&vtx_timer));
     gl_printf(655, 730, res);
     sprintf(res, "pixel: %.5f", elapsed_time(&px_timer));
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
     glutMotionFunc(motion);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
-    
+    printf("%s", glGetString(GL_VERSION));
 
 //    change_gl_state();
     if(program_type == BASIC)
