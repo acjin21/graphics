@@ -23,6 +23,7 @@
 #include "frustum.h" // for setup_clip_frustum
 #include "g_buffer.h" //just for mode_deferred_render
 #include "opengl.h"
+#include "light.h"
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -258,6 +259,17 @@ void gl_print_settings (void)
            post_processing ? "ON" : "OFF");
     printf("DOF (4):\t\t%s\n",
            dof_mode ? "ON" : "OFF");
+    if(light_type == LOCAL_L)
+    {
+        printf("point light WS position: ");
+        print_vec4(light_pos);
+    }
+    else
+    {
+        printf("dir light : ");
+        print_vec4(light);
+    }
+
 
 }
 
@@ -356,6 +368,7 @@ void set_texture (void)
 /*******************************************************/
 void render_object(OBJECT *o)
 {
+    normalize(light);
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
     
@@ -368,7 +381,6 @@ void render_object(OBJECT *o)
     }
     build_model(o);
 
-    /* for per-object texturing in SCENE mode */
 
     /* set material property vecs */
     set_material(material_type);
@@ -700,6 +712,23 @@ void key_callback (unsigned char key)
         case 'k':   translate_camera (&camera, 0, -camera_transl, 0);   break;
         case '+':   translate_camera (&camera, 0, 0, camera_transl);    break;
         case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
+
+        case 'I':
+            if(light_type == LOCAL_L) light_pos[Y] += 0.5;
+            else light[Y] += 0.5;
+            break;
+        case 'K':
+            if(light_type == LOCAL_L) light_pos[Y] -= 0.5;
+            else light[Y] -= 0.5;
+            break;
+        case 'J':
+            if(light_type == LOCAL_L) light_pos[X] -= 0.5;
+            else light[X] -= 0.5;
+            break;
+        case 'L':
+            if(light_type == LOCAL_L) light_pos[X] += 0.5;
+            else light[X] += 0.5;
+            break;
 
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;

@@ -44,6 +44,7 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
         glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
     
     glColor4fv( v1->color );
+    
     if( texturing ) glTexCoord4fv( v1->tex );
     if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v1->v_normal );
     if( renderer == SW_HW )
@@ -148,6 +149,7 @@ void passthrough_gl_state(void)
     glDisable( GL_FOG );
     glDisable( GL_BLEND );
     glDisable( GL_LIGHTING );
+    
     glDisable( GL_NORMALIZE );
     glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,   zero_vect           );
     glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS,  0.0                 );
@@ -326,6 +328,8 @@ void change_gl_state(void)
     if( shading_mode == FLAT || shading_mode == PHONG )
     {
         float gl_light[4];
+//        light[X] *= -1;
+//        light[Y] *= -1;
 
         if( light_type == LOCAL_L )
         {
@@ -335,24 +339,21 @@ void change_gl_state(void)
         {
             cpy_vec4( gl_light, light );
             gl_light[W] = 0;
-//            gl_light[Z] *= -1;
-//            gl_light[X] *= -1;
-//            gl_light[Y] *= -1;
+
         }
-
-
+        gl_light[X] *= -1;
+        gl_light[Y] *= -1;
 
         glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );
         glEnable( GL_NORMALIZE );
-//        glEnable(GL_COLOR_MATERIAL);
+        
         glLightfv( GL_LIGHT0, GL_AMBIENT,   light_ambient   );
         glLightfv( GL_LIGHT0, GL_DIFFUSE,   light_diffuse   );
         glLightfv( GL_LIGHT0, GL_SPECULAR,  light_specular  );
         
         glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
-//        glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
 
         float diff[4];
         float amb[4] = {0.5, 0.5, 0.5, 0.5};
@@ -363,18 +364,11 @@ void change_gl_state(void)
             glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    material_ambient    );
             glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
         }
-//        else
-//        {
-//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    amb    );
-//        }
-
-
         else
         {
             glEnable(GL_COLOR_MATERIAL);
         }
 
-        
 
         if( specular_highlight )
         {
