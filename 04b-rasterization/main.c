@@ -139,10 +139,10 @@ void display(void)
     
     char res[100];
     gl_printf(650, 775, "BENCHMARK:");
-    sprintf(res, "sw renderer: %.5f", elapsed_time(&sw_renderer_timer));
+    sprintf(res, "sw renderer: %.5f", 1.0 / elapsed_time(&sw_renderer_timer));
     gl_printf(655, 760, res);
-    sprintf(res, "gl: %.5f", elapsed_time(&gl_timer));
-    gl_printf(655, 745, res);
+//    sprintf(res, "gl: %.5f", elapsed_time(&gl_timer));
+//    gl_printf(655, 745, res);
             
     sprintf(res, "vertex: %.5f", elapsed_time(&vtx_timer));
     gl_printf(655, 730, res);

@@ -12,6 +12,7 @@
 
 extern float window_size;
 float zero_vect[4] = {0, 0, 0, 0};
+float one_vect[4] = {1, 1, 1, 1};
 int renderer = ALL_SW;
 
 typedef struct gl_image {
@@ -33,7 +34,6 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
 {
     glBegin( GL_TRIANGLES );
     glColor4fv( v0->color );
-    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v0->color    );
     if( texturing ) glTexCoord4fv( v0->tex );
     if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v0->v_normal );
     if( renderer == SW_HW )
@@ -44,8 +44,6 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
         glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
     
     glColor4fv( v1->color );
-    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v1->color    );
-
     if( texturing ) glTexCoord4fv( v1->tex );
     if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v1->v_normal );
     if( renderer == SW_HW )
@@ -54,8 +52,6 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
         glVertex3f( v1->world[X], v1->world[Y], -v1->world[Z] );
     
     glColor4fv( v2->color );
-    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    v2->color    );
-
     if( texturing ) glTexCoord4fv( v2->tex );
     if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v2->v_normal );
     if( renderer == SW_HW )
@@ -339,34 +335,44 @@ void change_gl_state(void)
         {
             cpy_vec4( gl_light, light );
             gl_light[W] = 0;
+//            gl_light[Z] *= -1;
+//            gl_light[X] *= -1;
+//            gl_light[Y] *= -1;
         }
 
-        gl_light[Z] *= -1;
-        gl_light[X] *= -1;
+
 
         glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );
         glEnable( GL_NORMALIZE );
-
+//        glEnable(GL_COLOR_MATERIAL);
         glLightfv( GL_LIGHT0, GL_AMBIENT,   light_ambient   );
         glLightfv( GL_LIGHT0, GL_DIFFUSE,   light_diffuse   );
         glLightfv( GL_LIGHT0, GL_SPECULAR,  light_specular  );
         
         glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
+//        glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
 
         float diff[4];
         float amb[4] = {0.5, 0.5, 0.5, 0.5};
         
         if(material)
         {
-            cpy_vec4(amb, material_ambient);
+            glDisable(GL_COLOR_MATERIAL);
+            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    material_ambient    );
             glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,    material_diffuse    );
         }
-        glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    amb    );
+//        else
+//        {
+//            glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,    amb    );
+//        }
 
 
-        
+        else
+        {
+            glEnable(GL_COLOR_MATERIAL);
+        }
 
         
 

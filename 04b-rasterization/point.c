@@ -182,7 +182,7 @@ void draw_point (POINT *p)
         else if (light_type == GLOBAL_L)
         {
             set_diffuse_term(p->v_normal, light, tmp_diff);
-            set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
+            set_specular_term(p->v_normal, light, tmp_spec, p->view);
         }
         
         //modulate texture with color and brightness

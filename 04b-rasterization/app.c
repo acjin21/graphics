@@ -208,7 +208,7 @@ void gl_print_settings (void)
     next_y += 15;
 
     sprintf(settings_str, "%s",
-            light_type ? "LOCAL" : "GLOBAL" );
+            light_type ? "GLOBAL" : "LOCAL");
     gl_printf(5, next_y, "Light Mode ([7]):" );
     gl_printf(120, next_y, settings_str );
     next_y += 15;
