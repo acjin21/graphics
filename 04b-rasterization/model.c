@@ -1025,8 +1025,8 @@ void draw_model(int mode)
                 }
                 else if(light_type == GLOBAL_L)
                 {
-                    set_diffuse_term(f.f_normal, light, tmp_diff, p0.world_pos);
-                    set_specular_term(f.f_normal, light, tmp_spec, p0.view, p0.world_pos);
+                    set_diffuse_term(tmp_diff, f.f_normal, light, p0.world_pos);
+                    set_specular_term(tmp_spec, f.f_normal, light, p0.view, p0.world_pos);
                 }
                 shade_point(tmp_diff, tmp_spec, &p0, modulate_type);
                 shade_point(tmp_diff, tmp_spec, &p1, modulate_type);

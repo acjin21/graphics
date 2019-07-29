@@ -54,7 +54,7 @@ void set_diffuse_term
 (float diffuse_term[4], float normal[4], float light[4], float world_pos[4])
 {
     float diffuse, tmp[4];
-    if(light[W] == 0) //directional light
+    if(light_type == GLOBAL_L) // directional light
     {
         scalar_multiply(-1, light, tmp);
     }
@@ -86,7 +86,7 @@ void set_specular_term
 {
     float specular, refl[4], tmp[4];
     normalize(view);
-    if(light[W] == 0) //directional light
+    if(light_type == GLOBAL_L) //directional light
     {
         scalar_multiply(-1, light, tmp);
     }
@@ -121,11 +121,10 @@ void shade_point (float diffuse[4], float spec[4], POINT *p, int mod_type)
     {
         vector_multiply(diffuse, p->color, p->color);
     }
-    else if(mod_type == MOD_LIGHT)
+    else if(modulate && mod_type == MOD_LIGHT)
     {
         cpy_vec4(p->color, diffuse);
     }
-    
     if(specular_highlight)
     {
         vector_add(spec, p->color, p->color);
@@ -208,7 +207,6 @@ void draw_point (POINT *p)
             set_diffuse_term(tmp_diff, p->v_normal, light, p->world_pos);
             set_specular_term(tmp_spec, p->v_normal, light, p->view, p->world_pos);
         }
-        
         shade_point(tmp_diff, tmp_spec, p, modulate_type);
 
     }

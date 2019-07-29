@@ -371,7 +371,6 @@ void render_object(OBJECT *o)
     normalize(light);
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
-    
     /* appropriate scaling for different OBJ files */
     switch (o->type)
     {
@@ -427,12 +426,12 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-1, 1, -1, 1, near, far);           break;
+            xform_model(-1, 1, -1, 1, near, far);                   break;
             
         case PERSPECT:
             skip = cull_model(near, far);
             if(skip) return;
-            o->w = perspective_xform(near, far, -1, 1, -1, 1);     break;
+            o->w = perspective_xform(near, far, -1, 1, -1, 1);      break;
     }
     
     /*******************/
@@ -444,15 +443,16 @@ void render_object(OBJECT *o)
     /* SCREEN SPACE */
     /*******************/
     set_click_frame (o);
-    
     stop_timer(&vtx_timer);
-    
     /*-------------------------------*/         /* end vertex processing */
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
     draw_model(draw_mode);
-    
+    stop_timer(&px_timer);
+    /*-------------------------------*/         /* end pixel processing */
+
+    /* extra drawings -- do not include in benchmarking pixel processing */
     if(draw_peripherals && !skip)
     {
         draw_local_axes();
@@ -460,9 +460,6 @@ void render_object(OBJECT *o)
         draw_3D_bb(bb_color);
         draw_face_normals();
     }
-    stop_timer(&px_timer);
-    
-    /*-------------------------------*/         /* end pixel processing */
 }
 
 /********************************************/
