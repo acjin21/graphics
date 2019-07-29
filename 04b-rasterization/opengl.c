@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 extern float window_size;
-float zero_vect[4] = {0, 0, 0, 0};
+float zero_vect[4] = {0, 0, 0, 1};
 float one_vect[4] = {1, 1, 1, 1};
 int renderer = ALL_SW;
 
@@ -34,20 +34,21 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     POINT v0 = *v0_ptr;
     POINT v1 = *v1_ptr;
     POINT v2 = *v2_ptr;
-    int need_v_normals = shading_mode == FLAT ||
-                         shading_mode == PHONG || tex_gen_mode;
+    int need_v_normals = shading_mode == FLAT   ||
+                         shading_mode == PHONG  || tex_gen_mode;
     
     /* draw the light's CAM space position */
     glBegin( GL_POINTS );
     glColor4f(1, 1, 1, 1);
     glPointSize(3.0);
-    light_pos_screen[Z] = 0;
+//    light_pos_screen[Z] = 0;
     glVertex4fv(light_pos_screen);
     glEnd();
     
     glBegin( GL_TRIANGLES );
     glColor4fv( v0.color );
     v0.v_normal[Z] *= -1;
+    normalize(v0.v_normal);
     if( texturing )         glTexCoord4fv( v0.tex );
     if( need_v_normals )    glNormal3fv( v0.v_normal );
     if( renderer == SW_HW )
@@ -60,7 +61,8 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     
     glColor4fv( v1.color );
     v1.v_normal[Z] *= -1;
- 
+    normalize(v1.v_normal);
+
     if( texturing )         glTexCoord4fv( v1.tex );
     if( need_v_normals )    glNormal3fv( v1.v_normal );
     if( renderer == SW_HW )
@@ -74,9 +76,11 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
 
     glColor4fv( v2.color );
     v2.v_normal[Z] *= -1;
-    if( texturing ) glTexCoord4fv( v2.tex );
-    if( need_v_normals ) glNormal3fv( v2.v_normal );
-    if( renderer == SW_HW )
+    normalize(v2.v_normal);
+
+    if(texturing)           glTexCoord4fv( v2.tex );
+    if(need_v_normals)      glNormal3fv( v2.v_normal );
+    if(renderer == SW_HW)
     {
         glVertex3f(v2.position[X] - WIN_W / 2 - 0.5,
                    v2.position[Y] - WIN_H / 2 - 0.5,
@@ -91,14 +95,16 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
  */
 void draw_line_gl( POINT *start, POINT *end )
 {
+    int need_v_normals = shading_mode == FLAT   ||
+                         shading_mode == PHONG  || tex_gen_mode;
+    
     glBegin( GL_LINES );
     /*
      * start vertex
      */
     glColor4fv( start->color );
-    if( texturing )
-        glTexCoord4fv( start->tex );
-    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( start->v_normal );
+    if( texturing )         glTexCoord4fv( start->tex );
+    if( need_v_normals )    glNormal3fv( start->v_normal );
     if( renderer == SW_HW )
         glVertex3f(start->position[X] - WIN_W / 2 - 0.5,
                    start->position[Y] - WIN_H / 2 - 0.5,
@@ -110,10 +116,12 @@ void draw_line_gl( POINT *start, POINT *end )
      * end vertex
      */
     glColor4fv( end->color );
-    if( texturing ) glTexCoord4fv( end->tex );
-    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( end->v_normal );
+    if( texturing )         glTexCoord4fv( end->tex );
+    if( need_v_normals )    glNormal3fv( end->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( end->position[X] - WIN_W / 2 - 0.5, end->position[Y] - WIN_H / 2 - 0.5, -end->position[Z] );
+        glVertex3f(end->position[X] - WIN_W / 2 - 0.5,
+                   end->position[Y] - WIN_H / 2 - 0.5,
+                   -end->position[Z] );
     else //ALL_HW
         glVertex3f( end->world[X], end->world[Y], -end->world[Z] );
     glEnd();
@@ -155,11 +163,11 @@ void change_gl_state(void)
     /*
      * GL depth state
      */
-    glPolygonMode( GL_FRONT_AND_BACK, draw_mode == FRAME ? GL_LINE : GL_FILL );
-    glShadeModel( shading_mode == FLAT ? GL_FLAT : GL_SMOOTH );
+    glPolygonMode(GL_FRONT_AND_BACK, draw_mode == FRAME ? GL_LINE : GL_FILL);
+    glShadeModel(shading_mode == FLAT ? GL_FLAT : GL_SMOOTH);
     depth_test  ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 
-    float light_amb[4] = {0, 0, 0, 1};
+    float light_amb[4] = {0.5, 0.5, 0.5, 1};
     float light_diff[4] = {1, 1, 1, 1};
     float light_spec[4] = {1, 1, 1, 1};
     
@@ -171,8 +179,10 @@ void change_gl_state(void)
     {
         glEnable( GL_TEXTURE_2D );
         glBindTexture( GL_TEXTURE_2D, textureID );
-        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ? GL_MODULATE : GL_DECAL );
-        glHint( GL_PERSPECTIVE_CORRECTION_HINT, (perspective_correct) ? GL_NICEST : GL_FASTEST );
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ?
+                  GL_MODULATE : GL_DECAL);
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, (perspective_correct) ?
+               GL_NICEST : GL_FASTEST);
     }
     else
     {
@@ -190,8 +200,8 @@ void change_gl_state(void)
 
         if( light_type == LOCAL_L )
         {
-//            cpy_vec4( gl_light, light_pos_screen );
-            cpy_vec4(gl_light, light_pos);
+            cpy_vec4( gl_light, light_pos_screen );
+//            cpy_vec4(gl_light, light_pos);
             gl_light[X] *= -1;
             gl_light[Y] *= -1;
         }

@@ -694,7 +694,10 @@ void camera_xform (CAMERA *c)
         mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
         peripherals[i].world[W] = 1.0;
     }
+    light_pos[W] = 1.0;
     mat_vec_mul (&cam, light_pos, light_pos_screen);
+    light_pos[W] = 1.0;
+
     printf("light pos cam space: ");
     print_vec4(light_pos_screen);
 
@@ -997,10 +1000,8 @@ void draw_model(int mode)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
-        if(f.clip_flag)
-        {
-            continue;
-        }
+        if(f.clip_flag) continue;
+        
         POINT p0 = vertex_list[f.vertices[0]];
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
@@ -1024,7 +1025,6 @@ void draw_model(int mode)
             scalar_multiply(p2.position[W], p2.tex, p2.tex);
         }
         
-        // FRAME = 0, FILL = 1
         if(mode == FRAME)
         {
             draw_line_wrapper(&p0, &p1, DRAW);
@@ -1040,15 +1040,12 @@ void draw_model(int mode)
 
                 if(light_type == LOCAL_L)
                 {
-//                    print_vec4(p0.light);
                     /* using one of vertices' light vecs instead of global light dir */
-                    set_diffuse_term (f.f_normal, p0.light, tmp_diff, p0.world_pos);
-                    set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view, p0.world_pos);
+                    set_diffuse_term (tmp_diff, f.f_normal, p0.light, p0.world_pos);
+                    set_specular_term (tmp_spec, f.f_normal, p0.light, , p0.view, p0.world_pos);
                 }
                 else if(light_type == GLOBAL_L)
                 {
-//                    print_vec4(light);
-
                     set_diffuse_term (f.f_normal, light, tmp_diff, p0.world_pos);
                     set_specular_term (f.f_normal, light, tmp_spec, p0.view, p0.world_pos);
                 }

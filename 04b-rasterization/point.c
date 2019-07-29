@@ -17,22 +17,22 @@
 /* global vars                                                          */
 /*************************************************************************/
 /* draw modes */
-int alpha_blend = OFF;
-int depth_test = ON;
-int texturing = OFF;
-int modulate = OFF;
-int perspective_correct = OFF;
+int alpha_blend             = OFF;
+int depth_test              = ON;
+int texturing               = OFF;
+int modulate                = OFF;
+int perspective_correct     = OFF;
 
-int shading_mode = FLAT;
+int shading_mode            = FLAT;
 
-int drawing_normals = OFF;
-int drawing_bounding_box = OFF;
-int drawing_axes = OFF;
+int drawing_normals         = OFF;
+int drawing_bounding_box    = OFF;
+int drawing_axes            = OFF;
 
-int bump_mapping = OFF;         // bump mapping for specular lighting
-int material = OFF;             // material properties
-int specular_highlight = OFF;
-int fog = OFF;
+int bump_mapping            = OFF;    // bump mapping for specular lighting
+int material                = OFF;    // material properties
+int specular_highlight      = OFF;
+int fog                     = OFF;
 
 /* data */
 IMAGE bump_map;
@@ -50,14 +50,15 @@ int cube_map_index;
     calculate diffuse term for current material and light types, and
         store vector result in diffuse_term
  */
-void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4], float world_pos[4])
+void set_diffuse_term
+(float diffuse_term[4], float normal[4], float light[4], float world_pos[4])
 {
     float diffuse, tmp[4];
-    if(light[W] == 0)
+    if(light[W] == 0) //directional light
     {
         scalar_multiply(-1, light, tmp);
     }
-    else
+    else //positional light
     {
         vector_subtract(light, world_pos, tmp);
         cpy_vec4(tmp, light);
@@ -66,13 +67,11 @@ void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4], f
     diffuse = MAX(vector_dot(normal, tmp), 0);
     if(material)
     {
-        // include material properties
         scalar_multiply(diffuse, material_diffuse, diffuse_term);
         vector_multiply(diffuse_term, light_diffuse, diffuse_term);
     }
     else
     {
-        // only use light properties
         scalar_multiply(diffuse, light_diffuse, diffuse_term);
     }
 
@@ -82,17 +81,16 @@ void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4], f
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float light[4], float spec_term[4],
-                        float view[4], float world_pos[4])
+void set_specular_term
+(float spec_term[4], float normal[4], float light[4], float view[4], float world_pos[4])
 {
     float specular, refl[4], tmp[4];
-//    normalize(light);
     normalize(view);
-    if(light[W] == 0)
+    if(light[W] == 0) //directional light
     {
         scalar_multiply(-1, light, tmp);
     }
-    else
+    else //positional light
     {
         vector_subtract(light, world_pos, tmp);
         cpy_vec4(tmp, light);
@@ -198,13 +196,13 @@ void draw_point (POINT *p)
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)
         {
-            set_diffuse_term(p->v_normal, p->light, tmp_diff, p->world_pos);
-            set_specular_term(p->v_normal, p->light, tmp_spec, p->view, p->world_pos);
+            set_diffuse_term(tmp_diff, p->v_normal, p->light, p->world_pos);
+            set_specular_term(tmp_spec, p->v_normal, p->light, p->view, p->world_pos);
         }
         else if (light_type == GLOBAL_L)
         {
-            set_diffuse_term(p->v_normal, light, tmp_diff, p->world_pos);
-            set_specular_term(p->v_normal, light, tmp_spec, p->view, p->world_pos);
+            set_diffuse_term(tmp_diff, p->v_normal, light, p->world_pos);
+            set_specular_term(tmp_spec, p->v_normal, light, p->view, p->world_pos);
         }
         
         //modulate texture with color and brightness

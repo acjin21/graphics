@@ -66,9 +66,15 @@ extern IMAGE bump_map;
 /*************************************************************************/
 /* Functions                                                      */
 /*************************************************************************/
-void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4], float world_pos[4]);
-void set_specular_term (float normal[4], float light[4], float spec_term[4], float view[4], float world_pos[4]);
-void shade_point (float diffuse[4], float spec[4], POINT *p);
+void set_diffuse_term
+(float diffuse_term[4], float normal[4], float light[4], float world_pos[4]);
+
+void set_specular_term
+(float spec_term[4], float normal[4], float light[4], float view[4],
+ float world_pos[4]);
+
+void shade_point
+(float diffuse[4], float spec[4], POINT *p);
 
 void draw_point (POINT *p);
 #endif
