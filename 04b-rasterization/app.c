@@ -428,7 +428,7 @@ void render_object(OBJECT *o)
         case PERSPECT:
             skip = cull_model(near, far);
             if(skip) return;
-            o->w = perspective_xform(near, far, -1, 1, -1, 1);     break;
+            o->w = perspective_xform(near, far, -5, 5, -5, 5);     break;
     }
     
     /*******************/
@@ -731,12 +731,12 @@ void key_callback (unsigned char key)
             break;
             
         case 'F':
-            if(light_type == LOCAL_L) light_pos[Z] -= 5;
+            if(light_type == LOCAL_L) light_pos[Z] -= .5;
             else light[Z] -= 0.5;
             break;
 
         case 'N':
-            if(light_type == LOCAL_L) light_pos[Z] += 5;
+            if(light_type == LOCAL_L) light_pos[Z] += .5;
             else light[Z] += 0.5;
             break;
             

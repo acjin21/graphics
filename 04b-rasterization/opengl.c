@@ -36,14 +36,20 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     POINT v2 = *v2_ptr;
     int need_v_normals = shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode;
     
+    glBegin( GL_POINTS );
+    glColor4f(1, 1, 1, 1);
+    glPointSize(3.0);
+    light_pos_screen[Z] = 0;
+    glVertex4fv(light_pos_screen);
+    glEnd();
+    
     glBegin( GL_TRIANGLES );
     
     glColor4fv( v0.color );
     v0.v_normal[Z] *= -1;
     if( texturing )         glTexCoord4fv( v0.tex );
     if( need_v_normals )    glNormal3fv( v0.v_normal );
-    printf("v0 normal: ");
-    print_vec4(v0.v_normal);
+
     if( renderer == SW_HW )
     {
         glVertex3f(v0.position[X] - WIN_W / 2 - 0.5,
@@ -55,8 +61,7 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     
     glColor4fv( v1.color );
     v1.v_normal[Z] *= -1;
-    printf("v1 normal: ");
-    print_vec4(v1.v_normal);
+ 
     if( texturing )         glTexCoord4fv( v1.tex );
     if( need_v_normals )    glNormal3fv( v1.v_normal );
     if( renderer == SW_HW )
@@ -70,8 +75,7 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
 
     glColor4fv( v2.color );
     v2.v_normal[Z] *= -1;
-    printf("v2 normal: ");
-    print_vec4(v2.v_normal);
+
     if( texturing ) glTexCoord4fv( v2.tex );
     if( need_v_normals ) glNormal3fv( v2.v_normal );
     if( renderer == SW_HW )
@@ -186,7 +190,9 @@ void change_gl_state(void)
 //
         if( light_type == LOCAL_L )
         {
-            cpy_vec4( gl_light, light_pos );
+            cpy_vec4( gl_light, light_pos_screen );
+            gl_light[X] *= -1;
+            gl_light[Y] *= -1;
         }
         else
         {

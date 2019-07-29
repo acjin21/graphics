@@ -694,6 +694,10 @@ void camera_xform (CAMERA *c)
         mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
         peripherals[i].world[W] = 1.0;
     }
+    mat_vec_mul (&cam, light_pos, light_pos_screen);
+    printf("light pos cam space: ");
+    print_vec4(light_pos_screen);
+
 }
 
 
@@ -717,6 +721,9 @@ void xform_model(float x_min, float x_max,
         mat_vec_mul (&ortho, peripherals[i].world, peripherals[i].position);
         peripherals[i].position[W] = 1.0;
     }
+//    mat_vec_mul (&ortho, light_pos_screen, light_pos_screen);
+//    printf("light pos ndc: ");
+//    print_vec4(light_pos_screen);
 }
 
 void viewport_mat_xform (int vp_w, int vp_h)
@@ -741,6 +748,13 @@ void viewport_mat_xform (int vp_w, int vp_h)
         mat_vec_mul (&viewport, peripherals[i].position, peripherals[i].position);
         vector_add(peripherals[i].position, translation_vec, peripherals[i].position);
     }
+//    mat_vec_mul (&viewport, light_pos_screen, light_pos_screen);
+//    printf("light pos screen: ");
+//    print_vec4(light_pos_screen);
+//    vector_add(light_pos_screen, translation_vec, light_pos_screen);
+//    printf("light pos screen: ");
+//    print_vec4(light_pos_screen);
+
 }
 
 /****************************************************************/
@@ -806,6 +820,14 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
             peripherals[i].position[W] = 1.0 / local_w;
         }
     }
+//    float local_w;
+//    mat_vec_mul (&perspective, light_pos_screen, light_pos_screen);
+//    local_w = light_pos_screen[W];
+//    scalar_divide (local_w, light_pos_screen, light_pos_screen);
+//    if(perspective_correct && texturing)
+//    {
+//        light_pos_screen[W] = 1.0 / local_w;
+//    }
 //    printf("w: %.2f\n", w);
     return w;
 }
@@ -1488,4 +1510,14 @@ void write_obj_file (char *file_name)
         fclose(fp);
     }
 }
+
+//MAT4 cam, ortho, perspective, viewport;
+//void xform_light_pos (void)
+//{
+//    mat_vec_mul(&cam, light_pos, light_pos_screen);
+//    mat_vec_mul(&perspective, light_pos_screen, light_pos_screen);
+//    mat_vec_mul(&viewport, light_pos_screen, light_pos_screen);
+//
+//
+//}
 
