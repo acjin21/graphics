@@ -23,8 +23,7 @@
 #define MAX_N_VERTS 100000000000
 #define MAX_N_FACES 100000000000
 
-#define V_NORM_SCALE 10
-
+#define F_NORM_SCALE 0.1
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -58,7 +57,6 @@ int face_normals_start_idx = 0;
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
 MAT4 cam, ortho, perspective, viewport;
-//float w;
 
 /****************************************************************/
 /* helper functions */
@@ -473,7 +471,7 @@ void build_model (OBJECT *o)
 /* inserts FACE normals centers and endpoints after vertices in vertex_list */
 void insert_normal_coords(void)
 {
-    float tmp[4], color[4];
+    float tmp[4];
     POINT center, end;
     face_normals_start_idx = num_peripherals;
     for(int i = 0; i < num_triangles; i++)
@@ -486,21 +484,18 @@ void insert_normal_coords(void)
         //calculate centroid
         avg_of_3_vecs(vertex_list[t0].world, vertex_list[t1].world,
                       vertex_list[t2].world, center.world);
-        
-        //draw red normals
-        set_vec4(color, 1, 0, 0, 1);
 
         //store centroid
         cpy_vec4(peripherals[num_peripherals + 2 * i].world, center.world);
-        cpy_vec4(peripherals[num_peripherals + 2 * i].color, color);
+        set_vec4(peripherals[num_peripherals + 2 * i].color, 1, 0, 0, 1);
         
         //calculate endpoint
-        scalar_divide(10, face_list[i].f_normal, tmp);
+        scalar_multiply(F_NORM_SCALE, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
         
         //store endpoint
         cpy_vec4(peripherals[num_peripherals + 2 * i + 1].world, end.world);
-        cpy_vec4(peripherals[num_peripherals + 2 * i + 1].color, color);
+        set_vec4(peripherals[num_peripherals + 2 * i + 1].color, 1, 0, 0, 1);
     }
     num_peripherals += (2 * num_triangles);
 }
@@ -508,6 +503,7 @@ void insert_normal_coords(void)
 /* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
+    axes_start_idx = 0;
     set_vec4(peripherals[0].world, cx, cy, cz, 1 );
     set_vec4(peripherals[1].world, cx + 1, cy, cz, 1);
     set_vec4(peripherals[2].world, cx, cy + 1, cz, 1);
@@ -672,10 +668,8 @@ void camera_xform (CAMERA *c)
     light_pos[W] = 1.0;
     mat_vec_mul (&cam, light_pos, light_pos_screen);
     light_pos[W] = 1.0;
-
-    printf("light pos cam space: ");
-    print_vec4(light_pos_screen);
-
+//    printf("light pos cam space: ");
+//    print_vec4(light_pos_screen);
 }
 
 
@@ -846,17 +840,19 @@ void unproject_screen_to_world (float out[4], float in[4], float w)
     mat_vec_mul(&backward, out, out);
 }
 
+/***************************************************************************/
+/* setter functions */
+/***************************************************************************/
 /* called when everything is in world space */
 void set_backface_flags (CAMERA *c)
 {
+    float eye_ray[4], dot;
     for(int i = 0; i < num_triangles; i++)
     {
         FACE *f = &face_list[i];
         POINT *p0 = &vertex_list[f->vertices[0]];
         POINT *p1 = &vertex_list[f->vertices[1]];
         POINT *p2 = &vertex_list[f->vertices[2]];
-        
-        float eye_ray[4], dot;
         
         vector_subtract(c->pos, p0->world, eye_ray);
         normalize(eye_ray);
@@ -916,55 +912,63 @@ void set_triangle_clip_flags (void)
         else //if partially, then clipped = 1
         {
             face_list[i].clip_flag = 1;
-            if(1) //debugging_mode)
+          
+            int num_clipped = clip_triangle (verts);
+            if(num_clipped == 0)
             {
-                int num_clipped = clip_triangle (verts);
-                if(num_clipped == 0)
-                {
-                    continue;
-                }
-                //subdivide polygon into triangles
-                for(int j = 1; j < num_clipped - 1; j++)
-                {
-                    int new_v0 = num_vertices;
-                    //v0
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[0];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0], p->color);
-                    cpy_vec4(tex_list[new_v0], p->tex);
-                    
-                    //v1
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[j];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0 + 1], p->color);
-                    cpy_vec4(tex_list[new_v0 + 1], p->tex);
-                    
-                    //v2
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[j + 1];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0 + 2], p->color);
-                    cpy_vec4(tex_list[new_v0 + 2], p->tex);
-                    
-                    int new_f = num_triangles;
-                    
-                    add_face (new_v0, new_v0 + 1, new_v0 + 2,
-                              new_v0, new_v0 + 1, new_v0 + 2,
-                              new_v0, new_v0 + 1, new_v0 + 2,
-                              0, 0, 0);
-                    num_addl++;
-                    
-                    /* copy data from original face */
-                    cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
-                    face_list[new_f].clip_flag = 0;
-                    face_list[new_f].backface_factor = face_list[i].backface_factor;
-                }
+                continue;
             }
+            //subdivide polygon into triangles
+            for(int j = 1; j < num_clipped - 1; j++)
+            {
+                int new_v0 = num_vertices;
+                //v0
+                p = &vertex_list[num_vertices++];
+                *p = verts[0];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0], p->color);
+                cpy_vec4(tex_list[new_v0], p->tex);
+                
+                //v1
+                p = &vertex_list[num_vertices++];
+                *p = verts[j];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0 + 1], p->color);
+                cpy_vec4(tex_list[new_v0 + 1], p->tex);
+                
+                //v2
+                p = &vertex_list[num_vertices++];
+                *p = verts[j + 1];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0 + 2], p->color);
+                cpy_vec4(tex_list[new_v0 + 2], p->tex);
+                
+                int new_f = num_triangles;
+                
+                add_face (new_v0, new_v0 + 1, new_v0 + 2,
+                          new_v0, new_v0 + 1, new_v0 + 2,
+                          new_v0, new_v0 + 1, new_v0 + 2,
+                          0, 0, 0);
+                num_addl++;
+                
+                /* copy data from original face */
+                cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
+                face_list[new_f].clip_flag = 0;
+                face_list[new_f].backface_factor = face_list[i].backface_factor;
+            }
+            
             num_face_normals = num_triangles;
         }
     }
+}
+
+/* set 2D click frame for sensing mouse clicks in main.c */
+void set_click_frame (OBJECT *o)
+{
+    cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
+    cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
+    cpy_vec4(o->bb_tr.world, peripherals[bb_start_idx + 1].world);
+    cpy_vec4(o->bb_bl.world, peripherals[bb_start_idx + 3].world);
 }
 /****************************************************************/
 /* draw functions */
@@ -1038,54 +1042,10 @@ void draw_model(int mode)
                 draw_triangle_wrapper (&p0, &p2, &p1);
                 drawing_backside = OFF;
             }
-            else {
+            else
+            {
                 drawing_backside = OFF;
                 draw_triangle_wrapper (&p0, &p1, &p2);
-                
-                if (normal_type == V_NORMALS)
-                {
-                    drawing_normals = ON;
-                    POINT v_norm_endpt, vtx;
-                    float tmp[4];
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    set_vec4(p0.color, 0, 1, 0, 1);
-                    scalar_multiply(V_NORM_SCALE, p0.v_normal, tmp);
-                    vector_add(p0.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = vtx.position[Z];
-                    draw_line(&p0, &v_norm_endpt, DRAW);
-
-                    set_vec4(p1.color, 0, 1, 0, 1);
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    scalar_multiply(V_NORM_SCALE, p1.v_normal, tmp);
-                    vector_add(p1.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = p1.position[Z];
-                    draw_line(&p1, &v_norm_endpt, DRAW);
-
-                    set_vec4(p2.color, 0, 1, 0, 1);
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    scalar_multiply(V_NORM_SCALE, p2.v_normal, tmp);
-                    vector_add(p2.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = p2.position[Z];
-                    draw_line(&p2, &v_norm_endpt, DRAW);
-                    drawing_normals = OFF;
-                }
-            }
-
-            if(normal_type == F_NORMALS)
-            {
-                drawing_normals = ON;
-                set_vec4(peripherals[face_normals_start_idx + 2 * i].color,
-                         1, 0, 0, 1);
-                set_vec4(peripherals[face_normals_start_idx + 2 * i + 1].color,
-                         1, 0, 0, 1);
-                
-                draw_line(&peripherals[face_normals_start_idx + 2 * i],
-                          &peripherals[face_normals_start_idx + 2 * i + 1], DRAW);
-                drawing_normals = OFF;
-
             }
         }
     }
@@ -1112,14 +1072,23 @@ void draw_local_axes (void)
     }
 }
 
-
-/* set 2D click frame for sensing mouse clicks in main.c */
-void set_click_frame (OBJECT *o)
+void draw_face_normals (void)
 {
-    cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
-    cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
-    cpy_vec4(o->bb_tr.world, peripherals[bb_start_idx + 1].world);
-    cpy_vec4(o->bb_bl.world, peripherals[bb_start_idx + 3].world);
+    if(normal_type == F_NORMALS)
+    {
+        drawing_normals = ON;
+        for(int i = 0; i < num_triangles; i++)
+        {
+            set_vec4(peripherals[face_normals_start_idx + 2 * i].color,
+                     1, 0, 0, 1);
+            set_vec4(peripherals[face_normals_start_idx + 2 * i + 1].color,
+                     1, 0, 0, 1);
+            
+            draw_line(&peripherals[face_normals_start_idx + 2 * i],
+                      &peripherals[face_normals_start_idx + 2 * i + 1], DRAW);
+        }
+        drawing_normals = OFF;
+    }
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */
@@ -1222,6 +1191,7 @@ char *tex_gen_name (int mode)
             return "ERROR";
     }
 }
+
 /****************************************************************/
 /* lighting */
 /****************************************************************/

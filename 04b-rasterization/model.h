@@ -84,6 +84,7 @@ void draw_model(int mode);
 void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
+void draw_face_normals (void);
 
 /* texture generation */
 void get_tex_coords (void);

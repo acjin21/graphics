@@ -409,12 +409,13 @@ void render_object(OBJECT *o)
     calculate_face_normals();
     calculate_vertex_normals();
     
-    insert_normal_coords();
     
     if(light_type == LOCAL_L) calculate_light_vectors();
     
     set_backface_flags(&camera);
     set_view_rays(&camera);
+    insert_normal_coords();
+
     camera_xform (&camera);
 
     /*******************/
@@ -457,6 +458,7 @@ void render_object(OBJECT *o)
         draw_local_axes();
         float bb_color[4] = {0, 0, 0, 1};
         draw_3D_bb(bb_color);
+        draw_face_normals();
     }
     stop_timer(&px_timer);
     
