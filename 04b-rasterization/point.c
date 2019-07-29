@@ -115,22 +115,26 @@ void set_specular_term
 
 /* shade point p with diffuse, specular, and ambient components using the given
  diffuse and specular vectors */
-void shade_point (float diffuse[4], float spec[4], POINT *p)
+void shade_point (float diffuse[4], float spec[4], POINT *p, int mod_type)
 {
-    vector_multiply(diffuse, p->color, p->color);
+    if(!modulate || (modulate && mod_type == MOD_COLOR))
+    {
+        vector_multiply(diffuse, p->color, p->color);
+    }
+    else if(mod_type == MOD_LIGHT)
+    {
+        cpy_vec4(p->color, diffuse);
+    }
+    
     if(specular_highlight)
     {
         vector_add(spec, p->color, p->color);
     }
     
-    float ambient[4] = {0, 0 , 0 , 0};
+    float ambient[4] = {0.5, 0.5, 0.5, 0};
     if(material)
     {
         vector_multiply(light_ambient, material_ambient, ambient);
-    }
-    else
-    {
-        scalar_add(0.5, ambient, ambient);
     }
     vector_add(p->color, ambient, p->color);
 }
@@ -205,28 +209,8 @@ void draw_point (POINT *p)
             set_specular_term(tmp_spec, p->v_normal, light, p->view, p->world_pos);
         }
         
-        //modulate texture with color and brightness
-        if(!modulate || (modulate && modulate_type == MOD_COLOR))
-        {
-            shade_point(tmp_diff, tmp_spec, p);
-        }
-        
-        //don't incorporate point's interpolated color;
-        //  just modulate texture with lighting/brightness
-        if(modulate && modulate_type == MOD_LIGHT)
-        {
-            cpy_vec4(p->color, tmp_diff);
-            if(specular_highlight)
-            {
-                vector_add(p->color, tmp_spec, p->color);
-            }
-            float ambient[4] = {0.5, 0.5 , 0.5 , 0};
-            if(material)
-            {
-                vector_multiply(light_ambient, material_ambient, ambient);
-            }
-            vector_add(p->color, ambient, p->color);
-        }
+        shade_point(tmp_diff, tmp_spec, p, modulate_type);
+
     }
     texture_ptr = &texture;
 

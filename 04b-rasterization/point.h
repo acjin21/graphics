@@ -74,7 +74,7 @@ void set_specular_term
  float world_pos[4]);
 
 void shade_point
-(float diffuse[4], float spec[4], POINT *p);
+(float diffuse[4], float spec[4], POINT *p, int mod_type);
 
 void draw_point (POINT *p);
 #endif

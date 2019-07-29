@@ -408,6 +408,9 @@ void render_object(OBJECT *o)
     /* rotated face and vertex normals */
     calculate_face_normals();
     calculate_vertex_normals();
+    
+    insert_normal_coords();
+    
     if(light_type == LOCAL_L) calculate_light_vectors();
     
     set_backface_flags(&camera);

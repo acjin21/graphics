@@ -53,6 +53,7 @@ int num_face_normals = 0;       // for finding centroids + endpoints in vertex_l
 int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by insert_coord_axes()
 int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
+int face_normals_start_idx = 0;
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
@@ -470,14 +471,11 @@ void build_model (OBJECT *o)
 /* insert add'l coordinates into vertex_list (normals, axes, bb) */
 /*************************************************************************/
 /* inserts FACE normals centers and endpoints after vertices in vertex_list */
-/*  NOTE: - call after calculate_face_normals()                             */
-/*        - this function adds 2 * num_normals extra points to vertex_list  */
-/*        - call before 3D transformations so the normals are transformed   */
-/*              along with model vertices                                   */
 void insert_normal_coords(void)
 {
     float tmp[4], color[4];
     POINT center, end;
+    face_normals_start_idx = num_peripherals;
     for(int i = 0; i < num_triangles; i++)
     {
         //get vertices of triangle
@@ -493,25 +491,27 @@ void insert_normal_coords(void)
         set_vec4(color, 1, 0, 0, 1);
 
         //store centroid
-        cpy_vec4(vertex_list[num_vertices + 2 * i].world, center.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * i].color, color);
+        cpy_vec4(peripherals[num_peripherals + 2 * i].world, center.world);
+        cpy_vec4(peripherals[num_peripherals + 2 * i].color, color);
         
         //calculate endpoint
-        scalar_divide(6, face_list[i].f_normal, tmp);
+        scalar_divide(10, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
+        
         //store endpoint
-        cpy_vec4(vertex_list[num_vertices + 2 * i + 1].world, end.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * i + 1].color, color);
+        cpy_vec4(peripherals[num_peripherals + 2 * i + 1].world, end.world);
+        cpy_vec4(peripherals[num_peripherals + 2 * i + 1].color, color);
     }
+    num_peripherals += (2 * num_triangles);
 }
 
 /* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
     set_vec4(peripherals[0].world, cx, cy, cz, 1 );
-    set_vec4(peripherals[1].world, cx + 2, cy, cz, 1);
-    set_vec4(peripherals[2].world, cx, cy + 2, cz, 1);
-    set_vec4(peripherals[3].world, cx, cy, cz + 2, 1);
+    set_vec4(peripherals[1].world, cx + 1, cy, cz, 1);
+    set_vec4(peripherals[2].world, cx, cy + 1, cz, 1);
+    set_vec4(peripherals[3].world, cx, cy, cz + 1, 1);
 }
 
 // do this in world space
@@ -549,26 +549,6 @@ void insert_bb_coords (void)
     set_vec4(peripherals[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
     set_vec4(peripherals[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
     set_vec4(peripherals[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
-}
-
-/* return the greatest index that points to relevant data in vertex_list */
-/*    dep on if drawing F_NORMALS and if drawing local axes              */
-int get_max_idx (int normal_mode)
-{
-    int max_idx = 0;
-    switch(normal_mode)
-    {
-        case F_NORMALS:
-            max_idx = num_vertices + 2 * num_face_normals;
-            break;
-        case NO_NORMALS:
-        case V_NORMALS:
-            max_idx = num_vertices;
-            break;
-    }
-    if(axes_start_idx != 0) max_idx += 4;
-    if(bb_start_idx != 0) max_idx += 8;
-    return max_idx;
 }
 
 /****************************************************************/
@@ -628,13 +608,13 @@ void world_xforms(OBJECT *o)
 /****************************************************************/
 /* generate face normals */
 /****************************************************************/
-/* calculate normal of each triangular face */
+/* calculate normal of each triangular face (world space coordinates) */
 void calculate_face_normals (void)
 {
+    float v1[4], v2[4], f_normal[4];
+
     for(int i = 0; i < num_triangles ; i++)
     {
-        float v1[4], v2[4], f_normal[4];
-
         POINT *p0 = &vertex_list[face_list[i].vertices[0]];
         POINT *p1 = &vertex_list[face_list[i].vertices[1]];
         POINT *p2 = &vertex_list[face_list[i].vertices[2]];
@@ -647,23 +627,19 @@ void calculate_face_normals (void)
     }
 }
 
-/* calculate each vertex's normal as the average of surrounding triangles' face normals */
+/* calculate each vertex's normal in world space coords
+    as the average of surrounding triangles' face normals */
 void calculate_vertex_normals (void)
 {
-    num_vertex_normals = num_vertices; //set num_vertex_normals
+    num_vertex_normals = num_vertices;
     
     float v_normal[4];
     for(int i = 0; i < num_vertices; i++)
     {
-        //get the vertex
         POINT *p = &vertex_list[i];
-        //if that vertex is a part of at least 1 triangle
         if(p->num_tris > 0)
         {
-            // reset v_normal
             set_vec4(v_normal, 0, 0, 0, 0);
-            // for each triangle that this vertex participates in,
-            //    calculate the avg of all the face normals
             for(int t = 0; t < p->num_tris; t++)
             {
                 int tri_idx = p->tri_list[t];
@@ -671,7 +647,6 @@ void calculate_vertex_normals (void)
             }
             scalar_divide(p->num_tris, v_normal, v_normal);
             normalize(v_normal);
-            //store normal in POINT struct's v_normal field
             cpy_vec4(p->v_normal, v_normal);
         }
     }
@@ -1041,53 +1016,27 @@ void draw_model(int mode)
                 if(light_type == LOCAL_L)
                 {
                     /* using one of vertices' light vecs instead of global light dir */
-                    set_diffuse_term (tmp_diff, f.f_normal, p0.light, p0.world_pos);
-                    set_specular_term (tmp_spec, f.f_normal, p0.light, , p0.view, p0.world_pos);
+                    set_diffuse_term(tmp_diff, f.f_normal, p0.light, p0.world_pos);
+                    set_specular_term(tmp_spec, f.f_normal, p0.light, p0.view, p0.world_pos);
                 }
                 else if(light_type == GLOBAL_L)
                 {
-                    set_diffuse_term (f.f_normal, light, tmp_diff, p0.world_pos);
-                    set_specular_term (f.f_normal, light, tmp_spec, p0.view, p0.world_pos);
+                    set_diffuse_term(f.f_normal, light, tmp_diff, p0.world_pos);
+                    set_specular_term(f.f_normal, light, tmp_spec, p0.view, p0.world_pos);
                 }
-                
-                //modulate interpolated color * texture
-                if(!modulate || (modulate && modulate_type == MOD_COLOR))
-                {
-                    shade_point(tmp_diff, tmp_spec, &p0);
-                    shade_point(tmp_diff, tmp_spec, &p1);
-                    shade_point(tmp_diff, tmp_spec, &p2);
-                }
-                //modulate texture and intensity i.e. lighting
-                else if(modulate && modulate_type == MOD_LIGHT)
-                {
-                    cpy_vec4(p0.color, tmp_diff);
-                    cpy_vec4(p1.color, tmp_diff);
-                    cpy_vec4(p2.color, tmp_diff);
-                    if(specular_highlight)
-                    {
-                        vector_add(tmp_spec, p0.color, p0.color);
-                        vector_add(tmp_spec, p1.color, p1.color);
-                        vector_add(tmp_spec, p2.color, p2.color);
-                    }
-                    
-                    float ambient[4] = {0.5 , 0.5 , 0.5 , 0};
-                    if(material)
-                    {
-                        vector_multiply(light_ambient, material_ambient, ambient);
-                    }
-                    
-                    vector_add(p0.color, ambient, p0.color);
-                    vector_add(p1.color, ambient, p1.color);
-                    vector_add(p2.color, ambient, p2.color);
-                }
+                shade_point(tmp_diff, tmp_spec, &p0, modulate_type);
+                shade_point(tmp_diff, tmp_spec, &p1, modulate_type);
+                shade_point(tmp_diff, tmp_spec, &p2, modulate_type);
             }
             if(f.backface_factor < 0) //pointing away from us
             {
                 drawing_backside = ON;
-                scalar_add(f.backface_factor / 2.0, p0.color, p0.color);
-                scalar_add(f.backface_factor / 2.0, p1.color, p1.color);
-                scalar_add(f.backface_factor / 2.0, p2.color, p2.color);
+                float s = f.backface_factor / 2.0;
+                scalar_add(s, p0.color, p0.color);
+                scalar_add(s, p1.color, p1.color);
+                scalar_add(s, p2.color, p2.color);
                 draw_triangle_wrapper (&p0, &p2, &p1);
+                drawing_backside = OFF;
             }
             else {
                 drawing_backside = OFF;
@@ -1127,16 +1076,17 @@ void draw_model(int mode)
 
             if(normal_type == F_NORMALS)
             {
-                //draw normals
                 drawing_normals = ON;
-                set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
-                set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
-                draw_line(&vertex_list[num_vertices + 2 * i],
-                          &vertex_list[num_vertices + 2 * i + 1], DRAW);
+                set_vec4(peripherals[face_normals_start_idx + 2 * i].color,
+                         1, 0, 0, 1);
+                set_vec4(peripherals[face_normals_start_idx + 2 * i + 1].color,
+                         1, 0, 0, 1);
+                
+                draw_line(&peripherals[face_normals_start_idx + 2 * i],
+                          &peripherals[face_normals_start_idx + 2 * i + 1], DRAW);
                 drawing_normals = OFF;
 
             }
-
         }
     }
 }
@@ -1147,7 +1097,6 @@ void draw_local_axes (void)
     if(draw_coord_axes)
     {
         drawing_axes = ON;
-        //draw coord axes of model
         set_vec4(peripherals[0].color, 1, 0, 0, 1);
         set_vec4(peripherals[1].color, 1, 0, 0, 1);
         draw_line(&peripherals[0], &peripherals[1], DRAW);
@@ -1162,6 +1111,7 @@ void draw_local_axes (void)
         drawing_axes = OFF;
     }
 }
+
 
 /* set 2D click frame for sensing mouse clicks in main.c */
 void set_click_frame (OBJECT *o)
@@ -1507,14 +1457,4 @@ void write_obj_file (char *file_name)
         fclose(fp);
     }
 }
-
-//MAT4 cam, ortho, perspective, viewport;
-//void xform_light_pos (void)
-//{
-//    mat_vec_mul(&cam, light_pos, light_pos_screen);
-//    mat_vec_mul(&perspective, light_pos_screen, light_pos_screen);
-//    mat_vec_mul(&viewport, light_pos_screen, light_pos_screen);
-//
-//
-//}
 
