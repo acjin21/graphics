@@ -169,9 +169,9 @@ void draw_point (POINT *p)
         normalize(bump);
         cpy_vec4(p->v_normal, bump);
     }
-    
+    int shading_surface = !(drawing_normals || drawing_bounding_box || drawing_axes);
     /* phong shading */
-    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
+    if(shading_surface && shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)

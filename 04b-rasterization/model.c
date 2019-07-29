@@ -1017,14 +1017,14 @@ void draw_model(int mode)
 
                 if(light_type == LOCAL_L)
                 {
-                    print_vec4(p0.light);
+//                    print_vec4(p0.light);
                     /* using one of vertices' light vecs instead of global light dir */
                     set_diffuse_term (f.f_normal, p0.light, tmp_diff);
                     set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view);
                 }
                 else if(light_type == GLOBAL_L)
                 {
-                    print_vec4(light);
+//                    print_vec4(light);
 
                     set_diffuse_term (f.f_normal, light, tmp_diff);
                     set_specular_term (f.f_normal, light, tmp_spec, p0.view);

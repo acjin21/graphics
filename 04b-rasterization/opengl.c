@@ -35,28 +35,36 @@ void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
     glBegin( GL_TRIANGLES );
     glColor4fv( v0->color );
     if( texturing ) glTexCoord4fv( v0->tex );
-    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v0->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode )
+        glNormal3fv( v0->v_normal );
     if( renderer == SW_HW )
     {
-        glVertex3f( v0->position[X] - WIN_W / 2 - 0.5, v0->position[Y] - WIN_H / 2 - 0.5, -v0->position[Z] );
+        glVertex3f(v0->position[X] - WIN_W / 2 - 0.5,
+                   v0->position[Y] - WIN_H / 2 - 0.5,
+                   -v0->position[Z]);
     }
     else
         glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
     
     glColor4fv( v1->color );
-    
     if( texturing ) glTexCoord4fv( v1->tex );
-    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v1->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode )
+        glNormal3fv( v1->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( v1->position[X] - WIN_W / 2 - 0.5, v1->position[Y] - WIN_H / 2 - 0.5, -v1->position[Z] );
+        glVertex3f(v1->position[X] - WIN_W / 2 - 0.5,
+                   v1->position[Y] - WIN_H / 2 - 0.5,
+                   -v1->position[Z]);
     else
         glVertex3f( v1->world[X], v1->world[Y], -v1->world[Z] );
     
     glColor4fv( v2->color );
     if( texturing ) glTexCoord4fv( v2->tex );
-    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( v2->v_normal );
+    if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode )
+        glNormal3fv( v2->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( v2->position[X] - WIN_W / 2 - 0.5, v2->position[Y] - WIN_H / 2 - 0.5, -v2->position[Z] );
+        glVertex3f(v2->position[X] - WIN_W / 2 - 0.5,
+                   v2->position[Y] - WIN_H / 2 - 0.5,
+                   -v2->position[Z]);
     else
         glVertex3f( v2->world[X], v2->world[Y], -v2->world[Z] );
     glEnd();
