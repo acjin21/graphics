@@ -16,14 +16,10 @@ typedef struct timer {
 /*************************************************************************/
 /* variable externs                                                      */
 /*************************************************************************/
-/* for app.c */
-extern TIMER vtx_timer;          // start and end in render_object()
-extern TIMER px_timer;           // start and end in model.c
-
+extern TIMER vtx_timer;
+extern TIMER px_timer;          
 extern TIMER framerate_timer;
-/* for main.c */
-//extern TIMER sw_renderer_timer;
-//extern TIMER gl_timer;
+
 
 /*************************************************************************/
 /* functions                                                             */

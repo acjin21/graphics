@@ -93,8 +93,10 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
 /*
  * draw_line_gl()
  */
-void draw_line_gl( POINT *start, POINT *end )
+void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
 {
+    POINT start = *start_ptr;
+    POINT end = *end_ptr;
     int need_v_normals = shading_mode == FLAT   ||
                          shading_mode == PHONG  || tex_gen_mode;
     
@@ -102,28 +104,30 @@ void draw_line_gl( POINT *start, POINT *end )
     /*
      * start vertex
      */
-    glColor4fv( start->color );
-    if( texturing )         glTexCoord4fv( start->tex );
-    if( need_v_normals )    glNormal3fv( start->v_normal );
-    if( renderer == SW_HW )
-        glVertex3f(start->position[X] - WIN_W / 2 - 0.5,
-                   start->position[Y] - WIN_H / 2 - 0.5,
-                   -start->position[Z]);
+    glColor4fv( start.color );
+    start.v_normal[Z] *= -1;
+    if(texturing)         glTexCoord4fv( start.tex );
+    if(need_v_normals)    glNormal3fv( start.v_normal );
+    if(renderer == SW_HW)
+        glVertex3f(start.position[X] - WIN_W / 2 - 0.5,
+                   start.position[Y] - WIN_H / 2 - 0.5,
+                   -start.position[Z]);
     else
-        glVertex3f( start->world[X], start->world[Y], -start->world[Z] );
+        glVertex3f( start.world[X], start.world[Y], -start.world[Z] );
     
     /*
      * end vertex
      */
-    glColor4fv( end->color );
-    if( texturing )         glTexCoord4fv( end->tex );
-    if( need_v_normals )    glNormal3fv( end->v_normal );
-    if( renderer == SW_HW )
-        glVertex3f(end->position[X] - WIN_W / 2 - 0.5,
-                   end->position[Y] - WIN_H / 2 - 0.5,
-                   -end->position[Z] );
+    glColor4fv(end.color);
+    end.v_normal[Z] *= -1;
+    if(texturing)         glTexCoord4fv(end.tex);
+    if(need_v_normals)    glNormal3fv(end.v_normal);
+    if(renderer == SW_HW)
+        glVertex3f(end.position[X] - WIN_W / 2 - 0.5,
+                   end.position[Y] - WIN_H / 2 - 0.5,
+                   -end.position[Z] );
     else //ALL_HW
-        glVertex3f( end->world[X], end->world[Y], -end->world[Z] );
+        glVertex3f( end.world[X], end.world[Y], -end.world[Z] );
     glEnd();
 }
 
@@ -137,11 +141,13 @@ void passthrough_gl_state(void)
     glShadeModel( GL_FLAT );
     glDisable( GL_TEXTURE_2D );
     glBindTexture( GL_TEXTURE_2D, 0 );
+    
     glDisable( GL_TEXTURE_CUBE_MAP );
     glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
     glDisable( GL_TEXTURE_GEN_S );
     glDisable( GL_TEXTURE_GEN_T );
     glDisable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
+    
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
     glDisable( GL_CULL_FACE );
     glDisable( GL_FOG );
@@ -165,12 +171,11 @@ void change_gl_state(void)
      */
     glPolygonMode(GL_FRONT_AND_BACK, draw_mode == FRAME ? GL_LINE : GL_FILL);
     glShadeModel(shading_mode == FLAT ? GL_FLAT : GL_SMOOTH);
-    depth_test  ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    depth_test ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 
     float light_amb[4] = {0.5, 0.5, 0.5, 1};
     float light_diff[4] = {1, 1, 1, 1};
     float light_spec[4] = {1, 1, 1, 1};
-    
     
     /*
      * GL texturing state

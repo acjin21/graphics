@@ -54,14 +54,13 @@ void set_diffuse_term
 (float diffuse_term[4], float normal[4], float light[4], float world_pos[4])
 {
     float diffuse, tmp[4];
-    if(light_type == GLOBAL_L) // directional light
+    if(light_type == GLOBAL_L)           // directional light
     {
-        scalar_multiply(-1, light, tmp);
+        scalar_multiply(-1, light, tmp); //reverse so (pos -> light)
     }
     else //positional light
     {
-        vector_subtract(light, world_pos, tmp);
-        cpy_vec4(tmp, light);
+        cpy_vec4(tmp, light);           //already (pos -> light) from calculate_vectors
     }
     normalize(tmp);
     diffuse = MAX(vector_dot(normal, tmp), 0);
@@ -92,23 +91,19 @@ void set_specular_term
     }
     else //positional light
     {
-        vector_subtract(light, world_pos, tmp);
         cpy_vec4(tmp, light);
     }
     normalize(tmp);
-
     vector_reflect(tmp, normal, refl);
     specular = MAX(vector_dot(view, refl), 0);
     specular = pow(specular, shinyness);
     if(material)
     {
-        // include material properties
         scalar_multiply(specular, material_specular, spec_term);
         vector_multiply(spec_term, light_specular, spec_term);
     }
     else
     {
-        // include material properties
         scalar_multiply(specular, light_specular, spec_term);
     }
 }

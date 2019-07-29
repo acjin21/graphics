@@ -413,7 +413,10 @@ void render_object(OBJECT *o)
     
     set_backface_flags(&camera);
     set_view_rays(&camera);
-    insert_normal_coords();
+    if(normal_type == F_NORMALS)
+    {
+        insert_normal_coords();
+    }
 
     camera_xform (&camera);
 
