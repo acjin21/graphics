@@ -55,9 +55,9 @@ void rotate_camera (CAMERA *c, float rx, float ry, float rz)
     mat_vec_mul(&rot, c->v, c->v);
     mat_vec_mul(&rot, c->up, c->up);
     
-    print_vec4(c->u);
-    print_vec4(c->v);
-    print_vec4(c->up);
+//    print_vec4(c->u);
+//    print_vec4(c->v);
+//    print_vec4(c->up);
 
     c->rot[X] += rx;
     c->rot[Y] += ry;

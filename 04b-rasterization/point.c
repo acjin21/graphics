@@ -50,11 +50,20 @@ int cube_map_index;
     calculate diffuse term for current material and light types, and
         store vector result in diffuse_term
  */
-void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
+void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4], float world_pos[4])
 {
-    float diffuse;
-    normalize(light);
-    diffuse = MAX(vector_dot(normal, light), 0);
+    float diffuse, tmp[4];
+    if(light[W] == 0)
+    {
+        scalar_multiply(-1, light, tmp);
+    }
+    else
+    {
+        vector_subtract(light, world_pos, tmp);
+        cpy_vec4(tmp, light);
+    }
+    normalize(tmp);
+    diffuse = MAX(vector_dot(normal, tmp), 0);
     if(material)
     {
         // include material properties
@@ -73,12 +82,24 @@ void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float light[4], float spec_term[4], float view[4])
+void set_specular_term (float normal[4], float light[4], float spec_term[4],
+                        float view[4], float world_pos[4])
 {
-    float specular, refl[4];
-    normalize(light);
+    float specular, refl[4], tmp[4];
+//    normalize(light);
     normalize(view);
-    vector_reflect(light, normal, refl);
+    if(light[W] == 0)
+    {
+        scalar_multiply(-1, light, tmp);
+    }
+    else
+    {
+        vector_subtract(light, world_pos, tmp);
+        cpy_vec4(tmp, light);
+    }
+    normalize(tmp);
+
+    vector_reflect(tmp, normal, refl);
     specular = MAX(vector_dot(view, refl), 0);
     specular = pow(specular, shinyness);
     if(material)
@@ -171,18 +192,19 @@ void draw_point (POINT *p)
     }
     
     /* phong shading */
-    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && shading_mode == PHONG)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes &&
+       shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)
         {
-            set_diffuse_term(p->v_normal, p->light, tmp_diff);
-            set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
+            set_diffuse_term(p->v_normal, p->light, tmp_diff, p->world_pos);
+            set_specular_term(p->v_normal, p->light, tmp_spec, p->view, p->world_pos);
         }
         else if (light_type == GLOBAL_L)
         {
-            set_diffuse_term(p->v_normal, light, tmp_diff);
-            set_specular_term(p->v_normal, light, tmp_spec, p->view);
+            set_diffuse_term(p->v_normal, light, tmp_diff, p->world_pos);
+            set_specular_term(p->v_normal, light, tmp_spec, p->view, p->world_pos);
         }
         
         //modulate texture with color and brightness
@@ -257,11 +279,6 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
         color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
         color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
-        // if drawing reverse side of triangles, ignore the texel channels
-//        if(drawing_backside)
-//        {
-//            set_vec4(color_buffer[r][c], 0, 0, 0, 1);
-//        }
         //any form of modulating (with color or with light)
         if(modulate)
         {

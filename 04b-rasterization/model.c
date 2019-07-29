@@ -685,6 +685,7 @@ void camera_xform (CAMERA *c)
     set_camera_mat (&cam, c);
     for(int i = 0; i < num_vertices; i++)
     {
+        cpy_vec4(vertex_list[i].world_pos, vertex_list[i].world); //save world coords for lighting calculations later
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
     }
@@ -1017,17 +1018,17 @@ void draw_model(int mode)
 
                 if(light_type == LOCAL_L)
                 {
-                    print_vec4(p0.light);
+//                    print_vec4(p0.light);
                     /* using one of vertices' light vecs instead of global light dir */
-                    set_diffuse_term (f.f_normal, p0.light, tmp_diff);
-                    set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view);
+                    set_diffuse_term (f.f_normal, p0.light, tmp_diff, p0.world_pos);
+                    set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view, p0.world_pos);
                 }
                 else if(light_type == GLOBAL_L)
                 {
-                    print_vec4(light);
+//                    print_vec4(light);
 
-                    set_diffuse_term (f.f_normal, light, tmp_diff);
-                    set_specular_term (f.f_normal, light, tmp_spec, p0.view);
+                    set_diffuse_term (f.f_normal, light, tmp_diff, p0.world_pos);
+                    set_specular_term (f.f_normal, light, tmp_spec, p0.view, p0.world_pos);
                 }
                 
                 //modulate interpolated color * texture
@@ -1262,6 +1263,7 @@ void calculate_light_vectors (void)
     {
         p = &vertex_list[i];
         vector_subtract(light_pos, p->world, p->light);
+        p->light[W] = 1;
         normalize(p->light);
     }
 }

@@ -681,7 +681,7 @@ void key_callback (unsigned char key)
             
         case 'n':       normal_type = (normal_type + 1) % 3;            break;
         case 'h':       shading_mode = (shading_mode + 1) % 3;          break;
-        case 'F':       fog = 1 - fog;                                  break;
+//        case 'F':       fog = 1 - fog;                                  break;
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
         case 'p':       proj_mode = 1 - proj_mode;                      break;
@@ -714,22 +714,32 @@ void key_callback (unsigned char key)
         case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
 
         case 'I':
-            if(light_type == LOCAL_L) light_pos[Y] += 0.5;
+            if(light_type == LOCAL_L) light_pos[Y] += 10;
             else light[Y] += 0.5;
             break;
         case 'K':
-            if(light_type == LOCAL_L) light_pos[Y] -= 0.5;
+            if(light_type == LOCAL_L) light_pos[Y] -= 10;
             else light[Y] -= 0.5;
             break;
         case 'J':
-            if(light_type == LOCAL_L) light_pos[X] -= 0.5;
+            if(light_type == LOCAL_L) light_pos[X] -= 10;
             else light[X] -= 0.5;
             break;
         case 'L':
-            if(light_type == LOCAL_L) light_pos[X] += 0.5;
+            if(light_type == LOCAL_L) light_pos[X] += 10;
             else light[X] += 0.5;
             break;
+            
+        case 'F':
+            if(light_type == LOCAL_L) light_pos[Z] -= 5;
+            else light[Z] -= 0.5;
+            break;
 
+        case 'N':
+            if(light_type == LOCAL_L) light_pos[Z] += 5;
+            else light[Z] += 0.5;
+            break;
+            
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;

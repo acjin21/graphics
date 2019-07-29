@@ -29,45 +29,58 @@ GL_IMAGE gl_texture;
 /*
  * draw_triangle_gl()
  */
-void draw_triangle_gl( POINT *v0, POINT *v1, POINT *v2 )
+void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
 {
+    POINT v0 = *v0_ptr;
+    POINT v1 = *v1_ptr;
+    POINT v2 = *v2_ptr;
     int need_v_normals = shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode;
     
     glBegin( GL_TRIANGLES );
     
-    glColor4fv( v0->color );
-    if( texturing )         glTexCoord4fv( v0->tex );
-    if( need_v_normals )    glNormal3fv( v0->v_normal );
+    glColor4fv( v0.color );
+    v0.v_normal[Z] *= -1;
+    if( texturing )         glTexCoord4fv( v0.tex );
+    if( need_v_normals )    glNormal3fv( v0.v_normal );
+    printf("v0 normal: ");
+    print_vec4(v0.v_normal);
     if( renderer == SW_HW )
     {
-        glVertex3f(v0->position[X] - WIN_W / 2 - 0.5,
-                   v0->position[Y] - WIN_H / 2 - 0.5,
-                   -v0->position[Z]);
+        glVertex3f(v0.position[X] - WIN_W / 2 - 0.5,
+                   v0.position[Y] - WIN_H / 2 - 0.5,
+                   -v0.position[Z]);
     }
     else
-        glVertex3f( v0->world[X], v0->world[Y], -v0->world[Z] );
+        glVertex3f( v0.world[X], v0.world[Y], -v0.world[Z] );
     
-    glColor4fv( v1->color );
-    if( texturing )         glTexCoord4fv( v1->tex );
-    if( need_v_normals )    glNormal3fv( v1->v_normal );
+    glColor4fv( v1.color );
+    v1.v_normal[Z] *= -1;
+    printf("v1 normal: ");
+    print_vec4(v1.v_normal);
+    if( texturing )         glTexCoord4fv( v1.tex );
+    if( need_v_normals )    glNormal3fv( v1.v_normal );
     if( renderer == SW_HW )
     {
-        glVertex3f(v1->position[X] - WIN_W / 2 - 0.5,
-                   v1->position[Y] - WIN_H / 2 - 0.5,
-                   -v1->position[Z] );
+        glVertex3f(v1.position[X] - WIN_W / 2 - 0.5,
+                   v1.position[Y] - WIN_H / 2 - 0.5,
+                   -v1.position[Z] );
     }
-    else    glVertex3f( v1->world[X], v1->world[Y], -v1->world[Z] );
+    else    glVertex3f( v1.world[X], v1.world[Y], -v1.world[Z] );
     
-    glColor4fv( v2->color );
-    if( texturing ) glTexCoord4fv( v2->tex );
-    if( need_v_normals ) glNormal3fv( v2->v_normal );
+
+    glColor4fv( v2.color );
+    v2.v_normal[Z] *= -1;
+    printf("v2 normal: ");
+    print_vec4(v2.v_normal);
+    if( texturing ) glTexCoord4fv( v2.tex );
+    if( need_v_normals ) glNormal3fv( v2.v_normal );
     if( renderer == SW_HW )
     {
-        glVertex3f(v2->position[X] - WIN_W / 2 - 0.5,
-                   v2->position[Y] - WIN_H / 2 - 0.5,
-                   -v2->position[Z] );
+        glVertex3f(v2.position[X] - WIN_W / 2 - 0.5,
+                   v2.position[Y] - WIN_H / 2 - 0.5,
+                   -v2.position[Z] );
     }
-    else    glVertex3f( v2->world[X], v2->world[Y], -v2->world[Z] );
+    else    glVertex3f( v2.world[X], v2.world[Y], -v2.world[Z] );
     glEnd();
 }
 
@@ -170,7 +183,7 @@ void change_gl_state(void)
     if( shading_mode == FLAT || shading_mode == PHONG )
     {
         float gl_light[4];
-
+//
         if( light_type == LOCAL_L )
         {
             cpy_vec4( gl_light, light_pos );
@@ -181,8 +194,8 @@ void change_gl_state(void)
             gl_light[W] = 0;
 
         }
-//        gl_light[X] *= -1;
-//        gl_light[Y] *= -1;
+//        gl_light[Z] *= -1;
+//        set_vec4(gl_light, 0, 0, -1, 1);
 
         glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
         glEnable( GL_LIGHTING );
@@ -233,7 +246,7 @@ void convert_image_to_gl( IMAGE *input, GL_IMAGE *output )
  */
 void init_gl_state( void )
 {
-    float clear_color[4] = { 1, 1, 1, 1 };
+    float clear_color[4] = { 0.5, 0.5, 0.5, 1 };
     float window_size = 400;
 
     glClearColor(clear_color[R], clear_color[G], clear_color[B], clear_color[A] );
