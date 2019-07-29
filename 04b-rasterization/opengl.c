@@ -34,8 +34,10 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     POINT v0 = *v0_ptr;
     POINT v1 = *v1_ptr;
     POINT v2 = *v2_ptr;
-    int need_v_normals = shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode;
+    int need_v_normals = shading_mode == FLAT ||
+                         shading_mode == PHONG || tex_gen_mode;
     
+    /* draw the light's CAM space position */
     glBegin( GL_POINTS );
     glColor4f(1, 1, 1, 1);
     glPointSize(3.0);
@@ -44,20 +46,17 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     glEnd();
     
     glBegin( GL_TRIANGLES );
-    
     glColor4fv( v0.color );
     v0.v_normal[Z] *= -1;
     if( texturing )         glTexCoord4fv( v0.tex );
     if( need_v_normals )    glNormal3fv( v0.v_normal );
-
     if( renderer == SW_HW )
     {
         glVertex3f(v0.position[X] - WIN_W / 2 - 0.5,
                    v0.position[Y] - WIN_H / 2 - 0.5,
                    -v0.position[Z]);
     }
-    else
-        glVertex3f( v0.world[X], v0.world[Y], -v0.world[Z] );
+    else    glVertex3f( v0.world[X], v0.world[Y], -v0.world[Z] );
     
     glColor4fv( v1.color );
     v1.v_normal[Z] *= -1;
@@ -75,7 +74,6 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
 
     glColor4fv( v2.color );
     v2.v_normal[Z] *= -1;
-
     if( texturing ) glTexCoord4fv( v2.tex );
     if( need_v_normals ) glNormal3fv( v2.v_normal );
     if( renderer == SW_HW )
@@ -102,7 +100,9 @@ void draw_line_gl( POINT *start, POINT *end )
         glTexCoord4fv( start->tex );
     if( shading_mode == FLAT || shading_mode == PHONG || tex_gen_mode ) glNormal3fv( start->v_normal );
     if( renderer == SW_HW )
-        glVertex3f( start->position[X] - WIN_W / 2 - 0.5, start->position[Y] - WIN_H / 2 - 0.5, -start->position[Z] );
+        glVertex3f(start->position[X] - WIN_W / 2 - 0.5,
+                   start->position[Y] - WIN_H / 2 - 0.5,
+                   -start->position[Z]);
     else
         glVertex3f( start->world[X], start->world[Y], -start->world[Z] );
     
@@ -187,10 +187,11 @@ void change_gl_state(void)
     if( shading_mode == FLAT || shading_mode == PHONG )
     {
         float gl_light[4];
-//
+
         if( light_type == LOCAL_L )
         {
-            cpy_vec4( gl_light, light_pos_screen );
+//            cpy_vec4( gl_light, light_pos_screen );
+            cpy_vec4(gl_light, light_pos);
             gl_light[X] *= -1;
             gl_light[Y] *= -1;
         }
@@ -198,11 +199,7 @@ void change_gl_state(void)
         {
             cpy_vec4( gl_light, light );
             gl_light[W] = 0;
-
         }
-//        gl_light[Z] *= -1;
-//        set_vec4(gl_light, 0, 0, -1, 1);
-
         glLightfv( GL_LIGHT0, GL_POSITION, gl_light );
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );

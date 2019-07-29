@@ -428,7 +428,7 @@ void render_object(OBJECT *o)
         case PERSPECT:
             skip = cull_model(near, far);
             if(skip) return;
-            o->w = perspective_xform(near, far, -5, 5, -5, 5);     break;
+            o->w = perspective_xform(near, far, -1, 1, -1, 1);     break;
     }
     
     /*******************/
