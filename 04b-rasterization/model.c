@@ -1003,51 +1003,55 @@ void draw_model(int mode)
             scalar_multiply(p1.position[W], p1.tex, p1.tex);
             scalar_multiply(p2.position[W], p2.tex, p2.tex);
         }
-        
+    
+    
+        if(shading_mode == FLAT)
+        {
+            float diffuse, tmp_diff[4], tmp_spec[4];
+
+            if(light_type == LOCAL_L)
+            {
+                /* using one of vertices' light vecs instead of global light dir */
+                set_diffuse_term(tmp_diff, f.f_normal, p0.light, p0.world_pos);
+                set_specular_term(tmp_spec, f.f_normal, p0.light, p0.view, p0.world_pos);
+            }
+            else if(light_type == GLOBAL_L)
+            {
+                set_diffuse_term(tmp_diff, f.f_normal, light, p0.world_pos);
+                set_specular_term(tmp_spec, f.f_normal, light, p0.view, p0.world_pos);
+            }
+            shade_point(tmp_diff, tmp_spec, &p0, modulate_type);
+            shade_point(tmp_diff, tmp_spec, &p1, modulate_type);
+            shade_point(tmp_diff, tmp_spec, &p2, modulate_type);
+        }
+        if(f.backface_factor < 0) //pointing away from us
+        {
+            drawing_backside = ON;
+            float s = f.backface_factor / 2.0;
+            scalar_add(s, p0.color, p0.color);
+            scalar_add(s, p1.color, p1.color);
+            scalar_add(s, p2.color, p2.color);
+            if(mode == FILL)
+            {
+                draw_triangle_wrapper (&p0, &p2, &p1);
+            }
+            drawing_backside = OFF;
+        }
+        else
+        {
+            drawing_backside = OFF;
+            if(mode == FILL)
+            {
+                draw_triangle_wrapper (&p0, &p1, &p2);
+            }
+        }
         if(mode == FRAME)
         {
             draw_line_wrapper(&p0, &p1, DRAW);
             draw_line_wrapper(&p1, &p2, DRAW);
             draw_line_wrapper(&p0, &p2, DRAW);
         }
-        else if(mode == FILL)
-        {
-    
-            if(shading_mode == FLAT)
-            {
-                float diffuse, tmp_diff[4], tmp_spec[4];
 
-                if(light_type == LOCAL_L)
-                {
-                    /* using one of vertices' light vecs instead of global light dir */
-                    set_diffuse_term(tmp_diff, f.f_normal, p0.light, p0.world_pos);
-                    set_specular_term(tmp_spec, f.f_normal, p0.light, p0.view, p0.world_pos);
-                }
-                else if(light_type == GLOBAL_L)
-                {
-                    set_diffuse_term(tmp_diff, f.f_normal, light, p0.world_pos);
-                    set_specular_term(tmp_spec, f.f_normal, light, p0.view, p0.world_pos);
-                }
-                shade_point(tmp_diff, tmp_spec, &p0, modulate_type);
-                shade_point(tmp_diff, tmp_spec, &p1, modulate_type);
-                shade_point(tmp_diff, tmp_spec, &p2, modulate_type);
-            }
-            if(f.backface_factor < 0) //pointing away from us
-            {
-                drawing_backside = ON;
-                float s = f.backface_factor / 2.0;
-                scalar_add(s, p0.color, p0.color);
-                scalar_add(s, p1.color, p1.color);
-                scalar_add(s, p2.color, p2.color);
-                draw_triangle_wrapper (&p0, &p2, &p1);
-                drawing_backside = OFF;
-            }
-            else
-            {
-                drawing_backside = OFF;
-                draw_triangle_wrapper (&p0, &p1, &p2);
-            }
-        }
     }
 }
 
