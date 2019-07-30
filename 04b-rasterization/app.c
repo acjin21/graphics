@@ -513,10 +513,12 @@ void display_scene_mode (void)
     {
 
         /* set draw state */
-//        texturing = objects[i].texturing;
-//        texture_idx = objects[i].texture_idx;
-//        tex_gen_mode = (objects[i].cube_map ? CUBE_MAP : NAIVE);
-//        set_texture();
+        texturing = objects[i].texturing;
+        texture_idx = objects[i].texture_idx;
+        tex_gen_mode = objects[i].tex_gen_mode;
+        perspective_correct = objects[i].persp_corr;
+        
+        set_texture();
         
         objects[i].scale_vec[X] =
         (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
@@ -524,6 +526,7 @@ void display_scene_mode (void)
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+
         render_object(&objects[i]);
     }
 }
@@ -671,7 +674,7 @@ void key_callback (unsigned char key)
         
             
         case 't':
-            if(0)//program_type == SCENE)
+            if(program_type == SCENE)
             {
                 curr_object->texturing = 1 - curr_object->texturing;
             }
@@ -679,7 +682,7 @@ void key_callback (unsigned char key)
             break;
             
         case 'T':
-            texture_idx = (texture_idx + 1) % N_TEXTURES;
+            curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
             set_texture();
             break;
             
@@ -695,7 +698,9 @@ void key_callback (unsigned char key)
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
         case 'p':       proj_mode = 1 - proj_mode;                      break;
-        case 'c':       perspective_correct = 1 - perspective_correct;  break;
+        case 'c':
+            curr_object->persp_corr = 1 - curr_object->persp_corr;
+            break;
             
         case 'B':       framebuffer_src = 1 - framebuffer_src;          break;
             
@@ -750,7 +755,9 @@ void key_callback (unsigned char key)
             else light[Z] += 0.5;
             break;
             
-        case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
+        case '0':
+            curr_object->tex_gen_mode = (curr_object->tex_gen_mode + 1) % NUM_TEX_MODES;
+            break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
         case '3': post_processing = 1 - post_processing;                break;
@@ -761,6 +768,14 @@ void key_callback (unsigned char key)
         case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
         case '9': renderer = (renderer + 1) % 2;                        break;
         case '*': backface_culling = 1 - backface_culling;              break;
+        case '!':
+            /* mode 1 */
+            proj_mode = PERSPECT;
+            perspective_correct = ON;
+            depth_test = ON;
+            draw_mode = FILL;
+            backface_culling = OFF;
+            break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;

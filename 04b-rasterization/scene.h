@@ -39,7 +39,8 @@ typedef struct object {
     
     int texturing;
     int texture_idx;
-    int cube_map;
+    int tex_gen_mode;
+    int persp_corr;
     
 } OBJECT;
 

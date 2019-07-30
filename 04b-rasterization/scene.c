@@ -87,10 +87,11 @@ void write_scene (char *file_name)
             r1 = o->radii[1];
             
             //iterate through objects list
-            fprintf(fp, "type: %i\tcx: %.2f\tcy: %.2f\tcz: %.2f\tscale: %.2f\tr0: %.2f\tr1: %.2f\tinit_orientation: %.2f, %.2f, %.2f\trotation: %.2f, %.2f, %.2f\n",
+            fprintf(fp, "%i\t[%.2f, %.2f, %.2f]\t[%.2f, %.2f, %.2f]\t[%.2f, %.2f, %.2f]\t[%.2f, %.2f, %.2f]\t[%i, %i, %i, %i]\n",
                     type, cx, cy, cz, scale, r0, r1,
                     o->init_orientation[X], o->init_orientation[Y], o->init_orientation[Z],
-                    o->rotation[X], o->rotation[Y], o->rotation[Z]);
+                    o->rotation[X], o->rotation[Y], o->rotation[Z],
+                    o->texturing, o->texture_idx, o->tex_gen_mode, o->persp_corr);
             //write each object out into file
         }
         printf("Done writing scene file to %s\n", file_name);
@@ -119,17 +120,17 @@ void read_scene (char *file_name)
         fscanf(fp, "%i %i %i %i %i %i %i\n", &depth_test, &texturing, &modulate,
                &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
 
-        int type, texturing, tex_idx, cube_map;
+        int type, texturing, tex_idx, tex_gen_mode, persp_corr;
         float cx, cy, cz, scale, r0, r1, init_orient_x, init_orient_y, init_orient_z, rot_x, rot_y, rot_z;
         
         for(int i = 0 ; i < num_objects; i++)
         {
             //iterate through lines in file
-            int ret = fscanf(fp, "type: %i\tcx: %f\tcy: %f\tcz: %f\tscale: %f\tr0: %f\tr1: %f\tinit_orientation: %f, %f, %f\trotation: %f, %f, %f\ttex: [%i, %i, %i]\n",
+            int ret = fscanf(fp, "%i\t[%f, %f, %f]\t[%f, %f, %f]\t[%f, %f, %f]\t[%f, %f, %f]\t[%i, %i, %i, %i]\n",
                              &type, &cx, &cy, &cz, &scale, &r0, &r1,
                              &init_orient_x, &init_orient_y, &init_orient_z,
-                             &rot_x, &rot_y, &rot_z, &texturing, &tex_idx, &cube_map);
-            if(ret != 16)
+                             &rot_x, &rot_y, &rot_z, &texturing, &tex_idx, &tex_gen_mode, &persp_corr);
+            if(ret != 17)
             {
                 printf("Error while reading %s\n", file_name);
                 return;
@@ -156,7 +157,8 @@ void read_scene (char *file_name)
             
             o->texturing = texturing;
             o->texture_idx = tex_idx;
-            o->cube_map = cube_map;
+            o->tex_gen_mode = tex_gen_mode;
+            o->persp_corr = persp_corr;
 
         }
         printf("Done reading scene file from %s\n", file_name);

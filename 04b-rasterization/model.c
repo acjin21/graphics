@@ -687,6 +687,8 @@ void xform_model(float x_min, float x_max,
     for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
+        vertex_list[i].position[Z] = 0;
+
         vertex_list[i].position[W] = 1.0;
     }
     for(int i = 0; i < num_peripherals; i++)

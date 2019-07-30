@@ -15,5 +15,5 @@ void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2);
 
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2);
 void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2);
-
+void draw_triangle_barycentric_incremental( POINT *v0, POINT *v1, POINT *v2 );
 #endif
