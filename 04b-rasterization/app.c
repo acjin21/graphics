@@ -232,6 +232,12 @@ void gl_print_settings (void)
     gl_printf(120, next_y, settings_str );
     next_y += 15;
     
+    sprintf(settings_str, "%s",
+            backface_culling ? "ON" : "OFF" );
+    gl_printf(5, next_y, "Backface culling (*):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+    
 
     printf("Manip Mode ([tab]):\t%s\n",
            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
@@ -752,7 +758,7 @@ void key_callback (unsigned char key)
         case '7': light_type = 1 - light_type;                          break;
         case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
         case '9': renderer = (renderer + 1) % 2;                        break;
-            
+        case '*': backface_culling = 1 - backface_culling;              break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;

@@ -24,12 +24,10 @@ typedef struct face
 /****************************************************************/
 /* variable externs */
 /****************************************************************/
-/* for app.c, scene.c */
 extern int modulate_type;
 extern int tex_gen_mode;
-
-/* for point.c */
 extern int drawing_backside;
+extern int backface_culling;
 
 /****************************************************************/
 /* functions */
