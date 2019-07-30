@@ -24,12 +24,10 @@ typedef struct face
 /****************************************************************/
 /* variable externs */
 /****************************************************************/
-/* for app.c, scene.c */
 extern int modulate_type;
 extern int tex_gen_mode;
-
-/* for point.c */
 extern int drawing_backside;
+extern int backface_culling;
 
 /****************************************************************/
 /* functions */
@@ -84,6 +82,7 @@ void draw_model(int mode);
 void draw_local_axes (void);
 void set_click_frame (OBJECT *o);
 void draw_3D_bb (float bb_color[4]);
+void draw_face_normals (void);
 
 /* texture generation */
 void get_tex_coords (void);

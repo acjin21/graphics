@@ -93,7 +93,9 @@ void display(void)
         }
     }
     glClearDepth( 1.0 );
-    glClearColor(1.0, 1.0, 1.0, 1.0);
+//    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glClearColor(1, 1, 1, 1.0);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(renderer == ALL_SW)
@@ -109,8 +111,8 @@ void display(void)
     /*******************************************************/
     /* 3D MODELING */
     /*******************************************************/
-/* START SW_RENDERER_TIMER */
-    start_timer(&sw_renderer_timer);
+    /* START FRAMERATE TIMER */
+    start_timer(&framerate_timer);
     switch (program_type)
     {
         case BASIC: display_basic_mode();                       break;
@@ -120,44 +122,47 @@ void display(void)
         default: display_basic_mode();                          break;
     }
     if(renderer == ALL_SW)     apply_post_pipeline_fx();
-    stop_timer(&sw_renderer_timer);
-/* STOP SW_RENDERER_TIMER */
-    
-/* START GL_TIMER */
-    start_timer(&gl_timer);
+
     if(renderer == ALL_SW)
     {
         if(mode_deferred_render)    draw_g_buffer();
         framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
     }
-    stop_timer(&gl_timer);
-/* STOP GL_TIMER */
+    stop_timer(&framerate_timer);
+    /* STOP FRAMERATE TIMER */
+
     /*******************************************************/
     /* print on screen */
     /*******************************************************/
     gl_print_settings();
     
     char res[100];
-    gl_printf(650, 775, "BENCHMARK:");
-    sprintf(res, "sw renderer: %.5f", 1.0 / elapsed_time(&sw_renderer_timer));
-    gl_printf(655, 760, res);
-//    sprintf(res, "gl: %.5f", elapsed_time(&gl_timer));
-//    gl_printf(655, 745, res);
-            
-    sprintf(res, "vertex: %.5f", elapsed_time(&vtx_timer));
-    gl_printf(655, 730, res);
-    sprintf(res, "pixel: %.5f", elapsed_time(&px_timer));
-    gl_printf(655, 715, res);
+    int next_line_y = 775;
+    gl_printf(640, next_line_y, "BENCHMARK:");
+    next_line_y -= 15;
+
+    sprintf(res, "Framerate: %.5f fps", 1.0 / elapsed_time(&framerate_timer));
+    gl_printf(650, next_line_y, res);
+    next_line_y -= 15;
+
+    sprintf(res, "Vertex: %.5f seconds", elapsed_time(&vtx_timer));
+    gl_printf(650, next_line_y, res);
+    next_line_y -= 15;
+
+    sprintf(res, "Pixel: %.5f seconds", elapsed_time(&px_timer));
+    gl_printf(650, next_line_y, res);
+    next_line_y -= 15;
+
 
     /*******************************************************/
     /* write to cb file */
-    /*******************************************************/
-    if(program_type == BENCHMARK)
-    {
-        fprintf(cb_file, "%s ", object_name(object_type));
-        fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
-        fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
-    }
+//    /*******************************************************/
+//    if(program_type == BENCHMARK)
+//    {
+//        fprintf(cb_file, "%s ", object_name(object_type));
+//        fprintf(cb_file, "%.5f ", elapsed_time(&sw_renderer_timer));
+//        fprintf(cb_file, "%.5f\n", elapsed_time(&gl_timer));
+//    }
 
     /* show results */
     glutSwapBuffers();
@@ -207,9 +212,6 @@ void motion(int x, int y)
 /* whether mouse click position is in the 2D screen bounding box of object o */
 int click_in_bb (float x, float y, OBJECT *o)
 {
-//    printf("type: %i\nbb_bl: %.2f, %.2f\nbb_tr:%.2f, %.2f\n", o->type,
-//           o->bb_bl.world[X], o->bb_bl.world[Y],
-//           o->bb_tr.world[X], o->bb_tr.world[Y]);
     return (x > o->bb_bl.world[X] &&
             x < o->bb_tr.world[X] &&
             y > o->bb_bl.world[Y] &&
@@ -312,7 +314,7 @@ int main(int argc, char **argv)
     glutMotionFunc(motion);
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
-    
+    printf("%s", glGetString(GL_VERSION));
 
 //    change_gl_state();
     if(program_type == BASIC)

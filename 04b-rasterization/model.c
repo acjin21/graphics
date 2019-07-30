@@ -23,8 +23,7 @@
 #define MAX_N_VERTS 100000000000
 #define MAX_N_FACES 100000000000
 
-#define V_NORM_SCALE 10
-
+#define F_NORM_SCALE 0.1
 /****************************************************************/
 /* global variables */
 /****************************************************************/
@@ -53,11 +52,12 @@ int num_face_normals = 0;       // for finding centroids + endpoints in vertex_l
 int num_vertex_normals = 0;     // set by read_obj() if obj provides, else by insert_coord_axes()
 int num_tex_coords = 0;         // set by read_obj(), and (TODO FIX) set in some init functions
 int axes_start_idx = 0;         // vertex_list index of the first axes POINT
+int face_normals_start_idx = 0;
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
+int backface_culling = ON;
 MAT4 cam, ortho, perspective, viewport;
-//float w;
 
 /****************************************************************/
 /* helper functions */
@@ -470,14 +470,11 @@ void build_model (OBJECT *o)
 /* insert add'l coordinates into vertex_list (normals, axes, bb) */
 /*************************************************************************/
 /* inserts FACE normals centers and endpoints after vertices in vertex_list */
-/*  NOTE: - call after calculate_face_normals()                             */
-/*        - this function adds 2 * num_normals extra points to vertex_list  */
-/*        - call before 3D transformations so the normals are transformed   */
-/*              along with model vertices                                   */
 void insert_normal_coords(void)
 {
-    float tmp[4], color[4];
+    float tmp[4];
     POINT center, end;
+    face_normals_start_idx = num_peripherals;
     for(int i = 0; i < num_triangles; i++)
     {
         //get vertices of triangle
@@ -488,30 +485,30 @@ void insert_normal_coords(void)
         //calculate centroid
         avg_of_3_vecs(vertex_list[t0].world, vertex_list[t1].world,
                       vertex_list[t2].world, center.world);
-        
-        //draw red normals
-        set_vec4(color, 1, 0, 0, 1);
 
         //store centroid
-        cpy_vec4(vertex_list[num_vertices + 2 * i].world, center.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * i].color, color);
+        cpy_vec4(peripherals[num_peripherals + 2 * i].world, center.world);
+        set_vec4(peripherals[num_peripherals + 2 * i].color, 1, 0, 0, 1);
         
         //calculate endpoint
-        scalar_divide(6, face_list[i].f_normal, tmp);
+        scalar_multiply(F_NORM_SCALE, face_list[i].f_normal, tmp);
         vector_add(center.world, tmp, end.world);
+        
         //store endpoint
-        cpy_vec4(vertex_list[num_vertices + 2 * i + 1].world, end.world);
-        cpy_vec4(vertex_list[num_vertices + 2 * i + 1].color, color);
+        cpy_vec4(peripherals[num_peripherals + 2 * i + 1].world, end.world);
+        set_vec4(peripherals[num_peripherals + 2 * i + 1].color, 1, 0, 0, 1);
     }
+    num_peripherals += (2 * num_triangles);
 }
 
 /* insert endpoints of coordinate axis into vertex_list */
 void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
+    axes_start_idx = 0;
     set_vec4(peripherals[0].world, cx, cy, cz, 1 );
-    set_vec4(peripherals[1].world, cx + 2, cy, cz, 1);
-    set_vec4(peripherals[2].world, cx, cy + 2, cz, 1);
-    set_vec4(peripherals[3].world, cx, cy, cz + 2, 1);
+    set_vec4(peripherals[1].world, cx + 1, cy, cz, 1);
+    set_vec4(peripherals[2].world, cx, cy + 1, cz, 1);
+    set_vec4(peripherals[3].world, cx, cy, cz + 1, 1);
 }
 
 // do this in world space
@@ -549,26 +546,6 @@ void insert_bb_coords (void)
     set_vec4(peripherals[bb_start_idx + 5].world, max_x, max_y, max_z, 1);
     set_vec4(peripherals[bb_start_idx + 6].world, max_x, min_y, max_z, 1);
     set_vec4(peripherals[bb_start_idx + 7].world, min_x, min_y, max_z, 1);
-}
-
-/* return the greatest index that points to relevant data in vertex_list */
-/*    dep on if drawing F_NORMALS and if drawing local axes              */
-int get_max_idx (int normal_mode)
-{
-    int max_idx = 0;
-    switch(normal_mode)
-    {
-        case F_NORMALS:
-            max_idx = num_vertices + 2 * num_face_normals;
-            break;
-        case NO_NORMALS:
-        case V_NORMALS:
-            max_idx = num_vertices;
-            break;
-    }
-    if(axes_start_idx != 0) max_idx += 4;
-    if(bb_start_idx != 0) max_idx += 8;
-    return max_idx;
 }
 
 /****************************************************************/
@@ -628,13 +605,13 @@ void world_xforms(OBJECT *o)
 /****************************************************************/
 /* generate face normals */
 /****************************************************************/
-/* calculate normal of each triangular face */
+/* calculate normal of each triangular face (world space coordinates) */
 void calculate_face_normals (void)
 {
+    float v1[4], v2[4], f_normal[4];
+
     for(int i = 0; i < num_triangles ; i++)
     {
-        float v1[4], v2[4], f_normal[4];
-
         POINT *p0 = &vertex_list[face_list[i].vertices[0]];
         POINT *p1 = &vertex_list[face_list[i].vertices[1]];
         POINT *p2 = &vertex_list[face_list[i].vertices[2]];
@@ -647,23 +624,19 @@ void calculate_face_normals (void)
     }
 }
 
-/* calculate each vertex's normal as the average of surrounding triangles' face normals */
+/* calculate each vertex's normal in world space coords
+    as the average of surrounding triangles' face normals */
 void calculate_vertex_normals (void)
 {
-    num_vertex_normals = num_vertices; //set num_vertex_normals
+    num_vertex_normals = num_vertices;
     
     float v_normal[4];
     for(int i = 0; i < num_vertices; i++)
     {
-        //get the vertex
         POINT *p = &vertex_list[i];
-        //if that vertex is a part of at least 1 triangle
         if(p->num_tris > 0)
         {
-            // reset v_normal
             set_vec4(v_normal, 0, 0, 0, 0);
-            // for each triangle that this vertex participates in,
-            //    calculate the avg of all the face normals
             for(int t = 0; t < p->num_tris; t++)
             {
                 int tri_idx = p->tri_list[t];
@@ -671,7 +644,6 @@ void calculate_vertex_normals (void)
             }
             scalar_divide(p->num_tris, v_normal, v_normal);
             normalize(v_normal);
-            //store normal in POINT struct's v_normal field
             cpy_vec4(p->v_normal, v_normal);
         }
     }
@@ -685,6 +657,7 @@ void camera_xform (CAMERA *c)
     set_camera_mat (&cam, c);
     for(int i = 0; i < num_vertices; i++)
     {
+        cpy_vec4(vertex_list[i].world_pos, vertex_list[i].world); //save world coords for lighting calculations later
         mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
     }
@@ -693,6 +666,11 @@ void camera_xform (CAMERA *c)
         mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
         peripherals[i].world[W] = 1.0;
     }
+    light_pos[W] = 1.0;
+    mat_vec_mul (&cam, light_pos, light_pos_screen);
+    light_pos[W] = 1.0;
+//    printf("light pos cam space: ");
+//    print_vec4(light_pos_screen);
 }
 
 
@@ -716,6 +694,9 @@ void xform_model(float x_min, float x_max,
         mat_vec_mul (&ortho, peripherals[i].world, peripherals[i].position);
         peripherals[i].position[W] = 1.0;
     }
+//    mat_vec_mul (&ortho, light_pos_screen, light_pos_screen);
+//    printf("light pos ndc: ");
+//    print_vec4(light_pos_screen);
 }
 
 void viewport_mat_xform (int vp_w, int vp_h)
@@ -740,6 +721,13 @@ void viewport_mat_xform (int vp_w, int vp_h)
         mat_vec_mul (&viewport, peripherals[i].position, peripherals[i].position);
         vector_add(peripherals[i].position, translation_vec, peripherals[i].position);
     }
+//    mat_vec_mul (&viewport, light_pos_screen, light_pos_screen);
+//    printf("light pos screen: ");
+//    print_vec4(light_pos_screen);
+//    vector_add(light_pos_screen, translation_vec, light_pos_screen);
+//    printf("light pos screen: ");
+//    print_vec4(light_pos_screen);
+
 }
 
 /****************************************************************/
@@ -805,6 +793,14 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
             peripherals[i].position[W] = 1.0 / local_w;
         }
     }
+//    float local_w;
+//    mat_vec_mul (&perspective, light_pos_screen, light_pos_screen);
+//    local_w = light_pos_screen[W];
+//    scalar_divide (local_w, light_pos_screen, light_pos_screen);
+//    if(perspective_correct && texturing)
+//    {
+//        light_pos_screen[W] = 1.0 / local_w;
+//    }
 //    printf("w: %.2f\n", w);
     return w;
 }
@@ -845,17 +841,19 @@ void unproject_screen_to_world (float out[4], float in[4], float w)
     mat_vec_mul(&backward, out, out);
 }
 
+/***************************************************************************/
+/* setter functions */
+/***************************************************************************/
 /* called when everything is in world space */
 void set_backface_flags (CAMERA *c)
 {
+    float eye_ray[4], dot;
     for(int i = 0; i < num_triangles; i++)
     {
         FACE *f = &face_list[i];
         POINT *p0 = &vertex_list[f->vertices[0]];
         POINT *p1 = &vertex_list[f->vertices[1]];
         POINT *p2 = &vertex_list[f->vertices[2]];
-        
-        float eye_ray[4], dot;
         
         vector_subtract(c->pos, p0->world, eye_ray);
         normalize(eye_ray);
@@ -915,55 +913,63 @@ void set_triangle_clip_flags (void)
         else //if partially, then clipped = 1
         {
             face_list[i].clip_flag = 1;
-            if(1) //debugging_mode)
+          
+            int num_clipped = clip_triangle (verts);
+            if(num_clipped == 0)
             {
-                int num_clipped = clip_triangle (verts);
-                if(num_clipped == 0)
-                {
-                    continue;
-                }
-                //subdivide polygon into triangles
-                for(int j = 1; j < num_clipped - 1; j++)
-                {
-                    int new_v0 = num_vertices;
-                    //v0
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[0];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0], p->color);
-                    cpy_vec4(tex_list[new_v0], p->tex);
-                    
-                    //v1
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[j];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0 + 1], p->color);
-                    cpy_vec4(tex_list[new_v0 + 1], p->tex);
-                    
-                    //v2
-                    p = &vertex_list[num_vertices++];
-                    *p = verts[j + 1];
-                    p->num_tris = 0;
-                    cpy_vec4(color_list[new_v0 + 2], p->color);
-                    cpy_vec4(tex_list[new_v0 + 2], p->tex);
-                    
-                    int new_f = num_triangles;
-                    
-                    add_face (new_v0, new_v0 + 1, new_v0 + 2,
-                              new_v0, new_v0 + 1, new_v0 + 2,
-                              new_v0, new_v0 + 1, new_v0 + 2,
-                              0, 0, 0);
-                    num_addl++;
-                    
-                    /* copy data from original face */
-                    cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
-                    face_list[new_f].clip_flag = 0;
-                    face_list[new_f].backface_factor = face_list[i].backface_factor;
-                }
+                continue;
             }
+            //subdivide polygon into triangles
+            for(int j = 1; j < num_clipped - 1; j++)
+            {
+                int new_v0 = num_vertices;
+                //v0
+                p = &vertex_list[num_vertices++];
+                *p = verts[0];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0], p->color);
+                cpy_vec4(tex_list[new_v0], p->tex);
+                
+                //v1
+                p = &vertex_list[num_vertices++];
+                *p = verts[j];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0 + 1], p->color);
+                cpy_vec4(tex_list[new_v0 + 1], p->tex);
+                
+                //v2
+                p = &vertex_list[num_vertices++];
+                *p = verts[j + 1];
+                p->num_tris = 0;
+                cpy_vec4(color_list[new_v0 + 2], p->color);
+                cpy_vec4(tex_list[new_v0 + 2], p->tex);
+                
+                int new_f = num_triangles;
+                
+                add_face (new_v0, new_v0 + 1, new_v0 + 2,
+                          new_v0, new_v0 + 1, new_v0 + 2,
+                          new_v0, new_v0 + 1, new_v0 + 2,
+                          0, 0, 0);
+                num_addl++;
+                
+                /* copy data from original face */
+                cpy_vec4 (face_list[new_f].f_normal, face_list[i].f_normal);
+                face_list[new_f].clip_flag = 0;
+                face_list[new_f].backface_factor = face_list[i].backface_factor;
+            }
+            
             num_face_normals = num_triangles;
         }
     }
+}
+
+/* set 2D click frame for sensing mouse clicks in main.c */
+void set_click_frame (OBJECT *o)
+{
+    cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
+    cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
+    cpy_vec4(o->bb_tr.world, peripherals[bb_start_idx + 1].world);
+    cpy_vec4(o->bb_bl.world, peripherals[bb_start_idx + 3].world);
 }
 /****************************************************************/
 /* draw functions */
@@ -974,10 +980,8 @@ void draw_model(int mode)
     for(int i = 0; i < num_triangles; i++)
     {
         FACE f = face_list[i];
-        if(f.clip_flag)
-        {
-            continue;
-        }
+        if(f.clip_flag) continue;
+        
         POINT p0 = vertex_list[f.vertices[0]];
         POINT p1 = vertex_list[f.vertices[1]];
         POINT p2 = vertex_list[f.vertices[2]];
@@ -1000,124 +1004,59 @@ void draw_model(int mode)
             scalar_multiply(p1.position[W], p1.tex, p1.tex);
             scalar_multiply(p2.position[W], p2.tex, p2.tex);
         }
-        
-        // FRAME = 0, FILL = 1
+    
+    
+        if(shading_mode == FLAT)
+        {
+            float diffuse, tmp_diff[4], tmp_spec[4];
+
+            if(light_type == LOCAL_L)
+            {
+                /* using one of vertices' light vecs instead of global light dir */
+                set_diffuse_term(tmp_diff, f.f_normal, p0.light, p0.world_pos);
+                set_specular_term(tmp_spec, f.f_normal, p0.light, p0.view, p0.world_pos);
+            }
+            else if(light_type == GLOBAL_L)
+            {
+                set_diffuse_term(tmp_diff, f.f_normal, light, p0.world_pos);
+                set_specular_term(tmp_spec, f.f_normal, light, p0.view, p0.world_pos);
+            }
+            shade_point(tmp_diff, tmp_spec, &p0, modulate_type);
+            shade_point(tmp_diff, tmp_spec, &p1, modulate_type);
+            shade_point(tmp_diff, tmp_spec, &p2, modulate_type);
+        }
+        if(f.backface_factor < 0) //pointing away from us
+        {
+            if(backface_culling)
+            {
+                continue;
+            }
+            drawing_backside = ON;
+            float s = f.backface_factor / 2.0;
+            scalar_add(s, p0.color, p0.color);
+            scalar_add(s, p1.color, p1.color);
+            scalar_add(s, p2.color, p2.color);
+            if(mode == FILL)
+            {
+                draw_triangle_wrapper (&p0, &p2, &p1);
+            }
+            drawing_backside = OFF;
+        }
+        else
+        {
+            drawing_backside = OFF;
+            if(mode == FILL)
+            {
+                draw_triangle_wrapper (&p0, &p1, &p2);
+            }
+        }
         if(mode == FRAME)
         {
             draw_line_wrapper(&p0, &p1, DRAW);
             draw_line_wrapper(&p1, &p2, DRAW);
             draw_line_wrapper(&p0, &p2, DRAW);
         }
-        else if(mode == FILL)
-        {
-    
-            if(shading_mode == FLAT)
-            {
-                float diffuse, tmp_diff[4], tmp_spec[4];
 
-                if(light_type == LOCAL_L)
-                {
-//                    print_vec4(p0.light);
-                    /* using one of vertices' light vecs instead of global light dir */
-                    set_diffuse_term (f.f_normal, p0.light, tmp_diff);
-                    set_specular_term (f.f_normal, p0.light, tmp_spec, p0.view);
-                }
-                else if(light_type == GLOBAL_L)
-                {
-//                    print_vec4(light);
-
-                    set_diffuse_term (f.f_normal, light, tmp_diff);
-                    set_specular_term (f.f_normal, light, tmp_spec, p0.view);
-                }
-                
-                //modulate interpolated color * texture
-                if(!modulate || (modulate && modulate_type == MOD_COLOR))
-                {
-                    shade_point(tmp_diff, tmp_spec, &p0);
-                    shade_point(tmp_diff, tmp_spec, &p1);
-                    shade_point(tmp_diff, tmp_spec, &p2);
-                }
-                //modulate texture and intensity i.e. lighting
-                else if(modulate && modulate_type == MOD_LIGHT)
-                {
-                    cpy_vec4(p0.color, tmp_diff);
-                    cpy_vec4(p1.color, tmp_diff);
-                    cpy_vec4(p2.color, tmp_diff);
-                    if(specular_highlight)
-                    {
-                        vector_add(tmp_spec, p0.color, p0.color);
-                        vector_add(tmp_spec, p1.color, p1.color);
-                        vector_add(tmp_spec, p2.color, p2.color);
-                    }
-                    
-                    float ambient[4] = {0.5 , 0.5 , 0.5 , 0};
-                    if(material)
-                    {
-                        vector_multiply(light_ambient, material_ambient, ambient);
-                    }
-                    
-                    vector_add(p0.color, ambient, p0.color);
-                    vector_add(p1.color, ambient, p1.color);
-                    vector_add(p2.color, ambient, p2.color);
-                }
-            }
-            if(f.backface_factor < 0) //pointing away from us
-            {
-                drawing_backside = ON;
-                scalar_add(f.backface_factor / 2.0, p0.color, p0.color);
-                scalar_add(f.backface_factor / 2.0, p1.color, p1.color);
-                scalar_add(f.backface_factor / 2.0, p2.color, p2.color);
-                draw_triangle_wrapper (&p0, &p2, &p1);
-            }
-            else {
-                drawing_backside = OFF;
-                draw_triangle_wrapper (&p0, &p1, &p2);
-                
-                if (normal_type == V_NORMALS)
-                {
-                    drawing_normals = ON;
-                    POINT v_norm_endpt, vtx;
-                    float tmp[4];
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    set_vec4(p0.color, 0, 1, 0, 1);
-                    scalar_multiply(V_NORM_SCALE, p0.v_normal, tmp);
-                    vector_add(p0.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = vtx.position[Z];
-                    draw_line(&p0, &v_norm_endpt, DRAW);
-
-                    set_vec4(p1.color, 0, 1, 0, 1);
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    scalar_multiply(V_NORM_SCALE, p1.v_normal, tmp);
-                    vector_add(p1.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = p1.position[Z];
-                    draw_line(&p1, &v_norm_endpt, DRAW);
-
-                    set_vec4(p2.color, 0, 1, 0, 1);
-                    set_vec4(v_norm_endpt.color, 0, 1, 0, 1);
-
-                    scalar_multiply(V_NORM_SCALE, p2.v_normal, tmp);
-                    vector_add(p2.position, tmp, v_norm_endpt.position);
-                    v_norm_endpt.position[Z] = p2.position[Z];
-                    draw_line(&p2, &v_norm_endpt, DRAW);
-                    drawing_normals = OFF;
-                }
-            }
-
-            if(normal_type == F_NORMALS)
-            {
-                //draw normals
-                drawing_normals = ON;
-                set_vec4(vertex_list[num_vertices + 2 * i].color, 1, 0, 0, 1);
-                set_vec4(vertex_list[num_vertices + 2 * i + 1].color, 1, 0, 0, 1);
-                draw_line(&vertex_list[num_vertices + 2 * i],
-                          &vertex_list[num_vertices + 2 * i + 1], DRAW);
-                drawing_normals = OFF;
-
-            }
-
-        }
     }
 }
 
@@ -1127,7 +1066,6 @@ void draw_local_axes (void)
     if(draw_coord_axes)
     {
         drawing_axes = ON;
-        //draw coord axes of model
         set_vec4(peripherals[0].color, 1, 0, 0, 1);
         set_vec4(peripherals[1].color, 1, 0, 0, 1);
         draw_line(&peripherals[0], &peripherals[1], DRAW);
@@ -1143,13 +1081,23 @@ void draw_local_axes (void)
     }
 }
 
-/* set 2D click frame for sensing mouse clicks in main.c */
-void set_click_frame (OBJECT *o)
+void draw_face_normals (void)
 {
-    cpy_vec4(o->bb_tr.position, peripherals[bb_start_idx + 1].position);
-    cpy_vec4(o->bb_bl.position, peripherals[bb_start_idx + 3].position);
-    cpy_vec4(o->bb_tr.world, peripherals[bb_start_idx + 1].world);
-    cpy_vec4(o->bb_bl.world, peripherals[bb_start_idx + 3].world);
+    if(normal_type == F_NORMALS)
+    {
+        drawing_normals = ON;
+        for(int i = 0; i < num_triangles; i++)
+        {
+            set_vec4(peripherals[face_normals_start_idx + 2 * i].color,
+                     1, 0, 0, 1);
+            set_vec4(peripherals[face_normals_start_idx + 2 * i + 1].color,
+                     1, 0, 0, 1);
+            
+            draw_line(&peripherals[face_normals_start_idx + 2 * i],
+                      &peripherals[face_normals_start_idx + 2 * i + 1], DRAW);
+        }
+        drawing_normals = OFF;
+    }
 }
 
 /* for SCENE mode to draw a black 3D box around the object being modified */
@@ -1252,6 +1200,7 @@ char *tex_gen_name (int mode)
             return "ERROR";
     }
 }
+
 /****************************************************************/
 /* lighting */
 /****************************************************************/
@@ -1262,6 +1211,7 @@ void calculate_light_vectors (void)
     {
         p = &vertex_list[i];
         vector_subtract(light_pos, p->world, p->light);
+        p->light[W] = 1;
         normalize(p->light);
     }
 }

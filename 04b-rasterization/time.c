@@ -5,6 +5,7 @@
 /*************************************************************************/
 TIMER sw_renderer_timer;
 TIMER gl_timer;
+TIMER framerate_timer;
 
 TIMER vtx_timer;
 TIMER px_timer;

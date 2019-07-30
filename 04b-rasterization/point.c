@@ -17,22 +17,22 @@
 /* global vars                                                          */
 /*************************************************************************/
 /* draw modes */
-int alpha_blend = OFF;
-int depth_test = ON;
-int texturing = OFF;
-int modulate = OFF;
-int perspective_correct = OFF;
+int alpha_blend             = OFF;
+int depth_test              = ON;
+int texturing               = OFF;
+int modulate                = OFF;
+int perspective_correct     = OFF;
 
-int shading_mode = FLAT;
+int shading_mode            = FLAT;
 
-int drawing_normals = OFF;
-int drawing_bounding_box = OFF;
-int drawing_axes = OFF;
+int drawing_normals         = OFF;
+int drawing_bounding_box    = OFF;
+int drawing_axes            = OFF;
 
-int bump_mapping = OFF;         // bump mapping for specular lighting
-int material = OFF;             // material properties
-int specular_highlight = OFF;
-int fog = OFF;
+int bump_mapping            = OFF;    // bump mapping for specular lighting
+int material                = OFF;    // material properties
+int specular_highlight      = OFF;
+int fog                     = OFF;
 
 /* data */
 IMAGE bump_map;
@@ -50,20 +50,27 @@ int cube_map_index;
     calculate diffuse term for current material and light types, and
         store vector result in diffuse_term
  */
-void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
+void set_diffuse_term
+(float diffuse_term[4], float normal[4], float light[4], float world_pos[4])
 {
-    float diffuse;
-    normalize(light);
-    diffuse = MAX(vector_dot(normal, light), 0);
+    float diffuse, tmp[4];
+    if(light_type == GLOBAL_L)           // directional light
+    {
+        scalar_multiply(-1, light, tmp); //reverse so (pos -> light)
+    }
+    else //positional light
+    {
+        cpy_vec4(tmp, light);           //already (pos -> light) from calculate_vectors
+    }
+    normalize(tmp);
+    diffuse = MAX(vector_dot(normal, tmp), 0);
     if(material)
     {
-        // include material properties
         scalar_multiply(diffuse, material_diffuse, diffuse_term);
         vector_multiply(diffuse_term, light_diffuse, diffuse_term);
     }
     else
     {
-        // only use light properties
         scalar_multiply(diffuse, light_diffuse, diffuse_term);
     }
 
@@ -73,45 +80,55 @@ void set_diffuse_term (float normal[4], float light[4], float diffuse_term[4])
     calculate specular term for current material and light types, and
         store vector result in specular_term
  */
-void set_specular_term (float normal[4], float light[4], float spec_term[4], float view[4])
+void set_specular_term
+(float spec_term[4], float normal[4], float light[4], float view[4], float world_pos[4])
 {
-    float specular, refl[4];
-    normalize(light);
+    float specular, refl[4], tmp[4];
     normalize(view);
-    vector_reflect(light, normal, refl);
+    if(light_type == GLOBAL_L) //directional light
+    {
+        scalar_multiply(-1, light, tmp);
+    }
+    else //positional light
+    {
+        cpy_vec4(tmp, light);
+    }
+    normalize(tmp);
+    vector_reflect(tmp, normal, refl);
     specular = MAX(vector_dot(view, refl), 0);
     specular = pow(specular, shinyness);
     if(material)
     {
-        // include material properties
         scalar_multiply(specular, material_specular, spec_term);
         vector_multiply(spec_term, light_specular, spec_term);
     }
     else
     {
-        // include material properties
         scalar_multiply(specular, light_specular, spec_term);
     }
 }
 
 /* shade point p with diffuse, specular, and ambient components using the given
  diffuse and specular vectors */
-void shade_point (float diffuse[4], float spec[4], POINT *p)
+void shade_point (float diffuse[4], float spec[4], POINT *p, int mod_type)
 {
-    vector_multiply(diffuse, p->color, p->color);
+    if(!modulate || (modulate && mod_type == MOD_COLOR))
+    {
+        vector_multiply(diffuse, p->color, p->color);
+    }
+    else if(modulate && mod_type == MOD_LIGHT)
+    {
+        cpy_vec4(p->color, diffuse);
+    }
     if(specular_highlight)
     {
         vector_add(spec, p->color, p->color);
     }
     
-    float ambient[4] = {0, 0 , 0 , 0};
+    float ambient[4] = {0.5, 0.5, 0.5, 0};
     if(material)
     {
         vector_multiply(light_ambient, material_ambient, ambient);
-    }
-    else
-    {
-        scalar_add(0.5, ambient, ambient);
     }
     vector_add(p->color, ambient, p->color);
 }
@@ -176,37 +193,16 @@ void draw_point (POINT *p)
         float tmp_diff[4], tmp_spec[4];
         if(light_type == LOCAL_L)
         {
-            set_diffuse_term(p->v_normal, p->light, tmp_diff);
-            set_specular_term(p->v_normal, p->light, tmp_spec, p->view);
+            set_diffuse_term(tmp_diff, p->v_normal, p->light, p->world_pos);
+            set_specular_term(tmp_spec, p->v_normal, p->light, p->view, p->world_pos);
         }
         else if (light_type == GLOBAL_L)
         {
-            set_diffuse_term(p->v_normal, light, tmp_diff);
-            set_specular_term(p->v_normal, light, tmp_spec, p->view);
+            set_diffuse_term(tmp_diff, p->v_normal, light, p->world_pos);
+            set_specular_term(tmp_spec, p->v_normal, light, p->view, p->world_pos);
         }
-        
-        //modulate texture with color and brightness
-        if(!modulate || (modulate && modulate_type == MOD_COLOR))
-        {
-            shade_point(tmp_diff, tmp_spec, p);
-        }
-        
-        //don't incorporate point's interpolated color;
-        //  just modulate texture with lighting/brightness
-        if(modulate && modulate_type == MOD_LIGHT)
-        {
-            cpy_vec4(p->color, tmp_diff);
-            if(specular_highlight)
-            {
-                vector_add(p->color, tmp_spec, p->color);
-            }
-            float ambient[4] = {0.5, 0.5 , 0.5 , 0};
-            if(material)
-            {
-                vector_multiply(light_ambient, material_ambient, ambient);
-            }
-            vector_add(p->color, ambient, p->color);
-        }
+        shade_point(tmp_diff, tmp_spec, p, modulate_type);
+
     }
     texture_ptr = &texture;
 
@@ -257,11 +253,6 @@ void draw_point (POINT *p)
         color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
         color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
         color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
-        // if drawing reverse side of triangles, ignore the texel channels
-//        if(drawing_backside)
-//        {
-//            set_vec4(color_buffer[r][c], 0, 0, 0, 1);
-//        }
         //any form of modulating (with color or with light)
         if(modulate)
         {

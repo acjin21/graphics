@@ -232,6 +232,12 @@ void gl_print_settings (void)
     gl_printf(120, next_y, settings_str );
     next_y += 15;
     
+    sprintf(settings_str, "%s",
+            backface_culling ? "ON" : "OFF" );
+    gl_printf(5, next_y, "Backface culling (*):" );
+    gl_printf(120, next_y, settings_str );
+    next_y += 15;
+    
 
     printf("Manip Mode ([tab]):\t%s\n",
            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
@@ -371,7 +377,6 @@ void render_object(OBJECT *o)
     normalize(light);
     /*-------------------------------*/         /* start vertex processing */
     start_timer(&vtx_timer);
-    
     /* appropriate scaling for different OBJ files */
     switch (o->type)
     {
@@ -408,10 +413,14 @@ void render_object(OBJECT *o)
     /* rotated face and vertex normals */
     calculate_face_normals();
     calculate_vertex_normals();
+    
+    
     if(light_type == LOCAL_L) calculate_light_vectors();
     
     set_backface_flags(&camera);
     set_view_rays(&camera);
+    if(normal_type == F_NORMALS)         insert_normal_coords();
+
     camera_xform (&camera);
 
     /*******************/
@@ -423,12 +432,12 @@ void render_object(OBJECT *o)
     switch(proj_mode)
     {
         case ORTHO:
-            xform_model(-1, 1, -1, 1, near, far);           break;
+            xform_model(-1, 1, -1, 1, near, far);                   break;
             
         case PERSPECT:
             skip = cull_model(near, far);
             if(skip) return;
-            o->w = perspective_xform(near, far, -1, 1, -1, 1);     break;
+            o->w = perspective_xform(near, far, -1, 1, -1, 1);      break;
     }
     
     /*******************/
@@ -440,24 +449,23 @@ void render_object(OBJECT *o)
     /* SCREEN SPACE */
     /*******************/
     set_click_frame (o);
-    
     stop_timer(&vtx_timer);
-    
     /*-------------------------------*/         /* end vertex processing */
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
     draw_model(draw_mode);
-    
+    stop_timer(&px_timer);
+    /*-------------------------------*/         /* end pixel processing */
+
+    /* extra drawings -- do not include in benchmarking pixel processing */
     if(draw_peripherals && !skip)
     {
         draw_local_axes();
         float bb_color[4] = {0, 0, 0, 1};
         draw_3D_bb(bb_color);
+        draw_face_normals();
     }
-    stop_timer(&px_timer);
-    
-    /*-------------------------------*/         /* end pixel processing */
 }
 
 /********************************************/
@@ -681,7 +689,7 @@ void key_callback (unsigned char key)
             
         case 'n':       normal_type = (normal_type + 1) % 3;            break;
         case 'h':       shading_mode = (shading_mode + 1) % 3;          break;
-        case 'F':       fog = 1 - fog;                                  break;
+//        case 'F':       fog = 1 - fog;                                  break;
         case 'S':       specular_highlight = 1 - specular_highlight;    break;
             
         case 'p':       proj_mode = 1 - proj_mode;                      break;
@@ -714,22 +722,32 @@ void key_callback (unsigned char key)
         case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
 
         case 'I':
-            if(light_type == LOCAL_L) light_pos[Y] += 0.5;
+            if(light_type == LOCAL_L) light_pos[Y] += 10;
             else light[Y] += 0.5;
             break;
         case 'K':
-            if(light_type == LOCAL_L) light_pos[Y] -= 0.5;
+            if(light_type == LOCAL_L) light_pos[Y] -= 10;
             else light[Y] -= 0.5;
             break;
         case 'J':
-            if(light_type == LOCAL_L) light_pos[X] -= 0.5;
+            if(light_type == LOCAL_L) light_pos[X] -= 10;
             else light[X] -= 0.5;
             break;
         case 'L':
-            if(light_type == LOCAL_L) light_pos[X] += 0.5;
+            if(light_type == LOCAL_L) light_pos[X] += 10;
             else light[X] += 0.5;
             break;
+            
+        case 'F':
+            if(light_type == LOCAL_L) light_pos[Z] -= .5;
+            else light[Z] -= 0.5;
+            break;
 
+        case 'N':
+            if(light_type == LOCAL_L) light_pos[Z] += .5;
+            else light[Z] += 0.5;
+            break;
+            
         case '0': tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;    break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
@@ -740,7 +758,7 @@ void key_callback (unsigned char key)
         case '7': light_type = 1 - light_type;                          break;
         case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
         case '9': renderer = (renderer + 1) % 2;                        break;
-            
+        case '*': backface_culling = 1 - backface_culling;              break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
