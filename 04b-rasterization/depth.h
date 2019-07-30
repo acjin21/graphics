@@ -10,6 +10,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #endif
+
 #include "macros.h"
 
 #ifdef WINDOWS

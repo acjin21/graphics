@@ -41,6 +41,7 @@ extern int debugging_mode;
 extern int framebuffer_src; /* which buffer to draw from (COLOR/DEPTH) */
 extern int program_type;
 extern int curr_objectID;
+extern int stencil_buffer_ID;
 
 /* needed in model.c */
 extern int obj_has_vnorms;

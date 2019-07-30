@@ -24,7 +24,7 @@
 #include "g_buffer.h" //just for mode_deferred_render
 #include "opengl.h"
 #include "light.h"
-
+#include "stencil.h"
 #include "window.h"
 /*************************************************************************/
 /* externs                                                               */
@@ -69,7 +69,7 @@ int dof_mode = OFF;             // depth_of_field
 
 /* manipulating objects one at a time */
 int curr_objectID = 0;            //ID of current object
-
+int stencil_buffer_ID = 0;
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
 int obj_has_vnorms = FALSE;     // whether obj supplies vn's
@@ -509,6 +509,8 @@ int init_scene_program (int argc, char **argv)
 
 void display_scene_mode (void)
 {
+    clear_stencil_buffer();
+
     for(int i = 0; i < num_objects; i++)
     {
 
@@ -526,7 +528,7 @@ void display_scene_mode (void)
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-
+        stencil_buffer_ID = i;
         render_object(&objects[i]);
     }
 }
@@ -702,7 +704,7 @@ void key_callback (unsigned char key)
             curr_object->persp_corr = 1 - curr_object->persp_corr;
             break;
             
-        case 'B':       framebuffer_src = 1 - framebuffer_src;          break;
+        case 'B':       framebuffer_src = (framebuffer_src + 1) % 3;          break;
             
         case 'A':       draw_coord_axes = 1 - draw_coord_axes;          break;
         case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;

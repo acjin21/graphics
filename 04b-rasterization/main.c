@@ -21,11 +21,12 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include "window.h"
 
-//#include "macros.h"
 #include "time.h"
 #include "color.h"
 #include "depth.h"
+#include "stencil.h"
 
 #include "app.h"
 #include "benchmark.h"
@@ -35,7 +36,6 @@
 #include "vector.h"
 #include "g_buffer.h"
 #include "opengl.h"
-#include "window.h"
 
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
@@ -128,7 +128,10 @@ void display(void)
     if(renderer == ALL_SW)
     {
         if(mode_deferred_render)    draw_g_buffer();
-        framebuffer_src == COLOR ? draw_color_buffer() : draw_depth_buffer();
+        
+        framebuffer_src ?
+        (framebuffer_src == COLOR ? draw_color_buffer() : draw_stencil_buffer())
+        : draw_depth_buffer();
     }
     stop_timer(&framerate_timer);
     /* STOP FRAMERATE TIMER */
@@ -246,22 +249,24 @@ void mouse (int button, int state, int x, int y)
         
         float closest_z = FLT_MAX;
 
-        for(int i = 0; i < num_objects; i++)
-        {
-//            printf("screen coords (%.2f, %.2f)\n", screen_coords[X], screen_coords[Y]);
-            unproject_screen_to_camera (res, screen_coords, objects[i].w);
-//            printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
-
-            if(click_in_bb(res[X], res[Y], &objects[i]))
-            {
-                if(objects[i].center[Z] < closest_z)
-                {
-                    closest_z = objects[i].center[Z];
-                    curr_objectID = i;
-                    printf("curr object %i\n", curr_objectID);
-                }
-            }
-        }
+//        for(int i = 0; i < num_objects; i++)
+//        {
+////            printf("screen coords (%.2f, %.2f)\n", screen_coords[X], screen_coords[Y]);
+//            unproject_screen_to_camera (res, screen_coords, objects[i].w);
+////            printf("unprojected cam space (%.2f, %.2f)\n", res[X], res[Y]);
+//
+//            if(click_in_bb(res[X], res[Y], &objects[i]))
+//            {
+//                if(objects[i].center[Z] < closest_z)
+//                {
+//                    closest_z = objects[i].center[Z];
+//                    curr_objectID = i;
+//                    printf("curr object %i\n", curr_objectID);
+//                }
+//            }
+//        }
+        curr_objectID = stencil_buffer[y][x];
+        printf("object ID: %i\n", curr_objectID );
         draw_one_frame = 1;
         glutPostRedisplay();
     }
@@ -376,7 +381,7 @@ int main(int argc, char **argv)
     read_ppm("ppm/rocks_bump.ppm", &bump_map);
     
     set_texture();
-    
+
     /* init OpenGL */
     init_gl_state();
     passthrough_gl_state();

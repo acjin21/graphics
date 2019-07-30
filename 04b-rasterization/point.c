@@ -14,6 +14,7 @@
 #include "material.h"
 #include "g_buffer.h"
 #include "window.h"
+#include "stencil.h"
 /*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/
@@ -153,6 +154,8 @@ void draw_point (POINT *p)
     {
         depth_buffer[r][c] = p->position[Z];
     }
+    stencil_buffer[r][c] = stencil_buffer_ID;
+
     /* write to g buffer if deferred rendering */
     if(mode_deferred_render)
     {
