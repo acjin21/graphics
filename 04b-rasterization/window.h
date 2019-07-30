@@ -3,4 +3,5 @@
 
 extern int window_height;
 extern int window_width;
+
 #endif

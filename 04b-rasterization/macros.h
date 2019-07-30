@@ -4,7 +4,8 @@
 /* screen */
 #define DEFAULT_WIN_W 800
 #define DEFAULT_WIN_H 800
-
+#define MAX_WIN_H 1000
+#define MAX_WIN_W 1000
 /* coords */
 #define R 0
 #define G 1

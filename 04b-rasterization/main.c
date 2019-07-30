@@ -173,6 +173,18 @@ void display(void)
     printf("======= END DISPLAY CALL =========\n");
 }
 
+static void reshape(int w, int h)
+{
+    printf("RESHAPE: width = %i, height = %i\n", w, h);
+    if(w < MAX_WIN_W && h < MAX_WIN_H)
+    {
+        window_width = w;
+        window_height = h;
+        draw_one_frame = 1;
+        glutPostRedisplay();
+    }
+}
+
 /* key callback */
 static void key(unsigned char key, int x, int y)
 {
@@ -314,6 +326,8 @@ int main(int argc, char **argv)
     glutKeyboardFunc(key);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
+    glutReshapeFunc(reshape);
+    
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
     printf("%s", glGetString(GL_VERSION));

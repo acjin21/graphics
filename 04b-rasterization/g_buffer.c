@@ -4,7 +4,7 @@
 #include "window.h"
 
 /* global vars */
-POINT g_buffer[DEFAULT_WIN_H][DEFAULT_WIN_W];
+POINT g_buffer[MAX_WIN_H][MAX_WIN_W];
 int mode_deferred_render = 0;
 
 /* functions */

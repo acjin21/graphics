@@ -12,8 +12,8 @@
 /* global variables                                                      */
 /*************************************************************************/
 /* for rasterization */
-POINT span[DEFAULT_WIN_H][2];
-int edge_counts[DEFAULT_WIN_H];
+POINT span[MAX_WIN_H][2];
+int edge_counts[MAX_WIN_H];
 
 /*************************************************************************/
 /* method prototypes                                                     */
