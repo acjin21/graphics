@@ -18,7 +18,7 @@
 /*************************************************************************/
 /* variable externs                                                     */
 /*************************************************************************/
-extern float depth_buffer[WIN_H][WIN_W];
+extern float depth_buffer[DEFAULT_WIN_H][DEFAULT_WIN_W];
 
 void clear_depth_buffer (float value);
 void draw_depth_buffer (void);

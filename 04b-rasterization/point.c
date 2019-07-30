@@ -13,6 +13,7 @@
 #include "depth.h"
 #include "material.h"
 #include "g_buffer.h"
+#include "window.h"
 /*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/
@@ -142,7 +143,7 @@ void draw_point (POINT *p)
     int c = (int) (p->position[X]);// + WIN_W / 2);
     
     /* if not within window size, do not draw */
-    if(r >= WIN_H || r < 0 || c >= WIN_W || c < 0) return;
+    if(r >= window_height || r < 0 || c >= window_width || c < 0) return;
     
     float blend_weight = 0.50; //for alpha blending
     

@@ -1,6 +1,7 @@
 #include "raster.h"
 #include <stdio.h>
 #include "opengl.h"
+#include "window.h"
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -11,8 +12,8 @@
 /* global variables                                                      */
 /*************************************************************************/
 /* for rasterization */
-POINT span[WIN_H][2];
-int edge_counts[WIN_H];
+POINT span[DEFAULT_WIN_H][2];
+int edge_counts[DEFAULT_WIN_H];
 
 /*************************************************************************/
 /* method prototypes                                                     */
@@ -106,7 +107,7 @@ void draw_line( POINT *start, POINT *end, int mode )
 /* store point in span */
 void store_point (POINT *p)
 {
-    int r = (int) (p->position[Y] + WIN_H / 2);
+    int r = (int) (p->position[Y] + window_height / 2);
     int count = edge_counts[r];
     
     /* sanity check */
@@ -122,7 +123,7 @@ void store_point (POINT *p)
 /* draw horizontal scan lines of triangle */
 void draw_spans(void)
 {
-    for(int r = 0; r < WIN_H; r++)
+    for(int r = 0; r < window_height; r++)
     {
         POINT start_p = span[r][0];
         int count = edge_counts[r];
@@ -140,7 +141,7 @@ void draw_spans(void)
 /* reset all edge counts to 0 */
 void reset_edge_counts (void)
 {
-    for(int i = 0; i < WIN_H; i++)
+    for(int i = 0; i < window_height; i++)
     {
         edge_counts[i] = 0;
     }
@@ -202,9 +203,9 @@ void sprint_point (char *s, POINT *p)
  */
 void print_edge_counts (void)
 {
-    for(int i = 0; i < WIN_H; i++)
+    for(int i = 0; i < window_height; i++)
     {
-        printf("row %i, y = %i, count = %i\n", i, i - WIN_H / 2, edge_counts[i]);
+        printf("row %i, y = %i, count = %i\n", i, i - window_height / 2, edge_counts[i]);
     }
 }
 

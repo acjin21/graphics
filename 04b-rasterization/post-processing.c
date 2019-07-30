@@ -5,7 +5,7 @@
 #include "image.h"
 #include "color.h"
 #include "depth.h"
-
+#include "window.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -30,8 +30,8 @@ float gaussian_kernel[5][5] =
 /* copy rgba vals [0, 1] in color_buffer to byte channels in image [0, 255] */
 void color_buffer_to_image (IMAGE *img)
 {
-    img->width = WIN_W;
-    img->height = WIN_H;
+    img->width = window_width;
+    img->height = window_height;
     
     for(int j = 0; j < img->height; j++)
     {
@@ -52,8 +52,8 @@ void color_buffer_to_image (IMAGE *img)
 /* copy byte channels in image [0, 255] to rgba vals [0, 1] in color_buffer */
 void image_to_color_buffer (IMAGE *img)
 {
-    img->width = WIN_W;
-    img->height = WIN_H;
+    img->width = window_width;
+    img->height = window_height;
     
     for(int j = 0; j < img->height; j++)
     {
@@ -69,8 +69,8 @@ void image_to_color_buffer (IMAGE *img)
 /* store z 'byte' in red channel of img->data */
 void depth_buffer_to_image (IMAGE *img)
 {
-    img->width = WIN_W;
-    img->height = WIN_H;
+    img->width = window_width;
+    img->height = window_height;
     
     for(int j = 0; j < img->height; j++)
     {
@@ -93,8 +93,8 @@ void depth_buffer_to_image (IMAGE *img)
     assume that size of IMAGE in == size of IMAGE out */
 void blur (IMAGE *in, IMAGE *out, float kernel[5][5])
 {
-    out->height = WIN_H;
-    out->width = WIN_W;
+    out->height = window_height;
+    out->width = window_width;
     for(int j = 2; j < out->height - 2; j++)
     {
         for(int i = 2; i < out->width - 2; i++)
@@ -107,7 +107,7 @@ void blur (IMAGE *in, IMAGE *out, float kernel[5][5])
                 kx = 0;
                 for(int x = i - 2; x <= i + 2; x++, kx++)
                 {
-                    if(y >= 0 && y < WIN_H && x >= 0 && x < WIN_W)
+                    if(y >= 0 && y < window_height && x >= 0 && x < window_width)
                     {
                         accum[R] += (kernel[ky][kx] * in->data[y][x][R]);
                         accum[G] += (kernel[ky][kx] * in->data[y][x][G]);
@@ -125,8 +125,8 @@ void blur (IMAGE *in, IMAGE *out, float kernel[5][5])
 /* blend sharp + blurry imgs w/ mask as blend weight and store result in out */
 void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
 {
-    out->height = WIN_H;
-    out->width = WIN_W;
+    out->height = window_height;
+    out->width = window_width;
     for(int j = 0; j < out->height; j++)
     {
         for(int i = 0; i < out->width; i++)
@@ -146,8 +146,8 @@ void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
 /* implement depth_of_field post proc effect using textures 00-03 */
 void depth_of_field (void)
 {
-    texture03.width = WIN_W;
-    texture03.height = WIN_H;
+    texture03.width = window_width;
+    texture03.height = window_height;
 
     int num_blurs = 3;
     color_buffer_to_image(&texture00); //sharp

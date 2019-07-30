@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "light.h"
 #include "material.h"
+#include "window.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -54,8 +55,8 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     if( need_v_normals )    glNormal3fv( v0.v_normal );
     if( renderer == SW_HW )
     {
-        glVertex3f(v0.position[X] - WIN_W / 2 - 0.5,
-                   v0.position[Y] - WIN_H / 2 - 0.5,
+        glVertex3f(v0.position[X] - window_width / 2 - 0.5,
+                   v0.position[Y] - window_height / 2 - 0.5,
                    -v0.position[Z]);
     }
     else    glVertex3f( v0.world[X], v0.world[Y], -v0.world[Z] );
@@ -68,8 +69,8 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     if( need_v_normals )    glNormal3fv( v1.v_normal );
     if( renderer == SW_HW )
     {
-        glVertex3f(v1.position[X] - WIN_W / 2 - 0.5,
-                   v1.position[Y] - WIN_H / 2 - 0.5,
+        glVertex3f(v1.position[X] - window_width / 2 - 0.5,
+                   v1.position[Y] - window_height / 2 - 0.5,
                    -v1.position[Z] );
     }
     else    glVertex3f( v1.world[X], v1.world[Y], -v1.world[Z] );
@@ -83,8 +84,8 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     if(need_v_normals)      glNormal3fv( v2.v_normal );
     if(renderer == SW_HW)
     {
-        glVertex3f(v2.position[X] - WIN_W / 2 - 0.5,
-                   v2.position[Y] - WIN_H / 2 - 0.5,
+        glVertex3f(v2.position[X] - window_width / 2 - 0.5,
+                   v2.position[Y] - window_height / 2 - 0.5,
                    -v2.position[Z] );
     }
     else    glVertex3f( v2.world[X], v2.world[Y], -v2.world[Z] );
@@ -111,8 +112,8 @@ void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
     if(texturing)         glTexCoord4fv( start.tex );
     if(need_v_normals)    glNormal3fv( start.v_normal );
     if(renderer == SW_HW)
-        glVertex3f(start.position[X] - WIN_W / 2 - 0.5,
-                   start.position[Y] - WIN_H / 2 - 0.5,
+        glVertex3f(start.position[X] - window_width / 2 - 0.5,
+                   start.position[Y] - window_height / 2 - 0.5,
                    -start.position[Z]);
     else
         glVertex3f( start.world[X], start.world[Y], -start.world[Z] );
@@ -125,9 +126,9 @@ void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
     if(texturing)         glTexCoord4fv(end.tex);
     if(need_v_normals)    glNormal3fv(end.v_normal);
     if(renderer == SW_HW)
-        glVertex3f(end.position[X] - WIN_W / 2 - 0.5,
-                   end.position[Y] - WIN_H / 2 - 0.5,
-                   -end.position[Z] );
+        glVertex3f(end.position[X] - window_width / 2 - 0.5,
+                   end.position[Y] - window_height / 2 - 0.5,
+                   -end.position[Z]);
     else //ALL_HW
         glVertex3f( end.world[X], end.world[Y], -end.world[Z] );
     glEnd();

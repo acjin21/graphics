@@ -2,8 +2,8 @@
 #define MACROS_H
 
 /* screen */
-#define WIN_W 800
-#define WIN_H 800
+#define DEFAULT_WIN_W 800
+#define DEFAULT_WIN_H 800
 
 /* coords */
 #define R 0

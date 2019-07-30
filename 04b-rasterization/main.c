@@ -35,6 +35,8 @@
 #include "vector.h"
 #include "g_buffer.h"
 #include "opengl.h"
+#include "window.h"
+
 //#include "texture.h" //for IMAGE typedef
 /*************************************************************************/
 /* global variables                                                      */
@@ -62,7 +64,7 @@ void display(void)
 
     if( Mojave_WorkAround )
     {
-        glutReshapeWindow(2 * window_size, 2 * window_size);
+        glutReshapeWindow(DEFAULT_WIN_W, DEFAULT_WIN_H);
         Mojave_WorkAround = 0;
         
         //eliminate weird resizing in the beginning
@@ -184,7 +186,7 @@ void motion(int x, int y)
 {
     OBJECT *curr_object = get_curr_object(curr_objectID);
 
-    y = WIN_H - y;
+    y = window_height - y;
     stop[X] = x;
     stop[Y] = y;
     
@@ -221,7 +223,7 @@ int click_in_bb (float x, float y, OBJECT *o)
 /* mouse click callback */
 void mouse (int button, int state, int x, int y)
 {
-    y = WIN_H - y;
+    y = window_height - y;
     if(state == GLUT_DOWN)
     {
         float screen_coords[4] = {(float)x, (float)y, 0, 0};
@@ -316,7 +318,6 @@ int main(int argc, char **argv)
 
     printf("%s", glGetString(GL_VERSION));
 
-//    change_gl_state();
     if(program_type == BASIC)
     {
         init_basic_program();

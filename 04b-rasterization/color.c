@@ -1,10 +1,11 @@
 #include "color.h"
 #include "macros.h"
+#include "window.h"
 
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
-float color_buffer[WIN_H][WIN_W][4];
+float color_buffer[DEFAULT_WIN_H][DEFAULT_WIN_W][4];
 
 /*************************************************************************/
 /* functions                                                             */
@@ -12,9 +13,9 @@ float color_buffer[WIN_H][WIN_W][4];
 /* clear color buffer with clear color (r, g, b, a) */
 void clear_color_buffer (float r, float g, float b, float a)
 {
-    for(int row = 0; row < WIN_H; row++)
+    for(int row = 0; row < window_height; row++)
     {
-        for(int col = 0; col < WIN_W; col++)
+        for(int col = 0; col < window_width; col++)
         {
             color_buffer[row][col][R] = r;
             color_buffer[row][col][G] = g;
@@ -28,13 +29,16 @@ void clear_color_buffer (float r, float g, float b, float a)
 void draw_color_buffer (void)
 {
     glBegin(GL_POINTS);
-    for(int y = - WIN_H / 2; y < WIN_H / 2; y++)
+    for(int y = - window_height / 2; y < window_height / 2; y++)
     {
-        for(int x = - WIN_W / 2; x < WIN_W / 2; x++)
+        for(int x = - window_width / 2; x < window_width / 2; x++)
         {
-            int r = (int) (y + WIN_H / 2);
-            int c = (int) (x + WIN_W / 2);
-            glColor4f(color_buffer[r][c][R], color_buffer[r][c][G], color_buffer[r][c][B], color_buffer[r][c][A]);
+            int r = (int) (y + window_height / 2);
+            int c = (int) (x + window_width / 2);
+            glColor4f(color_buffer[r][c][R],
+                      color_buffer[r][c][G],
+                      color_buffer[r][c][B],
+                      color_buffer[r][c][A]);
             glVertex2f(x, y);
         }
     }

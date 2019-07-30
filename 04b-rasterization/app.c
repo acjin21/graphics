@@ -24,6 +24,8 @@
 #include "g_buffer.h" //just for mode_deferred_render
 #include "opengl.h"
 #include "light.h"
+
+#include "window.h"
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
@@ -112,7 +114,7 @@ void gl_printf( int x, int y, char *s )
     glPushMatrix();
     glLoadIdentity();
     
-    gluOrtho2D( 0, WIN_W, 0, WIN_H );
+    gluOrtho2D( 0, window_width, 0, window_height );
     
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix();
@@ -443,7 +445,7 @@ void render_object(OBJECT *o)
     /*******************/
     /* NDC SPACE */
     /*******************/
-    viewport_mat_xform(WIN_W, WIN_H);
+    viewport_mat_xform(window_width, window_height);
     
     /*******************/
     /* SCREEN SPACE */

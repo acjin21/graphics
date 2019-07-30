@@ -17,6 +17,7 @@
 #include "frustum.h"
 #include "opengl.h"
 //#include "camera.h"
+#include "window.h"
 /****************************************************************/
 /* defines */
 /****************************************************************/
@@ -58,6 +59,7 @@ int bb_start_idx = 0;           // starting index of bounding box vertices in ve
 
 int backface_culling = ON;
 MAT4 cam, ortho, perspective, viewport;
+
 
 /****************************************************************/
 /* helper functions */
@@ -669,8 +671,6 @@ void camera_xform (CAMERA *c)
     light_pos[W] = 1.0;
     mat_vec_mul (&cam, light_pos, light_pos_screen);
     light_pos[W] = 1.0;
-//    printf("light pos cam space: ");
-//    print_vec4(light_pos_screen);
 }
 
 
@@ -694,15 +694,13 @@ void xform_model(float x_min, float x_max,
         mat_vec_mul (&ortho, peripherals[i].world, peripherals[i].position);
         peripherals[i].position[W] = 1.0;
     }
-//    mat_vec_mul (&ortho, light_pos_screen, light_pos_screen);
-//    printf("light pos ndc: ");
-//    print_vec4(light_pos_screen);
 }
 
 void viewport_mat_xform (int vp_w, int vp_h)
 {
     set_viewport_mat (&viewport, vp_w, vp_h);
-    float translation_vec[] = {WIN_W / 2.0, WIN_H / 2.0, 0, 0};
+    float translation_vec[4] = {window_width / 2.0, window_height / 2.0, 0, 0};
+
     //first copy into ndc
     for(int i = 0; i < num_vertices; i++)
     {
@@ -721,13 +719,6 @@ void viewport_mat_xform (int vp_w, int vp_h)
         mat_vec_mul (&viewport, peripherals[i].position, peripherals[i].position);
         vector_add(peripherals[i].position, translation_vec, peripherals[i].position);
     }
-//    mat_vec_mul (&viewport, light_pos_screen, light_pos_screen);
-//    printf("light pos screen: ");
-//    print_vec4(light_pos_screen);
-//    vector_add(light_pos_screen, translation_vec, light_pos_screen);
-//    printf("light pos screen: ");
-//    print_vec4(light_pos_screen);
-
 }
 
 /****************************************************************/
@@ -793,27 +784,18 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
             peripherals[i].position[W] = 1.0 / local_w;
         }
     }
-//    float local_w;
-//    mat_vec_mul (&perspective, light_pos_screen, light_pos_screen);
-//    local_w = light_pos_screen[W];
-//    scalar_divide (local_w, light_pos_screen, light_pos_screen);
-//    if(perspective_correct && texturing)
-//    {
-//        light_pos_screen[W] = 1.0 / local_w;
-//    }
-//    printf("w: %.2f\n", w);
     return w;
 }
 
 //viewport (screen space) -> camera space (stored in world)
 void unproject_screen_to_camera (float out[4], float in[4], float w)
 {
+
     float tmp[4];
     cpy_vec4(tmp, in);
     MAT4 forward, backward, inv_viewport;
-    float translation_vec[4] = {-WIN_W/2, -WIN_H/2, 0, 0};
-    
-    vector_add(tmp, translation_vec, tmp);
+    float inv_translation_vec[4] = {-window_width / 2.0, -window_height / 2.0, 0, 0};
+    vector_add(tmp, inv_translation_vec, tmp);
     
     if(proj_mode == ORTHO)
     {
