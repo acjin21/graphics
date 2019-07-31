@@ -252,11 +252,14 @@ void draw_point (POINT *p)
             u = (int) s;
             v = (int) t;
         }
+        if(u >= 0 && u < texture_ptr->width && v >= 0 && v < texture_ptr->height)
+        {
+            color_buffer[r][c][R] = texture_ptr->data[v][u][R] / 255.0;
+            color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
+            color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
+            color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
+        }
         
-        color_buffer[r][c][R] = texture_ptr->data[v][u][R] / 255.0;
-        color_buffer[r][c][G] = texture_ptr->data[v][u][G] / 255.0;
-        color_buffer[r][c][B] = texture_ptr->data[v][u][B] / 255.0;
-        color_buffer[r][c][A] = texture_ptr->data[v][u][A] / 255.0;
         //any form of modulating (with color or with light)
         if(modulate)
         {

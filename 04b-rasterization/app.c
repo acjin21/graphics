@@ -92,7 +92,7 @@ int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 float near = 1;
 float far = 40.0;
 int skip;
-float camera_transl = 0.3;
+float camera_transl = 0.05;
 
 int draw_peripherals = OFF;
 
@@ -438,7 +438,7 @@ void render_object(OBJECT *o)
             
         case PERSPECT:
             skip = cull_model(near, far);
-            if(skip) return;
+//            if(skip) return;
             o->w = perspective_xform(near, far, -1, 1, -1, 1);      break;
     }
     
@@ -483,7 +483,7 @@ void display_basic_mode (void)
 {
     OBJECT *o = &objects[0];
     o->type = object_type;
-    o->scale = 0.5;
+    o->scale = 1;
     o->radii[0] = 0.5;
     o->radii[1] = 1;
     o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
@@ -520,7 +520,7 @@ void display_scene_mode (void)
         tex_gen_mode = objects[i].tex_gen_mode;
         perspective_correct = objects[i].persp_corr;
         
-        set_texture();
+//        set_texture();
         
         objects[i].scale_vec[X] =
         (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
@@ -684,8 +684,13 @@ void key_callback (unsigned char key)
             break;
             
         case 'T':
-            curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
+            if(program_type == SCENE)
+            {
+                curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
+            }
+            else texture_idx = (texture_idx + 1) % N_TEXTURES;
             set_texture();
+
             break;
             
         case 'b':       alpha_blend = 1 - alpha_blend;                  break;
@@ -701,7 +706,14 @@ void key_callback (unsigned char key)
             
         case 'p':       proj_mode = 1 - proj_mode;                      break;
         case 'c':
-            curr_object->persp_corr = 1 - curr_object->persp_corr;
+            if(program_type == SCENE)
+            {
+                curr_object->persp_corr = 1 - curr_object->persp_corr;
+            }
+            else
+            {
+                perspective_correct = 1 - perspective_correct;
+            }
             break;
             
         case 'B':       framebuffer_src = (framebuffer_src + 1) % 3;          break;
@@ -758,7 +770,11 @@ void key_callback (unsigned char key)
             break;
             
         case '0':
-            curr_object->tex_gen_mode = (curr_object->tex_gen_mode + 1) % NUM_TEX_MODES;
+            if(program_type == SCENE)
+            {
+                curr_object->tex_gen_mode = (curr_object->tex_gen_mode + 1) % NUM_TEX_MODES;
+            }
+            else tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;
             break;
         case '1': material = 1 - material;                              break;
         case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
@@ -778,6 +794,16 @@ void key_callback (unsigned char key)
             draw_mode = FILL;
             backface_culling = OFF;
             break;
+        case '@':
+            object_type = TEAPOT;
+            proj_mode = PERSPECT;
+            perspective_correct = OFF;
+            depth_test = ON;
+            draw_mode = FILL;
+            backface_culling = OFF;
+            texturing = ON;
+            tex_gen_mode = CUBE_MAP;
+            break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
         case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
@@ -786,8 +812,6 @@ void key_callback (unsigned char key)
     if(renderer != ALL_SW)
     {
         change_gl_state();
-//        passthrough_gl_state();
-
     }
     else
     {
