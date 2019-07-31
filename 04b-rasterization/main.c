@@ -213,8 +213,9 @@ void motion(int x, int y)
     //calculate ws_dx, ws_dy, call translate_object_mouse
     float ws_dx = ws_stop[X] - ws_start[X];
     float ws_dy = ws_stop[Y] - ws_start[Y];
-
-    translate_object_mouse(ws_dx, ws_dy);
+    
+    curr_object->translate[X] += ws_dx;
+    curr_object->translate[Y] += ws_dy;
     start[X] = x;
     start[Y] = y;
     

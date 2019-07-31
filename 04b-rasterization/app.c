@@ -72,7 +72,6 @@ int stencil_bufferID = 0;
 //todo: diff texture_idx and material_types for each object in a scene
 int obj_has_vnorms = FALSE;     // whether obj supplies vn's
 int reading_obj = FALSE;        // whether reading in an OBJ file
-int debugging_mode = OFF;       // for testing different features, 1 at a time
 
 /* for drawing peripheral components */
 int normal_type = NO_NORMALS;   // if drawing normals (and which type)
@@ -175,9 +174,6 @@ void print_settings(void)
            dof_mode ? "ON" : "OFF");
     printf("Buffer (B):\t\t%s\n",
            framebuffer_src ? "COLOR" : "DEPTH");
-    printf(".....................\n");
-    printf("Debug Mode ([enter]):\t%s\n",
-           debugging_mode ? "ON" : "OFF");
     printf("\n============================\n");
 }
 char settings_str[1000000000];
@@ -566,36 +562,14 @@ void display_obj_mode (void)
     render_object(o);
 }
 
-/* for mouse io in main.c */
-void translate_object_mouse (float ws_dx, float ws_dy)
-{
-    OBJECT *curr_object = get_curr_object(curr_objectID);
-    curr_object->translate[X] += ws_dx;
-    curr_object->translate[Y] += ws_dy;
-}
+
 
 /********************************************/
 /* IO */
 /********************************************/
+
 void key_callback (unsigned char key)
 {
-    if(program_type == BENCHMARK)
-    {
-        switch (key)
-        {
-            case 'q':
-                printf("Quit writing file\n");
-                fclose(cb_file);
-                exit(0);
-                break;
-            case '\033':
-                printf("Quit writing file\n");
-                fclose(cb_file);
-                exit(0);
-                break;
-        }
-        return;
-    }
     char scene_name[MAX_FILE_NAME - 4] = "";
     OBJECT *curr_object = get_curr_object(curr_objectID);
     
@@ -778,7 +752,6 @@ void key_callback (unsigned char key)
             tex_gen_mode = CUBE_MAP;
             break;
         case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
-        case '\r': debugging_mode = 1 - debugging_mode;                 break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }
