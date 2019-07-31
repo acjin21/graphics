@@ -35,10 +35,8 @@ extern float window_size;
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
-int framebuffer_src = COLOR;             // which buffer to draw from (COLOR/DEPTH)
-
-/* reading in different inputs: OBJ, SCENE (persistence) */
-int program_type = 0;
+int framebuffer_src = COLOR;
+int program_type    = BASIC;
 
 /* for render pipeline */
 /* -- vtx stage */
@@ -262,16 +260,6 @@ void gl_print_settings (void)
            post_processing ? "ON" : "OFF");
     printf("DOF (4):\t\t%s\n",
            dof_mode ? "ON" : "OFF");
-    if(light_type == LOCAL_L)
-    {
-        printf("point light WS position: ");
-        print_vec4(light_pos);
-    }
-    else
-    {
-        printf("dir light : ");
-        print_vec4(light);
-    }
 }
 /*******************************************************/
 /* Reading in texture files */
