@@ -1,4 +1,4 @@
-#include "stencil.h"
+#include "stencil_buffer.h"
 
 int stencil_buffer[MAX_WIN_H][MAX_WIN_W];
 

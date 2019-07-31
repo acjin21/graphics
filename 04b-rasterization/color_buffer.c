@@ -1,4 +1,4 @@
-#include "color.h"
+#include "color_buffer.h"
 #include "macros.h"
 #include "window.h"
 

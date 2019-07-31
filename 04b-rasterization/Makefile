@@ -1,22 +1,27 @@
-OBJECTS = vector.c util.c texture.c image.c color.c depth.c raster.c point.c main.c model.c light.c scene.c material.c post-processing.c math_lib/mat4.c time.c benchmark.c app.c camera.c frustum.c fourier.c math_lib/mat3.c g_buffer.c opengl.c window.c stencil.c
+BUFFERS = color_buffer.c depth_buffer.c g_buffer.c stencil_buffer.c
+UTILS = vector.c util.c math_lib/mat4.c math_lib/mat3.c time.c opengl.c window.c
+OBJECTS = light.c camera.c model.c scene.c 
+RENDER_PIP = point.c raster.c frustum.c material.c texture.c
+
+MODULES = image.c post-processing.c fourier.c $(BUFFERS) $(UTILS) $(OBJECTS) $(RENDER_PIP) main.c app.c
 
 run-basic: 
-	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BASIC
+	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model BASIC
 
 run-benchmark: 
-	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model BENCHMARK
+	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model BENCHMARK
 
 run-scene:
-	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model SCENE $(file)
+	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model SCENE $(file)
 
 run-fourier:
-	gcc -framework OpenGL -framework GLUT $(OBJECTS) -o build/model && ./build/model FOURIER
+	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model FOURIER
 
 debug:
-	gcc -g -framework OpenGL -framework GLUT $(OBJECTS) -o build/model-debug && lldb build/model-debug
+	gcc -g -framework OpenGL -framework GLUT $(MODULES) -o build/model-debug && lldb build/model-debug
 
 print-debug:
-	gcc -DPRINT_DEBUG_OBJ -framework OpenGL -framework GLUT $(OBJECTS) -o build/model_print-debug
+	gcc -DPRINT_DEBUG_OBJ -framework OpenGL -framework GLUT $(MODULES) -o build/model_print-debug
 
 test-math:
 	gcc -DTESTING camera.c vector.c math_lib/mat3.c math_lib/mat4.c math_lib/test.c -o test/math && ./test/math

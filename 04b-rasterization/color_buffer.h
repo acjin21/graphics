@@ -1,5 +1,10 @@
-#ifndef COLOR_H
-#define COLOR_H
+/*
+ * implements a color buffer and
+ *    provides functions to clear and draw the entire buffer
+ */
+
+#ifndef COLOR_BUFFER_H
+#define COLOR_BUFFER_H
 
 #ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION
@@ -16,11 +21,11 @@
 #endif 
 
 #include "macros.h"
+
 /****************************************************************/
 /* variable externs */
 /****************************************************************/
 extern float color_buffer[MAX_WIN_H][MAX_WIN_W][4];
-
 
 /****************************************************************/
 /* functions */

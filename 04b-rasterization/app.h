@@ -1,7 +1,8 @@
+/* defines functions for high-level user-facing modeling app */
+
 #ifndef APP_H
 #define APP_H
 
-#include "benchmark.h"
 #include "scene.h"
 #include "time.h"
 
@@ -69,7 +70,6 @@ void print_settings(void);
 void gl_print_settings (void);
 
 /* for benchmarking */
-void set_display_mode (DISPLAY_MODE *display_mode);
 char *object_name (int object_type);
 
 /* textures */

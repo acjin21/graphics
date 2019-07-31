@@ -1,5 +1,9 @@
-#ifndef DEPTH_H
-#define DEPTH_H
+/*
+ * implements a depth buffer and
+ *    provides functions to clear and draw the entire buffer
+ */
+#ifndef DEPTH_BUFFER_H
+#define DEPTH_BUFFER_H
 
 #ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION

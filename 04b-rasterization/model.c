@@ -9,14 +9,14 @@
 #include "vector.h"
 #include "macros.h"
 
+#include "depth_buffer.h"
+
 #include "point.h"
 #include "app.h"
-#include "depth.h"
 #include "light.h"
 #include "material.h"
 #include "frustum.h"
 #include "opengl.h"
-//#include "camera.h"
 #include "window.h"
 /****************************************************************/
 /* defines */

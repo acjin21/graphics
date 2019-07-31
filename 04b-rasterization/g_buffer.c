@@ -1,5 +1,6 @@
 #include "g_buffer.h"
-#include "color.h"
+
+#include "color_buffer.h"
 #include "vector.h"
 #include "window.h"
 /* global vars */

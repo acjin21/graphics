@@ -9,12 +9,15 @@
 #include "model.h"
 #include "light.h"
 #include "camera.h"
-#include "color.h"
-#include "depth.h"
+
 #include "material.h"
+
+#include "color_buffer.h"
+#include "depth_buffer.h"
 #include "g_buffer.h"
+#include "stencil_buffer.h"
+
 #include "window.h"
-#include "stencil.h"
 /*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/

@@ -24,12 +24,11 @@
 #include "window.h"
 
 #include "time.h"
-#include "color.h"
-#include "depth.h"
-#include "stencil.h"
+#include "color_buffer.h"
+#include "depth_buffer.h"
+#include "stencil_buffer.h"
 
 #include "app.h"
-#include "benchmark.h"
 
 #include "fourier.h"
 #include "model.h"
@@ -362,20 +361,23 @@ int main(int argc, char **argv)
     /************************/
     /* pre-renderloop setup */
     /************************/
-    if(program_type == BENCHMARK)
-    {
-        set_display_mode(&benchmark);
-    }
 
     /* load necessary resources */
     if(1)//tex_gen_mode == CUBE_MAP)
     {
-        read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
-        read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
-        read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
-        read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
-        read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
-        read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
+        read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
+        read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);
+        read_ppm("ppm/ashcanyon_up.ppm", &cube_map[2]);
+        read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
+        read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
+        read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
+        
+        read_ppm("ppm/test_right.ppm", &cube_map[0]);
+        read_ppm("ppm/test_left.ppm", &cube_map[1]);
+        read_ppm("ppm/test_top.ppm", &cube_map[2]);
+        read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
+        read_ppm("ppm/test_back.ppm", &cube_map[4]);
+        read_ppm("ppm/test_front.ppm", &cube_map[5]);
     }
     
     read_ppm("ppm/rocks_bump.ppm", &bump_map);

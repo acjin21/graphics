@@ -21,10 +21,12 @@
 #include "scene.h"
 #include "camera.h"
 #include "frustum.h" // for setup_clip_frustum
-#include "g_buffer.h" //just for mode_deferred_render
 #include "opengl.h"
 #include "light.h"
-#include "stencil.h"
+
+#include "stencil_buffer.h"
+#include "g_buffer.h" //just for mode_deferred_render
+
 #include "window.h"
 /*************************************************************************/
 /* externs                                                               */
@@ -279,32 +281,6 @@ void gl_print_settings (void)
     }
 
 
-}
-
-/* for running benchmarks */
-void set_display_mode (DISPLAY_MODE *display_mode)
-{
-    draw_mode =             display_mode->raster_mode;
-    proj_mode =             display_mode->projection;
-    alpha_blend =           display_mode->alpha_blend;
-    depth_test =            display_mode->depth_test;
-    texturing =             display_mode->texturing;
-    modulate =              display_mode->modulate;
-    modulate_type =         display_mode->modulate_mode;
-    perspective_correct =   display_mode->perspective_correct;
-    texture_idx =           display_mode->texture_idx;
-    tex_gen_mode =          display_mode->uv_generation;
-    bump_mapping =          display_mode->bump_map;
-    
-    shading_mode =          display_mode->shading;
-    specular_highlight =    display_mode->lighting;
-    light_type =            display_mode->light_type;
-    
-    fog =                   display_mode->fog;
-    material =              display_mode->material;
-    post_processing =       display_mode->post_processing;
-    dof_mode =              display_mode->depth_of_field;
-    calculate_all_vns =     display_mode->calculate_all_vns;
 }
 
 /* 2-character string corresponding to object with type object_type */

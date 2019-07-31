@@ -1,4 +1,4 @@
-#include "depth.h"
+#include "depth_buffer.h"
 
 #include <stdio.h>
 #include "macros.h"

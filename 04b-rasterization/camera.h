@@ -1,3 +1,5 @@
+/* implements a controllable scene camera */
+
 #ifndef CAMERA_H
 #define CAMERA_H
 

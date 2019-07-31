@@ -3,9 +3,10 @@
 #include <stdio.h>
 
 #include "image.h"
-#include "color.h"
-#include "depth.h"
 #include "window.h"
+
+#include "color_buffer.h"
+#include "depth_buffer.h"
 
 /*************************************************************************/
 /* global variables                                                      */
