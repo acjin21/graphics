@@ -27,7 +27,7 @@
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
-extern FILE *cb_file;
+extern FILE *benchmark_output;
 extern int object_type;
 extern int counter;
 extern float window_size;
@@ -272,31 +272,6 @@ void gl_print_settings (void)
         printf("dir light : ");
         print_vec4(light);
     }
-
-
-}
-
-/* 2-character string corresponding to object with type object_type */
-char *object_name (int object_type)
-{
-    switch (object_type)
-    {
-        case QUAD:      return "qd";
-        case CUBE:      return "cb";
-        case MESH:      return "ms";
-        case CYLINDER:  return "cl";
-        case CONE:      return "cn";
-        case SPHERE:    return "sr";
-        case TORUS:     return "to";
-        case TEAPOT:    return "tp";
-        case CAT:       return "ct";
-        case DEER:      return "de";
-        case BUNNY :    return "bn";
-        case BUDDHA :   return "bd";
-        case WOLF :     return "wl";
-        case TREE :     return "tr";
-        default:        return "N/A";
-    }
 }
 /*******************************************************/
 /* Reading in texture files */
@@ -524,45 +499,6 @@ void display_benchmark_mode (int num_samples)
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     render_object(o);
 }
-
-/********************************************/
-/* for OBJ mode */
-/********************************************/
-int init_obj_program (int argc, char **argv)
-{
-    if(argc < 4)
-    {
-        printf("Please specify scale for OBJ file.\n");
-        return -1;
-    }
-    strcat(obj_file, argv[2]); //get .obj file name
-    program_type = OBJ;
-    init_scale = atof(argv[3]);
-    return 0;
-}
-
-void display_obj_mode (void)
-{
-    OBJECT *o = &objects[0];
-    o->type = NA;
-    o->scale = init_scale;
-    o->center[X] = 0;
-    o->center[Y] = 0;
-    o->center[Z] = 0;
-    o->init_orientation[X] = 0;
-    o->init_orientation[Y] = 0;
-    o->init_orientation[Z] = 0;
-    
-    set_model_mat (&o->model_mat, init_scale,
-                   o->init_orientation[X], o->init_orientation[Y],
-                   o->init_orientation[Z],
-                   o->center[X], o->center[Y], o->center[Z]);
-    
-    read_obj_file(obj_file, &o->model_mat);
-    render_object(o);
-}
-
-
 
 /********************************************/
 /* IO */

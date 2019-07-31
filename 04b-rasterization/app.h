@@ -25,9 +25,7 @@ enum Rotation_Mode {
 /* program types */
 enum Program {
     BASIC       = 0,
-    SCENE       = 1,
-    OBJ         = 2,
-    BENCHMARK   = 3
+    SCENE       = 1
 };
 
 /****************/
