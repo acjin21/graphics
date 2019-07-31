@@ -5,8 +5,7 @@
 #include "image.h"
 #include "window.h"
 
-#include "color_buffer.h"
-#include "depth_buffer.h"
+#include "buffers.h"
 
 /*************************************************************************/
 /* global variables                                                      */

@@ -9,8 +9,6 @@
 #include "vector.h"
 #include "macros.h"
 
-#include "depth_buffer.h"
-
 #include "point.h"
 #include "app.h"
 #include "light.h"

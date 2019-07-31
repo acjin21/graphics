@@ -7,14 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 
-//#include "macros.h"
-#include "util.h"       // random_float
-//#include "time.h"
+#include "util.h"
 #include "vector.h"
 
 #include "material.h"
 #include "texture.h"    // IMAGE typedef, texture and ppm functions
 #include "post-processing.h"
+#include "buffers.h"
 
 #include "point.h"
 #include "model.h"
@@ -23,9 +22,6 @@
 #include "frustum.h" // for setup_clip_frustum
 #include "opengl.h"
 #include "light.h"
-
-#include "stencil_buffer.h"
-#include "g_buffer.h" //just for mode_deferred_render
 
 #include "window.h"
 /*************************************************************************/
@@ -71,7 +67,7 @@ int dof_mode = OFF;             // depth_of_field
 
 /* manipulating objects one at a time */
 int curr_objectID = 0;            //ID of current object
-int stencil_buffer_ID = 0;
+int stencil_bufferID = 0;
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
 int obj_has_vnorms = FALSE;     // whether obj supplies vn's
@@ -84,6 +80,7 @@ int draw_coord_axes = OFF;      // draw object space coord axes
 int draw_bounding_box = OFF;    // draw 3D bounding box
 
 int calculate_all_vns = OFF;
+int mode_deferred_render = OFF;
 
 
 char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
@@ -504,7 +501,7 @@ void display_scene_mode (void)
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-        stencil_buffer_ID = i;
+        stencil_bufferID = i;
         render_object(&objects[i]);
     }
 }

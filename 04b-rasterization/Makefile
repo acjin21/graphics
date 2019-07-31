@@ -1,4 +1,4 @@
-BUFFERS = color_buffer.c depth_buffer.c g_buffer.c stencil_buffer.c
+BUFFERS = buffers.c
 UTILS = vector.c util.c math_lib/mat4.c math_lib/mat3.c time.c opengl.c window.c
 OBJECTS = light.c camera.c model.c scene.c 
 RENDER_PIP = point.c raster.c frustum.c material.c texture.c

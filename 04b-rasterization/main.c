@@ -24,16 +24,13 @@
 #include "window.h"
 
 #include "time.h"
-#include "color_buffer.h"
-#include "depth_buffer.h"
-#include "stencil_buffer.h"
+#include "buffers.h"
 
 #include "app.h"
 
 #include "fourier.h"
 #include "model.h"
 #include "vector.h"
-#include "g_buffer.h"
 #include "opengl.h"
 
 //#include "texture.h" //for IMAGE typedef

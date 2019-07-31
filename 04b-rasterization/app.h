@@ -38,13 +38,11 @@ enum Program {
 /****************/
 extern int debugging_mode;
 
-/* for main.c */
 extern int framebuffer_src; /* which buffer to draw from (COLOR/DEPTH) */
 extern int program_type;
 extern int curr_objectID;
-extern int stencil_buffer_ID;
+extern int stencil_bufferID;
 
-/* needed in model.c */
 extern int obj_has_vnorms;
 extern int draw_coord_axes;
 extern int draw_bounding_box;
@@ -55,6 +53,7 @@ extern int normal_type;         // whether drawing normals or not
 extern int draw_mode;    /* draw model as wireframe or filled (FRAME/FILL) */
 extern int proj_mode;   /* projection type (ORTHO/PERSPECT) */
 
+extern int mode_deferred_render;
 extern TIMER vtx_timer;
 extern TIMER px_timer;
 
