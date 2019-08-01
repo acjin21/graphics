@@ -16,6 +16,7 @@
 #include "frustum.h"
 #include "opengl.h"
 #include "window.h"
+#include "state.h"
 /****************************************************************/
 /* defines */
 /****************************************************************/
@@ -29,7 +30,9 @@
 /* modes */
 int modulate_type = MOD_COLOR;  // MOD_COLOR or MOD_LIGHT (for texture modulation)
 int drawing_backside = OFF;     // if drawing backside of a triangle
-int tex_gen_mode = NAIVE;
+//int current_rs.texturing_mode = NAIVE;
+
+int obj_has_vnorms = FALSE;
 
 int max_n_addl_tris = 1000;
 /* data */
@@ -766,7 +769,7 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
 
         scalar_divide (w, vertex_list[i].position, vertex_list[i].position);
         // {x/w, y/w, z/w, 1}
-        if(perspective_correct && texturing)
+        if(current_rs.perspective_correction && current_rs.texturing_mode)
         {
             vertex_list[i].position[W] = 1.0 / w; //carry 1/w in W slot to interpolate
             // {x/w, y/w, z/w, 1/w}
@@ -779,7 +782,7 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
         mat_vec_mul (&perspective, peripherals[i].world, peripherals[i].position);
         local_w = peripherals[i].position[W];
         scalar_divide (local_w, peripherals[i].position, peripherals[i].position);
-        if(perspective_correct && texturing)
+        if(current_rs.perspective_correction && current_rs.texturing_mode)
         {
             peripherals[i].position[W] = 1.0 / local_w;
         }
@@ -788,7 +791,7 @@ float perspective_xform(float near, float far, float x_min, float x_max, float y
 }
 
 //viewport (screen space) -> camera space (stored in world)
-void unproject_screen_to_camera (float out[4], float in[4], float w)
+void unproject_screen_to_camera (float out[4], float in[4], float w, int proj_mode)
 {
 
     float tmp[4];
@@ -815,10 +818,10 @@ void unproject_screen_to_camera (float out[4], float in[4], float w)
 }
 
 /* project screen space coordinates "in" to world space coords "out" */
-void unproject_screen_to_world (float out[4], float in[4], float w)
+void unproject_screen_to_world (float out[4], float in[4], float w, int proj_mode)
 {
     MAT4 backward;
-    unproject_screen_to_camera (out, in, w);
+    unproject_screen_to_camera (out, in, w, proj_mode);
     invert_mat4(&backward, &cam);
     mat_vec_mul(&backward, out, out);
 }
@@ -980,7 +983,7 @@ void draw_model(int mode)
         cpy_vec4(p2.tex, tex_list[f.tex[2]]);
 
         // set tex coords to s/w and t/w to interpolate
-        if(perspective_correct && texturing)
+        if(current_rs.perspective_correction && current_rs.texturing_mode)
         {
             scalar_multiply(p0.position[W], p0.tex, p0.tex);
             scalar_multiply(p1.position[W], p1.tex, p1.tex);
@@ -988,17 +991,17 @@ void draw_model(int mode)
         }
     
     
-        if(shading_mode == FLAT)
+        if(current_rs.shading_mode == FLAT)
         {
             float diffuse, tmp_diff[4], tmp_spec[4];
 
-            if(light_type == LOCAL_L)
+            if(current_rs.light_source == POINT_LIGHT)
             {
                 /* using one of vertices' light vecs instead of global light dir */
                 set_diffuse_term(tmp_diff, f.f_normal, p0.light, p0.world_pos);
                 set_specular_term(tmp_spec, f.f_normal, p0.light, p0.view, p0.world_pos);
             }
-            else if(light_type == GLOBAL_L)
+            else if(current_rs.light_source == GLOBAL_LIGHT)
             {
                 set_diffuse_term(tmp_diff, f.f_normal, light, p0.world_pos);
                 set_specular_term(tmp_spec, f.f_normal, light, p0.view, p0.world_pos);
@@ -1065,7 +1068,7 @@ void draw_local_axes (void)
 
 void draw_face_normals (void)
 {
-    if(normal_type == F_NORMALS)
+    if(current_as.draw_normals_mode == F_NORMALS)
     {
         drawing_normals = ON;
         for(int i = 0; i < num_triangles; i++)
@@ -1128,32 +1131,32 @@ void draw_3D_bb (float bb_color[4])
 /* go through all vertices and generate texture coordinates from normals */
 void get_tex_coords (void)
 {
-    if(tex_gen_mode == OFF)
+    if(current_rs.texturing_mode == OFF)
     {
         return;
     }
-    if(tex_gen_mode == NAIVE)
+    if(current_rs.texturing_mode == NAIVE)
     {
         for(int i = 0; i < num_vertices; i++)
         {
             naive_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-    if(tex_gen_mode == CYLINDRICAL)
+    if(current_rs.texturing_mode == CYLINDRICAL)
     {
         for(int i = 0; i < num_vertices; i++)
         {
             cylindrical_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-    if(tex_gen_mode == SPHERICAL)
+    if(current_rs.texturing_mode == SPHERICAL)
     {
         for(int i = 0; i < num_vertices; i++)
         {
             spherical_map(vertex_list[i].v_normal, tex_list[i]);
         }
     }
-    if(tex_gen_mode == REFLECTION)
+    if(current_rs.texturing_mode == REFLECTION)
     {
         for(int i = 0; i < num_vertices; i++)
         {

@@ -9,6 +9,7 @@
 #include "math_lib/mat4.h"
 #include "app.h"
 #include "point.h"
+#include "state.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -69,9 +70,6 @@ void write_scene (char *file_name)
         printf("%s has been opened and its contents overwritten.\n", file_name);
         fprintf(fp, "SCENE FILE: %s\n", file_name);
         fprintf(fp, "%i\n", num_objects);
-        fprintf(fp, "%i %i %i\n", draw_mode, proj_mode, framebuffer_src);
-        fprintf(fp, "%i %i %i %i %i %i %i\n", depth_test, texturing, modulate,
-               alpha_blend, shading_mode, perspective_correct, modulate_type);
         
         int type;
         float cx, cy, cz, scale, r0, r1, dx_angle, dy_angle, dz_angle;
@@ -116,10 +114,7 @@ void read_scene (char *file_name)
         fscanf(fp, "SCENE FILE: %s\n", name);
         printf("SCENE FILE: %s\n", name);
         fscanf(fp, "%i\n", &num_objects);
-        fscanf(fp, "%i %i %i\n", &draw_mode, &proj_mode, &framebuffer_src);
-        fscanf(fp, "%i %i %i %i %i %i %i\n", &depth_test, &texturing, &modulate,
-               &alpha_blend, &shading_mode, &perspective_correct, &modulate_type);
-
+        
         int type, texturing, tex_idx, tex_gen_mode, persp_corr;
         float cx, cy, cz, scale, r0, r1, init_orient_x, init_orient_y, init_orient_z, rot_x, rot_y, rot_z;
         

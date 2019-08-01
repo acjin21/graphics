@@ -28,62 +28,44 @@
 /* externs                                                               */
 /*************************************************************************/
 extern FILE *benchmark_output;
-extern int object_type;
+//extern int object_type;
 extern int counter;
 extern float window_size;
 
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
-int framebuffer_src = COLOR;
-int program_type    = BASIC;
-
 /* for render pipeline */
 /* -- vtx stage */
-float init_scale = 1.0;         // for obj files from the internet
+RENDER_STATE current_rs;
+APP_STATE current_as;
 
-int manip_mode = ROTATE;        // manipulator: ROTATE, TRANSLATE, or SCALE
+float init_scale = 1.0;         // for obj files from the internet
 
 MAT4 camera_mat;
 float lookat[4] = {0, 0, 100, 0};
 float k[4] = {0, 0, 1, 0};
 float world_up[4] = {0, 1, 0, 0};
 
-int proj_mode = ORTHO;          // projection type (ORTHO/PERSPECT)
 float ortho_vp_scale = 50;
 float dz = INIT_DZ;             // init dz in world space for persp projection
 
-/* -- pixel stage (drawing) */
-int draw_mode = FRAME;          // draw model as wireframe/filled (FRAME/FILL)
 IMAGE texture;                  // final display texture
-int texture_idx = 0;            // determine which texture to read from
-int material_type = EMERALD;    // material type for each object
-
-/* for post processing */
 int post_processing = OFF;
 int dof_mode = OFF;             // depth_of_field
 
-/* manipulating objects one at a time */
-int curr_objectID = 0;            //ID of current object
-int stencil_bufferID = 0;
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
-int obj_has_vnorms = FALSE;     // whether obj supplies vn's
 int reading_obj = FALSE;        // whether reading in an OBJ file
 
 /* for drawing peripheral components */
-int normal_type = NO_NORMALS;   // if drawing normals (and which type)
 int draw_coord_axes = OFF;      // draw object space coord axes
 int draw_bounding_box = OFF;    // draw 3D bounding box
 
 int calculate_all_vns = OFF;
-int mode_deferred_render = OFF;
 
-
-char obj_file[MAX_FILE_NAME];   // when program_type == OBJ, "obj_name.obj"
+char obj_file[MAX_FILE_NAME];   // when current_as.program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
-
-int light_type = LOCAL_L;         // LOCAL or GLOBAL lights
 
 float near = 1;
 float far = 40.0;
@@ -92,175 +74,6 @@ float camera_transl = 0.05;
 
 int draw_peripherals = OFF;
 
-/*************************************************************************/
-/* helper functions                                                    */
-/*************************************************************************/
-/*
- * gl_printf
- */
-void gl_printf( int x, int y, char *s )
-{
-    int len = strlen( s );
-    
-    glDisable( GL_LIGHTING );
-    
-    glColor4f( 0, 0, 0, 1 );
-    
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix();
-    glLoadIdentity();
-    
-    gluOrtho2D( 0, window_width, 0, window_height );
-    
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glLoadIdentity();
-    
-    glRasterPos2i( x, y );
-    
-    for( int i = 0; i < len; i++ )
-    {
-        glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, s[i] );
-    }
-    
-    glPopMatrix();
-    glMatrixMode( GL_PROJECTION );
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-    
-}
-/* console logging for some of the more ambiguous knobs */
-void print_settings(void)
-{
-    printf("\n============================\nNEW DISPLAY: %i\n", counter);
-    printf("Projection Mode (p):\t%s\n",
-           proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    printf("Perspect. Correct (c):\t%s\n",
-           perspective_correct ? "ON" : "OFF");
-    printf("Manip Mode ([tab]):\t%s\n",
-           manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
-    printf(".....................\n");
-    printf("Alpha Blending (b):\t%s\n",
-           alpha_blend ? "ON" : "OFF");
-    printf("Depth Testing (d):\t%s\n",
-           depth_test ? "ON" : "OFF");\
-    printf(".....................\n");
-    printf("......TEXTURING......\n");
-    printf("Texturing (t/P):\t%s\n",
-           texturing ? "ON" : "OFF");
-    printf("Tex Gen mode (0):\t%s\n",
-           tex_gen_name(tex_gen_mode));
-    printf("Modulate Type (m/M):\t%s\n",
-           modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
-    printf("Bump Mapping (5):\t%s\n",
-           bump_mapping ? "ON" : "OFF");
-    printf(".....................\n");
-    printf(".......LIGHTING......\n");
-    printf("Shading Type (h):\t%s\n",
-           shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE");
-    printf("Spec Highlight (S):\t%s\n",
-           specular_highlight ? "ON" : "OFF");
-    printf(".....................\n");
-    printf(".........MISC........\n");
-    printf("Fog Mode (F):\t\t%s\n",
-           fog ? "ON" : "OFF");
-    printf("Material Type (1/2):\t%s\n",
-           material ? material_name(material_type) : "OFF");
-    printf("Post-Processing (3):\t%s\n",
-           post_processing ? "ON" : "OFF");
-    printf("DOF (4):\t\t%s\n",
-           dof_mode ? "ON" : "OFF");
-    printf("Buffer (B):\t\t%s\n",
-           framebuffer_src ? "COLOR" : "DEPTH");
-    printf("\n============================\n");
-}
-char settings_str[1000000000];
-
-void gl_print_settings (void)
-{
-    int next_y = 100;
-    sprintf(settings_str, "%s",
-            proj_mode ? "PERSPECTIVE" : "ORTHOGRAPHIC");
-    gl_printf(5, next_y, "Projection Mode (p):");
-    gl_printf(120, next_y, settings_str);
-    next_y += 15;
-    
-    sprintf(settings_str, "%s",
-            perspective_correct ? "ON" : "OFF");
-    gl_printf(5, next_y, "Perspect. Correct (c):");
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-
-    sprintf(settings_str, "%s",
-            manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
-    gl_printf(5, next_y, "Manip Mode ([tab]):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-
-    sprintf(settings_str, "%s",
-            mode_deferred_render ? "DEFER" : "FORWARD" );
-    gl_printf(5, next_y, "Render Mode ([8]):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-
-    sprintf(settings_str, "%s",
-            light_type ? "GLOBAL" : "LOCAL");
-    gl_printf(5, next_y, "Light Mode ([7]):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-    
-    sprintf(settings_str, "%s",
-            renderer ? (renderer == 1 ? "SW_HW" : "ALL_HW") : "ALL_SW" );
-    gl_printf(5, next_y, "Renderer ([9]):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-    
-    sprintf(settings_str, "%s",
-            shading_mode ? (shading_mode == 1 ? "FLAT" : "PHONG") : "NONE" );
-    gl_printf(5, next_y, "Shading Type (h):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-    
-    sprintf(settings_str, "%s",
-            tex_gen_name(tex_gen_mode) );
-    gl_printf(5, next_y, "Tex Gen Mode (0):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-    
-    sprintf(settings_str, "%s",
-            backface_culling ? "ON" : "OFF" );
-    gl_printf(5, next_y, "Backface culling (*):" );
-    gl_printf(120, next_y, settings_str );
-    next_y += 15;
-    
-
-    printf("Manip Mode ([tab]):\t%s\n",
-           manip_mode ? (manip_mode == 1 ? "TRANSLATE" : "SCALE") : "ROTATE" );
-
-    printf("Alpha Blending (b):\t%s\n",
-           alpha_blend ? "ON" : "OFF");
-    printf("Depth Testing (d):\t%s\n",
-           depth_test ? "ON" : "OFF");\
-
-    printf("Texturing (t/P):\t%s\n",
-           texturing ? "ON" : "OFF");
- 
-    printf("Modulate Type (m/M):\t%s\n",
-           modulate ? (modulate_type ? "LIGHT" : "COLOR") : "OFF");
-    printf("Bump Mapping (5):\t%s\n",
-           bump_mapping ? "ON" : "OFF");
- 
-    printf("Spec Highlight (S):\t%s\n",
-           specular_highlight ? "ON" : "OFF");
-    printf("Fog Mode (F):\t\t%s\n",
-           fog ? "ON" : "OFF");
-    printf("Material Type (1/2):\t%s\n",
-           material ? material_name(material_type) : "OFF");
-    printf("Post-Processing (3):\t%s\n",
-           post_processing ? "ON" : "OFF");
-    printf("DOF (4):\t\t%s\n",
-           dof_mode ? "ON" : "OFF");
-}
 /*******************************************************/
 /* Reading in texture files */
 /*******************************************************/
@@ -286,18 +99,18 @@ char file_names[N_PPM_FILES][100] =
 
 void set_texture (void)
 {
-    texture_idx %= N_TEXTURES;
-    if (texture_idx < N_PPM_FILES)
+    current_as.texture_idx %= N_TEXTURES;
+    if (current_as.texture_idx < N_PPM_FILES)
     {
-        char *ppm_file = file_names[texture_idx];
+        char *ppm_file = file_names[current_as.texture_idx];
         /* to rotate between ppm files */
         read_ppm(ppm_file, &texture);
     }
-    else if (texture_idx == N_PPM_FILES)
+    else if (current_as.texture_idx == N_PPM_FILES)
     {
         random_texture(&texture);
     }
-    else if (texture_idx == N_PPM_FILES + 1)
+    else if (current_as.texture_idx == N_PPM_FILES + 1)
     {
         checkerboard_texture(&texture);
     }
@@ -322,11 +135,12 @@ void render_object(OBJECT *o)
 
 
     /* set material property vecs */
-    set_material(material_type);
+    set_material(current_rs.material_type);
     /* all OBJ models are at the end of the list */
     reading_obj = o->type >= TEAPOT;
-    draw_peripherals = program_type != SCENE ||
-                        (program_type == SCENE && o->ID == curr_objectID);
+    draw_peripherals = current_as.program_type != SCENE ||
+                        (current_as.program_type == SCENE &&
+                         o->ID == current_as.selected_objectID);
     /*******************/
     /* WORLD SPACE */
     /*******************/
@@ -349,11 +163,11 @@ void render_object(OBJECT *o)
     calculate_vertex_normals();
     
     
-    if(light_type == LOCAL_L) calculate_light_vectors();
+    if(current_rs.light_source == POINT_LIGHT) calculate_light_vectors();
     
     set_backface_flags(&camera);
     set_view_rays(&camera);
-    if(normal_type == F_NORMALS)         insert_normal_coords();
+    if(current_as.draw_normals_mode == F_NORMALS)         insert_normal_coords();
 
     camera_xform (&camera);
 
@@ -363,7 +177,7 @@ void render_object(OBJECT *o)
     set_triangle_clip_flags();
     insert_bb_coords();
 
-    switch(proj_mode)
+    switch(current_as.projection_mode)
     {
         case ORTHO:
             xform_model(-1, 1, -1, 1, near, far);                   break;
@@ -388,7 +202,7 @@ void render_object(OBJECT *o)
     
     /*-------------------------------*/         /* start pixel processing */
     start_timer(&px_timer);
-    draw_model(draw_mode);
+    draw_model(current_rs.draw_mode);
     stop_timer(&px_timer);
     /*-------------------------------*/         /* end pixel processing */
 
@@ -414,7 +228,7 @@ void init_basic_program (void)
 void display_basic_mode (void)
 {
     OBJECT *o = &objects[0];
-    o->type = object_type;
+    o->type = current_rs.object_type;
     o->scale = 1;
     o->radii[0] = 0.5;
     o->radii[1] = 1;
@@ -435,7 +249,7 @@ int init_scene_program (int argc, char **argv)
 
     strcat(scene_file, argv[2]);
     read_scene(scene_file);
-    program_type = SCENE;
+    current_as.program_type = SCENE;
     return 0;
 }
 
@@ -447,10 +261,10 @@ void display_scene_mode (void)
     {
 
         /* set draw state */
-        texturing = objects[i].texturing;
-        texture_idx = objects[i].texture_idx;
-        tex_gen_mode = objects[i].tex_gen_mode;
-        perspective_correct = objects[i].persp_corr;
+        current_rs.texturing_mode = objects[i].texturing;
+        current_as.texture_idx = objects[i].texture_idx;
+        current_rs.texturing_mode = objects[i].tex_gen_mode;
+        current_rs.perspective_correction = objects[i].persp_corr;
         
 //        set_texture();
         
@@ -460,7 +274,7 @@ void display_scene_mode (void)
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-        stencil_bufferID = i;
+        current_as.stencil_bufferID = i;
         render_object(&objects[i]);
     }
 }
@@ -469,24 +283,10 @@ void display_scene_mode (void)
 /* for BENCHMARK mode */
 /********************************************/
 /* apply specific benchmark function (called once per frame) */
-void apply_benchmark_animation (OBJECT *o, int num_samples)
-{
-    o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
-}
-
-void display_benchmark_mode (int num_samples)
-{
-    OBJECT *o = &objects[0];
-    apply_benchmark_animation(o, num_samples);
-    o->type = object_type;
-    o->scale = (o->scale ? o->scale : 0.5);
-    o->radii[0] = 0.5;
-    o->radii[1] = 1;
-    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
-    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
-    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
-    render_object(o);
-}
+//void apply_benchmark_animation (OBJECT *o, int num_samples)
+//{
+//    o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
+//}
 
 /********************************************/
 /* IO */
@@ -495,102 +295,128 @@ void display_benchmark_mode (int num_samples)
 void key_callback (unsigned char key)
 {
     char scene_name[MAX_FILE_NAME - 4] = "";
-    OBJECT *curr_object = get_curr_object(curr_objectID);
+    OBJECT *curr_object = get_curr_object(current_as.selected_objectID);
     
     switch (key)
     {
             /* draw wire frame or fill */
-        case 'f':       draw_mode = 1 - draw_mode;                      break;
+        case 'f':
+            current_rs.draw_mode = 1 - current_rs.draw_mode;
+            break;
             
             /* toggle object_type or curr_object */
-        case ' ':       object_type = (object_type + 1) % N_TYPES;      break;
+        case ' ':
+            current_rs.object_type = (current_rs.object_type + 1) % N_TYPES;
+            break;
             
             /* rotations */
         case 'x':
-            if(manip_mode == ROTATE) curr_object->rotation[X] += 10;
-            else if(manip_mode == TRANSLATE) curr_object->translate[X] += 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[X] += 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[X] += 10;
+            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[X] += 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[X] += 0.25;
             break;
         case 'y':
         {
-            if(manip_mode == ROTATE) curr_object->rotation[Y] += 10;
-            else if(manip_mode == TRANSLATE) curr_object->translate[Y] += 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[Y] += 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Y] += 10;
+            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[Y] += 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Y] += 0.25;
             break;
         }
         case 'z':
         {
-            if(manip_mode == ROTATE) curr_object->rotation[Z] += 10;
-            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT) curr_object->translate[Z] += 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[Z] += 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Z] += 10;
+            else if(current_as.manipulator_mode == TRANSLATE && current_as.projection_mode == PERSPECT) curr_object->translate[Z] += 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Z] += 0.25;
             break;
         }
         case 'X':
-            if(manip_mode == ROTATE) curr_object->rotation[X] -= 10;
-            else if(manip_mode == TRANSLATE) curr_object->translate[X] -= 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[X] -= 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[X] -= 10;
+            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[X] -= 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[X] -= 0.25;
             break;
         case 'Y':
         {
-            if(manip_mode == ROTATE) curr_object->rotation[Y] -= 10;
-            else if(manip_mode == TRANSLATE) curr_object->translate[Y] -= 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[Y] -= 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Y] -= 10;
+            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[Y] -= 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Y] -= 0.25;
             break;
         }
         case 'Z':
         {
-            if(manip_mode == ROTATE) curr_object->rotation[Z] -= 10;
-            else if(manip_mode == TRANSLATE && proj_mode == PERSPECT) curr_object->translate[Z] -= 0.5;
-            else if(manip_mode == SCALE) curr_object->scale_vec[Z] -= 0.25;
+            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Z] -= 10;
+            else if(current_as.manipulator_mode == TRANSLATE && current_as.projection_mode == PERSPECT) curr_object->translate[Z] -= 0.5;
+            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Z] -= 0.25;
             break;
         }
         
             
         case 't':
-            if(program_type == SCENE)
+            if(current_as.program_type == SCENE)
             {
                 curr_object->texturing = 1 - curr_object->texturing;
             }
-            else texturing = 1 - texturing;
+            else
+            {
+                current_rs.texturing_mode = (current_rs.texturing_mode + 1) % (NUM_TEX_MODES);
+            }
             break;
             
         case 'T':
-            if(program_type == SCENE)
+            if(current_as.program_type == SCENE)
             {
                 curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
             }
-            else texture_idx = (texture_idx + 1) % N_TEXTURES;
+            else current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
             set_texture();
 
             break;
             
-        case 'b':       alpha_blend = 1 - alpha_blend;                  break;
-        case 'D':       depth_test = 1 - depth_test;                    break;
+        case 'b':
+            current_rs.alpha_blending = 1 - current_rs.alpha_blending;
+            break;
+        case 'D':
+            current_rs.depth_testing = 1 - current_rs.depth_testing;
+            break;
             
-        case 'm':       modulate = 1 - modulate;                        break;
-        case 'M':       if(modulate) modulate_type = 1 - modulate_type; break;
+        case 'm':
+            current_rs.modulation_mode = (current_rs.modulation_mode + 1) % 3;
+            break;
             
-        case 'n':       normal_type = (normal_type + 1) % 3;            break;
-        case 'h':       shading_mode = (shading_mode + 1) % 3;          break;
+        case 'n':
+            current_as.draw_normals_mode = (current_as.draw_normals_mode + 1) % 3;
+            break;
+        case 'h':
+            current_rs.shading_mode = (current_rs.shading_mode + 1) % 3;
+            break;
 //        case 'F':       fog = 1 - fog;                                  break;
-        case 'S':       specular_highlight = 1 - specular_highlight;    break;
+        case 'S':
+            current_rs.reflection_mode = 1 - current_rs.reflection_mode;
+            break;
             
-        case 'p':       proj_mode = 1 - proj_mode;                      break;
+        case 'p':
+            current_as.projection_mode = 1 - current_as.projection_mode;
+            break;
         case 'c':
-            if(program_type == SCENE)
+            if(current_as.program_type == SCENE)
             {
                 curr_object->persp_corr = 1 - curr_object->persp_corr;
             }
             else
             {
-                perspective_correct = 1 - perspective_correct;
+                current_rs.perspective_correction = 1 - current_rs.perspective_correction;
             }
             break;
             
-        case 'B':       framebuffer_src = (framebuffer_src + 1) % 3;          break;
+        case 'B':
+            current_as.framebuffer_source = (current_as.framebuffer_source + 1) % 3;
+            break;
             
-        case 'A':       draw_coord_axes = 1 - draw_coord_axes;          break;
-        case 'u':       draw_bounding_box = 1 - draw_bounding_box;      break;
+        case 'A':
+            draw_coord_axes = 1 - draw_coord_axes;
+            break;
+        case 'u':
+            draw_bounding_box = 1 - draw_bounding_box;
+            break;
         
         case 'W':
             strcat(scene_name, strtok(scene_file, "."));
@@ -614,68 +440,90 @@ void key_callback (unsigned char key)
         case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
 
         case 'I':
-            if(light_type == LOCAL_L) light_pos[Y] += 10;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[Y] += 10;
             else light[Y] += 0.5;
             break;
         case 'K':
-            if(light_type == LOCAL_L) light_pos[Y] -= 10;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[Y] -= 10;
             else light[Y] -= 0.5;
             break;
         case 'J':
-            if(light_type == LOCAL_L) light_pos[X] -= 10;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[X] -= 10;
             else light[X] -= 0.5;
             break;
         case 'L':
-            if(light_type == LOCAL_L) light_pos[X] += 10;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[X] += 10;
             else light[X] += 0.5;
             break;
             
         case 'F':
-            if(light_type == LOCAL_L) light_pos[Z] -= .5;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[Z] -= .5;
             else light[Z] -= 0.5;
             break;
 
         case 'N':
-            if(light_type == LOCAL_L) light_pos[Z] += .5;
+            if(current_rs.light_source == POINT_LIGHT) light_pos[Z] += .5;
             else light[Z] += 0.5;
             break;
             
         case '0':
-            if(program_type == SCENE)
+            if(current_as.program_type == SCENE)
             {
                 curr_object->tex_gen_mode = (curr_object->tex_gen_mode + 1) % NUM_TEX_MODES;
             }
-            else tex_gen_mode = (tex_gen_mode + 1) % NUM_TEX_MODES;
+            else current_rs.texturing_mode = (current_rs.texturing_mode + 1) % NUM_TEX_MODES;
             break;
-        case '1': material = 1 - material;                              break;
-        case '2': material_type = (material_type + 1) % NUM_MATERIALS;  break;
-        case '3': post_processing = 1 - post_processing;                break;
-        case '4': dof_mode = 1 - dof_mode;                              break;
-        case '5': bump_mapping = 1 - bump_mapping;                      break;
-        case '6': reset_camera(&camera);                                break;
-        case '7': light_type = 1 - light_type;                          break;
-        case '8': mode_deferred_render = 1 - mode_deferred_render;      break;
-        case '9': renderer = (renderer + 1) % 2;                        break;
-        case '*': backface_culling = 1 - backface_culling;              break;
+        case '1':
+            current_rs.material_properties = 1 - current_rs.material_properties;
+            break;
+        case '2':
+            current_rs.material_type = (current_rs.material_type + 1) % NUM_MATERIALS;
+            break;
+        case '3':
+            post_processing = 1 - post_processing;
+            break;
+        case '4':
+            dof_mode = 1 - dof_mode;
+            break;
+        case '5':
+            current_rs.bump_mapping = 1 - current_rs.bump_mapping;
+            break;
+        case '6':
+            reset_camera(&camera);
+            break;
+        case '7':
+            current_rs.light_source = 1 - current_rs.light_source;
+            break;
+        case '8':
+            current_rs.render_mode = 1 - current_rs.render_mode;
+            break;
+        case '9':
+            renderer = (renderer + 1) % 2;
+            break;
+        case '*':
+            backface_culling = 1 - backface_culling;
+            break;
         case '!':
             /* mode 1 */
-            proj_mode = PERSPECT;
-            perspective_correct = ON;
-            depth_test = ON;
-            draw_mode = FILL;
+            current_as.projection_mode = PERSPECT;
+            current_rs.perspective_correction = ON;
+            current_rs.depth_testing = ON;
+            current_rs.draw_mode = FILL;
             backface_culling = OFF;
             break;
         case '@':
-            object_type = TEAPOT;
-            proj_mode = PERSPECT;
-            perspective_correct = OFF;
-            depth_test = ON;
-            draw_mode = FILL;
+            current_rs.object_type = TEAPOT;
+            current_as.projection_mode = PERSPECT;
+            current_rs.perspective_correction = OFF;
+            current_rs.depth_testing = ON;
+            current_rs.draw_mode = FILL;
             backface_culling = OFF;
-            texturing = ON;
-            tex_gen_mode = CUBE_MAP;
+            current_rs.texturing_mode = ON;
+            current_rs.texturing_mode = CUBE_MAP;
             break;
-        case '\t': manip_mode = (manip_mode + 1) % NUM_MANIP_MODES;     break;
+        case '\t':
+            current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;
+            break;
         case 'q':       exit(0);                                        break;
         case '\033':    exit(0);                                        break;
     }

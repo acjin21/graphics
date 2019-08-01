@@ -1,5 +1,5 @@
 BUFFERS = buffers.c
-UTILS = vector.c util.c math_lib/mat4.c math_lib/mat3.c time.c opengl.c window.c
+UTILS = vector.c util.c math_lib/mat4.c math_lib/mat3.c time.c opengl.c window.c state.c
 OBJECTS = light.c camera.c model.c scene.c 
 RENDER_PIP = point.c raster.c frustum.c material.c texture.c
 

@@ -1,6 +1,7 @@
 #include "buffers.h"
 #include "window.h"
 #include "vector.h"
+#include "app.h"
 
 float color_buffer[MAX_WIN_H][MAX_WIN_W][4];
 float depth_buffer[MAX_WIN_H][MAX_WIN_W];
@@ -104,8 +105,8 @@ void draw_depth_buffer (void)
  color buffer. else, perform lighting + other calculations */
 void draw_g_buffer(void)
 {
-    int save_deferred = mode_deferred_render;
-    mode_deferred_render = 0;
+    int save_deferred = current_rs.render_mode;
+    current_rs.render_mode = 0;
     
     for(int r = 0; r < window_height; r++)
     {
@@ -121,7 +122,7 @@ void draw_g_buffer(void)
             }
         }
     }
-    mode_deferred_render = save_deferred;
+    current_rs.render_mode = save_deferred;
     
 }
 

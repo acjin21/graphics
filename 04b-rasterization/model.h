@@ -74,8 +74,8 @@ float perspective_xform(float near, float far,
 void viewport_mat_xform (int vp_w, int vp_h);
 
 /* inverse projections */
-void unproject_screen_to_camera (float out[4], float in[4], float w);
-void unproject_screen_to_world (float out[4], float in[4], float w);
+void unproject_screen_to_camera (float out[4], float in[4], float w, int proj_mode);
+void unproject_screen_to_world (float out[4], float in[4], float w, int proj_mode);
 
 /* draw functions */
 void draw_model(int mode);

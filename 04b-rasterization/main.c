@@ -30,6 +30,7 @@
 #include "model.h"
 #include "vector.h"
 #include "opengl.h"
+#include "state.h"
 
 /*************************************************************************/
 /* global variables                                                      */
@@ -39,7 +40,7 @@ int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 
 int counter = 0;
-int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
+//int object_type = QUAD;         // model shape (CUBE/MESH/QUAD)
 
 /* for animating / benchmarking */
 int display_timer = 0;
@@ -71,7 +72,7 @@ void display(void)
     /*******************************************************/
     /* animation switching */
     /*******************************************************/
-//    if(program_type == BENCHMARK)
+//    if(current_as.program_type == BENCHMARK)
 //    {
 //        if(counter % num_samples == 0) /* every 360 display() calls */
 //        {
@@ -95,7 +96,7 @@ void display(void)
     if(renderer == ALL_SW)
     {
         clear_color_buffer(1, 1, 1, 1);
-        if(mode_deferred_render)    clear_g_buffer(1, 1, 1, 1);
+        if(current_rs.render_mode)    clear_g_buffer(1, 1, 1, 1);
         clear_depth_buffer(1.0);
     }
 
@@ -106,7 +107,7 @@ void display(void)
     /* 3D MODELING */
     /*******************************************************/
     start_timer(&framerate_timer);
-    switch (program_type)
+    switch (current_as.program_type)
     {
         case BASIC: display_basic_mode();                       break;
         case SCENE: display_scene_mode();                       break;
@@ -116,8 +117,8 @@ void display(void)
     if(renderer == ALL_SW)
     {
         apply_post_pipeline_fx();
-        if(mode_deferred_render)    draw_g_buffer();
-        switch(framebuffer_src)
+        if(current_rs.render_mode)    draw_g_buffer();
+        switch(current_as.framebuffer_source)
         {
             case COLOR: draw_color_buffer();        break;
             case STENCIL: draw_stencil_buffer();    break;
@@ -129,24 +130,24 @@ void display(void)
     /*******************************************************/
     /* print on screen */
     /*******************************************************/
-    gl_print_settings();
-    
-    char res[100];
-    int next_line_y = 775;
-    gl_printf(640, next_line_y, "BENCHMARK:");
-    next_line_y -= 15;
-
-    sprintf(res, "Framerate: %.5f fps", 1.0 / elapsed_time(&framerate_timer));
-    gl_printf(650, next_line_y, res);
-    next_line_y -= 15;
-
-    sprintf(res, "Vertex: %.5f seconds", elapsed_time(&vtx_timer));
-    gl_printf(650, next_line_y, res);
-    next_line_y -= 15;
-
-    sprintf(res, "Pixel: %.5f seconds", elapsed_time(&px_timer));
-    gl_printf(650, next_line_y, res);
-    next_line_y -= 15;
+//    gl_print_settings();
+//    
+//    char res[100];
+//    int next_line_y = 775;
+//    gl_printf(640, next_line_y, "BENCHMARK:");
+//    next_line_y -= 15;
+//
+//    sprintf(res, "Framerate: %.5f fps", 1.0 / elapsed_time(&framerate_timer));
+//    gl_printf(650, next_line_y, res);
+//    next_line_y -= 15;
+//
+//    sprintf(res, "Vertex: %.5f seconds", elapsed_time(&vtx_timer));
+//    gl_printf(650, next_line_y, res);
+//    next_line_y -= 15;
+//
+//    sprintf(res, "Pixel: %.5f seconds", elapsed_time(&px_timer));
+//    gl_printf(650, next_line_y, res);
+//    next_line_y -= 15;
 
     /* show results */
     glutSwapBuffers();
@@ -181,7 +182,7 @@ static void key(unsigned char key, int x, int y)
 /* mouse motion callback */
 void motion(int x, int y)
 {
-    OBJECT *curr_object = get_curr_object(curr_objectID);
+    OBJECT *curr_object = get_curr_object(current_as.selected_objectID);
 
     y = window_height - y;
     stop[X] = x;
@@ -192,9 +193,9 @@ void motion(int x, int y)
     set_vec4(vp_stop, stop[X], stop[Y], 0, 1);
 
     //convert vp_start to ws_start
-    unproject_screen_to_world (ws_start, vp_start, curr_object->w);
+    unproject_screen_to_world (ws_start, vp_start, curr_object->w, current_as.projection_mode);
     //convert vp_stop to ws_stop
-    unproject_screen_to_world (ws_stop, vp_stop, curr_object->w);
+    unproject_screen_to_world (ws_stop, vp_stop, curr_object->w, current_as.projection_mode);
 
     //calculate ws_dx, ws_dy, call translate_object_mouse
     float ws_dx = ws_stop[X] - ws_start[X];
@@ -218,7 +219,7 @@ void mouse (int button, int state, int x, int y)
         start[X] = x;
         start[Y] = y;
         
-        curr_objectID = stencil_buffer[y][x];
+        current_as.selected_objectID = stencil_buffer[y][x];
         draw_one_frame = 1;
         glutPostRedisplay();
     }
@@ -228,12 +229,12 @@ int main(int argc, char **argv)
 {
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
-        program_type = BASIC;
+        current_as.program_type = BASIC;
 
     }
     else if(argc > 2 && !strcmp("SCENE", argv[1]))
     {
-        program_type = SCENE;
+        current_as.program_type = SCENE;
     }
     else if(argc == 2 && !strcmp("FOURIER", argv[1]))
     {
@@ -255,7 +256,7 @@ int main(int argc, char **argv)
         convert_to_image( &x, &texture);
         write_ppm ("dft/checkerboard_dft.ppm", &texture);
         
-        program_type = BASIC;
+        current_as.program_type = BASIC;
     }
     else if(argc < 3)
     {
@@ -283,11 +284,11 @@ int main(int argc, char **argv)
     
     gluOrtho2D(-window_size,window_size,-window_size,window_size);
 
-    if(program_type == BASIC)
+    if(current_as.program_type == BASIC)
     {
         init_basic_program();
     }
-    else if(program_type == SCENE)
+    else if(current_as.program_type == SCENE)
     {
         init_scene_program(argc, argv);
     }
@@ -299,6 +300,8 @@ int main(int argc, char **argv)
     /************************/
     /* pre-renderloop setup */
     /************************/
+    set_default_render_state (&current_rs);
+    set_default_app_state (&current_as);
     /* load necessary resources */
     read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
     read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);

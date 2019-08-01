@@ -12,12 +12,7 @@
 #include "math_lib/mat4.h"
 #include "texture.h"
 
-#define NUM_TEX_MODES 6
-#define NAIVE 1
-#define CYLINDRICAL 2
-#define SPHERICAL 3
-#define REFLECTION 4
-#define CUBE_MAP 5
+
 
 typedef struct point {
     float world[4]; //used to store world and eye space coords
@@ -43,18 +38,6 @@ typedef struct point {
 /*************************************************************************/
 /* Variable externs                                                      */
 /*************************************************************************/
-/* for app.c */
-extern int alpha_blend;         // whether alpha blending is turned on (OFF/ON)
-extern int depth_test;          // whether depth testing turned on (OFF/ON)
-extern int texturing;           // whether texturing is turned on (OFF/ON)
-extern int modulate;            // whether modulating is turned on (OFF/ON)
-extern int perspective_correct;
-extern int shading_mode;        // FLAT / PHONG / NONE
-extern int bump_mapping;
-extern int material;
-extern int specular_highlight;
-extern int fog;
-
 /* for model.c */              // to avoid texturing the non-model vertices
 extern int drawing_normals;
 extern int drawing_axes;

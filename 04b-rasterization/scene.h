@@ -6,13 +6,6 @@
 
 #define MAX_N_OBJECTS 32
 
-#define ORTHO 0
-#define PERSPECT 1
-
-#define DEPTH 0
-#define COLOR 1
-#define STENCIL 2
-
 /*************************************************************************/
 /* structs                                                            */
 /*************************************************************************/

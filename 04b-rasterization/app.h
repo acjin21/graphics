@@ -5,62 +5,31 @@
 
 #include "scene.h"
 #include "time.h"
+#include "state.h"
 
 #define INIT_DZ 8
 #define MAX_FILE_NAME 100
 #define NUM_MANIP_MODES 3
 
-enum Manipulator {
-    ROTATE      = 0,
-    TRANSLATE   = 1,
-    SCALE       = 2
-};
-
-/* rotation mode */
-enum Rotation_Mode {
-    GLOBAL      = 0,
-    LOCAL       = 1
-};
-
-/* program types */
-enum Program {
-    BASIC       = 0,
-    SCENE       = 1
-};
-
+extern RENDER_STATE current_rs;
+extern APP_STATE current_as;
 /****************/
 /* Var Externs */
 /****************/
-
-extern int framebuffer_src; /* which buffer to draw from (COLOR/DEPTH) */
-extern int program_type;
-extern int curr_objectID;
-extern int stencil_bufferID;
-
-extern int obj_has_vnorms;
 extern int draw_coord_axes;
 extern int draw_bounding_box;
-extern int light_type;
-extern int normal_type;
-
-/* needed in scene.c */
-extern int draw_mode;    /* draw model as wireframe or filled (FRAME/FILL) */
-extern int proj_mode;   /* projection type (ORTHO/PERSPECT) */
-extern int mode_deferred_render;
 
 extern TIMER vtx_timer;
 extern TIMER px_timer;
 
 extern IMAGE texture;                  // final display texture
-extern float near;
-extern float far;
 /*************/
 /* Functions */
 /*************/
 /* UI */
-void gl_printf( int x, int y, char *s );
-void print_settings(void);
-void gl_print_settings (void);
+//void gl_printf( int x, int y, char *s );
+//void print_settings(void);
+//void gl_print_settings (void);
 char *object_name (int object_type);
 
 /* textures */

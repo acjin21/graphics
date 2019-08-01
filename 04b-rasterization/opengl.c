@@ -7,7 +7,7 @@
 #include "light.h"
 #include "material.h"
 #include "window.h"
-
+#include "state.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -35,8 +35,8 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     POINT v0 = *v0_ptr;
     POINT v1 = *v1_ptr;
     POINT v2 = *v2_ptr;
-    int need_v_normals = shading_mode == FLAT   ||
-                         shading_mode == PHONG  || tex_gen_mode;
+    int need_v_normals = current_rs.shading_mode == FLAT   ||
+                         current_rs.shading_mode == PHONG  || current_rs.texturing_mode;
     
     /* draw the light's CAM space position */
     glBegin( GL_POINTS );
@@ -51,7 +51,7 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     glColor4fv( v0.color );
     v0.v_normal[Z] *= -1;
     normalize(v0.v_normal);
-    if( texturing )         glTexCoord4fv( v0.tex );
+    if( current_rs.texturing_mode != TEXTURE_OFF )         glTexCoord4fv( v0.tex );
     if( need_v_normals )    glNormal3fv( v0.v_normal );
     if( renderer == SW_HW )
     {
@@ -65,7 +65,7 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     v1.v_normal[Z] *= -1;
     normalize(v1.v_normal);
 
-    if( texturing )         glTexCoord4fv( v1.tex );
+    if( current_rs.texturing_mode != TEXTURE_OFF )         glTexCoord4fv( v1.tex );
     if( need_v_normals )    glNormal3fv( v1.v_normal );
     if( renderer == SW_HW )
     {
@@ -80,7 +80,7 @@ void draw_triangle_gl( POINT *v0_ptr, POINT *v1_ptr, POINT *v2_ptr )
     v2.v_normal[Z] *= -1;
     normalize(v2.v_normal);
 
-    if(texturing)           glTexCoord4fv( v2.tex );
+    if(current_rs.texturing_mode != TEXTURE_OFF)           glTexCoord4fv( v2.tex );
     if(need_v_normals)      glNormal3fv( v2.v_normal );
     if(renderer == SW_HW)
     {
@@ -100,8 +100,8 @@ void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
 {
     POINT start = *start_ptr;
     POINT end = *end_ptr;
-    int need_v_normals = shading_mode == FLAT   ||
-                         shading_mode == PHONG  || tex_gen_mode;
+    int need_v_normals = current_rs.shading_mode == FLAT   ||
+                         current_rs.shading_mode == PHONG  || current_rs.texturing_mode;
     
     glBegin( GL_LINES );
     /*
@@ -109,7 +109,7 @@ void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
      */
     glColor4fv( start.color );
     start.v_normal[Z] *= -1;
-    if(texturing)         glTexCoord4fv( start.tex );
+    if(current_rs.texturing_mode != TEXTURE_OFF)         glTexCoord4fv( start.tex );
     if(need_v_normals)    glNormal3fv( start.v_normal );
     if(renderer == SW_HW)
         glVertex3f(start.position[X] - window_width / 2 - 0.5,
@@ -123,7 +123,7 @@ void draw_line_gl( POINT *start_ptr, POINT *end_ptr )
      */
     glColor4fv(end.color);
     end.v_normal[Z] *= -1;
-    if(texturing)         glTexCoord4fv(end.tex);
+    if(current_rs.texturing_mode != TEXTURE_OFF)         glTexCoord4fv(end.tex);
     if(need_v_normals)    glNormal3fv(end.v_normal);
     if(renderer == SW_HW)
         glVertex3f(end.position[X] - window_width / 2 - 0.5,
@@ -172,9 +172,9 @@ void change_gl_state(void)
     /*
      * GL depth state
      */
-    glPolygonMode(GL_FRONT_AND_BACK, draw_mode == FRAME ? GL_LINE : GL_FILL);
-    glShadeModel(shading_mode == FLAT ? GL_FLAT : GL_SMOOTH);
-    depth_test ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, current_rs.draw_mode == FRAME ? GL_LINE : GL_FILL);
+    glShadeModel(current_rs.shading_mode == FLAT ? GL_FLAT : GL_SMOOTH);
+    current_rs.depth_testing ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 
     float light_amb[4] = {0.5, 0.5, 0.5, 1};
     float light_diff[4] = {1, 1, 1, 1};
@@ -183,13 +183,13 @@ void change_gl_state(void)
     /*
      * GL texturing state
      */
-    if( texturing )
+    if( current_rs.texturing_mode != TEXTURE_OFF )
     {
         glEnable( GL_TEXTURE_2D );
         glBindTexture( GL_TEXTURE_2D, textureID );
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (modulate) ?
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (current_rs.modulation_mode) ?
                   GL_MODULATE : GL_DECAL);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, (perspective_correct) ?
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, (current_rs.perspective_correction) ?
                GL_NICEST : GL_FASTEST);
     }
     else
@@ -198,15 +198,15 @@ void change_gl_state(void)
         glBindTexture( GL_TEXTURE_2D, 0 );
     }
     
-    fog         ? glEnable(GL_FOG)  : glDisable(GL_FOG);
-    alpha_blend ? glEnable(GL_BLEND): glDisable(GL_BLEND);
+    current_rs.fog_fx         ? glEnable(GL_FOG)  : glDisable(GL_FOG);
+    current_rs.alpha_blending ? glEnable(GL_BLEND): glDisable(GL_BLEND);
 
     /* GL lighting state */
-    if( shading_mode == FLAT || shading_mode == PHONG )
+    if( current_rs.shading_mode == FLAT || current_rs.shading_mode == PHONG )
     {
         float gl_light[4];
 
-        if( light_type == LOCAL_L )
+        if( current_rs.light_source == POINT_LIGHT )
         {
             cpy_vec4( gl_light, light_pos_screen );
 //            cpy_vec4(gl_light, light_pos);

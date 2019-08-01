@@ -15,26 +15,14 @@
 #include "buffers.h"
 
 #include "window.h"
+#include "state.h"
 /*************************************************************************/
 /* global vars                                                          */
 /*************************************************************************/
 /* draw modes */
-int alpha_blend             = OFF;
-int depth_test              = ON;
-int texturing               = OFF;
-int modulate                = OFF;
-int perspective_correct     = OFF;
-
-int shading_mode            = FLAT;
-
 int drawing_normals         = OFF;
 int drawing_bounding_box    = OFF;
 int drawing_axes            = OFF;
-
-int bump_mapping            = OFF;    // bump mapping for specular lighting
-int material                = OFF;    // material properties
-int specular_highlight      = OFF;
-int fog                     = OFF;
 
 /* data */
 IMAGE bump_map;
@@ -56,7 +44,7 @@ void set_diffuse_term
 (float diffuse_term[4], float normal[4], float light[4], float world_pos[4])
 {
     float diffuse, tmp[4];
-    if(light_type == GLOBAL_L)           // directional light
+    if(current_rs.light_source == GLOBAL_LIGHT)           // directional light
     {
         scalar_multiply(-1, light, tmp); //reverse so (pos -> light)
     }
@@ -66,7 +54,7 @@ void set_diffuse_term
     }
     normalize(tmp);
     diffuse = MAX(vector_dot(normal, tmp), 0);
-    if(material)
+    if(current_rs.material_properties)
     {
         scalar_multiply(diffuse, material_diffuse, diffuse_term);
         vector_multiply(diffuse_term, light_diffuse, diffuse_term);
@@ -75,7 +63,6 @@ void set_diffuse_term
     {
         scalar_multiply(diffuse, light_diffuse, diffuse_term);
     }
-
 }
 
 /*
@@ -87,7 +74,7 @@ void set_specular_term
 {
     float specular, refl[4], tmp[4];
     normalize(view);
-    if(light_type == GLOBAL_L) //directional light
+    if(current_rs.light_source == GLOBAL_LIGHT) //directional light
     {
         scalar_multiply(-1, light, tmp);
     }
@@ -99,7 +86,7 @@ void set_specular_term
     vector_reflect(tmp, normal, refl);
     specular = MAX(vector_dot(view, refl), 0);
     specular = pow(specular, shinyness);
-    if(material)
+    if(current_rs.material_properties)
     {
         scalar_multiply(specular, material_specular, spec_term);
         vector_multiply(spec_term, light_specular, spec_term);
@@ -114,21 +101,21 @@ void set_specular_term
  diffuse and specular vectors */
 void shade_point (float diffuse[4], float spec[4], POINT *p, int mod_type)
 {
-    if(!modulate || (modulate && mod_type == MOD_COLOR))
+    if(current_rs.modulation_mode != MOD_LIGHT)
     {
         vector_multiply(diffuse, p->color, p->color);
     }
-    else if(modulate && mod_type == MOD_LIGHT)
+    else if(current_rs.modulation_mode == MOD_LIGHT)
     {
         cpy_vec4(p->color, diffuse);
     }
-    if(specular_highlight)
+    if(current_rs.reflection_mode == SPECULAR)
     {
         vector_add(spec, p->color, p->color);
     }
     
     float ambient[4] = {0.5, 0.5, 0.5, 0};
-    if(material)
+    if(current_rs.material_properties)
     {
         vector_multiply(light_ambient, material_ambient, ambient);
     }
@@ -149,15 +136,15 @@ void draw_point (POINT *p)
     float blend_weight = 0.50; //for alpha blending
     
     /* early return if fail depth test */
-    if(depth_test && p->position[Z] > depth_buffer[r][c]) return;
-    if(depth_test)
+    if(current_rs.depth_testing && p->position[Z] > depth_buffer[r][c]) return;
+    if(current_rs.depth_testing)
     {
         depth_buffer[r][c] = p->position[Z];
     }
-    stencil_buffer[r][c] = stencil_bufferID;
+    stencil_buffer[r][c] = current_as.stencil_bufferID;
 
     /* write to g buffer if deferred rendering */
-    if(mode_deferred_render)
+    if(current_rs.render_mode)
     {
         p->rendered_flag = 1;
         g_buffer[r][c] = *p;
@@ -165,7 +152,7 @@ void draw_point (POINT *p)
     }
     
     /* bump map */
-    if(normal_type != V_NORMALS && bump_mapping)
+    if(current_as.draw_normals_mode != V_NORMALS && current_rs.bump_mapping)
     {
         float bump[4];
         int u, v;
@@ -192,26 +179,26 @@ void draw_point (POINT *p)
     }
     int shading_surface = !(drawing_normals || drawing_bounding_box || drawing_axes);
     /* phong shading */
-    if(shading_surface && shading_mode == PHONG)
+    if(shading_surface && current_rs.shading_mode == PHONG)
     {
         float tmp_diff[4], tmp_spec[4];
-        if(light_type == LOCAL_L)
+        if(current_rs.light_source == POINT_LIGHT)
         {
             set_diffuse_term(tmp_diff, p->v_normal, p->light, p->world_pos);
             set_specular_term(tmp_spec, p->v_normal, p->light, p->view, p->world_pos);
         }
-        else if (light_type == GLOBAL_L)
+        else if (current_rs.light_source == GLOBAL_LIGHT)
         {
             set_diffuse_term(tmp_diff, p->v_normal, light, p->world_pos);
             set_specular_term(tmp_spec, p->v_normal, light, p->view, p->world_pos);
         }
-        shade_point(tmp_diff, tmp_spec, p, modulate_type);
+        shade_point(tmp_diff, tmp_spec, p, current_rs.modulation_mode);
 
     }
     texture_ptr = &texture;
 
     /* texture mapping */
-    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && tex_gen_mode == CUBE_MAP)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && current_rs.texturing_mode == CUBE_MAP)
     {
         normalize(p->v_normal);
         cube_map_vec(p->v_normal, p->tex, &cube_map_index);
@@ -219,13 +206,13 @@ void draw_point (POINT *p)
 
     }
     
-    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && texturing)
+    if(!drawing_normals && !drawing_bounding_box && !drawing_axes && current_rs.texturing_mode != TEXTURE_OFF)
     {
 //        printf("texture\n");
         float s, t;
         int u, v;
 
-        if (perspective_correct)
+        if (current_rs.perspective_correction)
         {
             s = p->tex[S];
             t = p->tex[T];
@@ -261,14 +248,14 @@ void draw_point (POINT *p)
         }
         
         //any form of modulating (with color or with light)
-        if(modulate)
+        if(current_rs.modulation_mode)
         {
             vector_multiply(color_buffer[r][c], p->color, color_buffer[r][c]);
         }
     }
     
     /* alpha blending */
-    else if(alpha_blend)
+    else if(current_rs.alpha_blending)
     {
         float new_r, new_g, new_b, new_a;
         
@@ -292,7 +279,7 @@ void draw_point (POINT *p)
     }
     
     /* fog effect */
-    if(fog)
+    if(current_rs.fog_fx)
     {
         float z = p->position[Z];
         float new_r, new_g, new_b, new_a;
