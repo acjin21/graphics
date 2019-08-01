@@ -12,6 +12,7 @@ typedef struct render_state {
     int reflection_mode;    // DIFFUSE, SPECULAR
     int framebuffer_source; // COLOR, DEPTH, STENCIL
     int light_source;       // POINT, DIRECTIONAL
+    
     /* ON/OFF */
     int perspective_correction;
     int depth_testing;
