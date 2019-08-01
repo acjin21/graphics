@@ -10,7 +10,7 @@ Graphics Features
 * cube mapping
 * bump mapping
 
-![Image of teapot frame](https://github.com/acjin21/graphics/blob/master/teapot_frame.png)
+![Image of teapot frame](teapot_frame.png)
 
 ![Image of alpha-blended teapot](https://github.com/acjin21/graphics/blob/master/teapot_alpha_blend.png)
 
