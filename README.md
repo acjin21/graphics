@@ -12,23 +12,23 @@ Graphics Features
 
 ![Image of teapot frame](teapot_frame.png)
 
-![Image of alpha-blended teapot](https://github.com/acjin21/graphics/blob/master/teapot_alpha_blend.png)
+![Image of alpha-blended teapot](teapot_alpha_blend.png)
 
 ## Texturing 
-![Image of bump-mapped teapot](https://github.com/acjin21/graphics/blob/master/teapot_bump_map.png)
+![Image of bump-mapped teapot](teapot_bump_map.png)
 
-![Image of cube-mapped teapot](https://github.com/acjin21/graphics/blob/master/teapot_cube_map.png)
+![Image of cube-mapped teapot](teapot_cube_map.png)
 
 ## Shading
-![Image of teapot with flat shading](https://github.com/acjin21/graphics/blob/master/teapot_flat.png)
+![Image of teapot with flat shading](teapot_flat.png)
 
-![Image of teapot with phong shading](https://github.com/acjin21/graphics/blob/master/teapot_phong.png)
+![Image of teapot with phong shading](teapot_phong.png)
 
-![Image of teapot with phong shading with specular highlights](https://github.com/acjin21/graphics/blob/master/teapot_specular_phong.png)
+![Image of teapot with phong shading with specular highlights](teapot_specular_phong.png)
 
 ## Post Processing
-![Image of teapot frame with post-processing pixelation effect](https://github.com/acjin21/graphics/blob/master/teapot_post_processing.png)
+![Image of teapot frame with post-processing pixelation effect](teapot_post_processing.png)
 
-![Image of teapot with depth of field post processing](https://github.com/acjin21/graphics/blob/master/teapot_dof.png)
+![Image of teapot with depth of field post processing](teapot_dof.png)
 
 
