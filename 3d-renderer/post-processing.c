@@ -76,15 +76,10 @@ void depth_buffer_to_image (IMAGE *img)
     {
         for(int i = 0; i < img->width; i++)
         {
-            int z;
-//            printf("%f\n", depth_buffer[j][i]);
-
-            z = (int) (depth_buffer[j][i] * 255.0);
+            int z = (int) (depth_buffer[j][i] * 255.0);
             img->data[j][i][R] = CLAMP(z, 0, 255);
             img->data[j][i][G] = CLAMP(z, 0, 255);
             img->data[j][i][B] = CLAMP(z, 0, 255);
-
-
         }
     }
 }
@@ -168,14 +163,63 @@ void depth_of_field (void)
 }
 
 /* apply post processing on color buffer */
-void apply_post_processing (void)
+void apply_post_processing (int mode)
 {
-    color_buffer_to_image(&texture00);
+    if(mode == NO_FX) return;
+    IMAGE *input = &texture00;
+    IMAGE *output = &texture01;
+
+    color_buffer_to_image(input);
+    switch (mode)
+    {
+        case NEGATIVE:
+            negative(input, output);
+            break;
+        case FLIP_VERTICAL:
+            flip_vertical(input, output);
+            break;
+        case FLIP_HORIZONTAL:
+            flip_horizontal(input, output);
+            break;
+        case LUMINOSITY:
+            luminosity(input, output);
+            break;
+        case SEPIA:
+            sepia(input, output);
+            break;
+        case AVG:
+            avg(input, output);
+            break;
+        case MIN:
+            min(input, output);
+            break;
+        case MAX:
+            max(input, output);
+            break;
+        case ROTATE_CCW:
+            rotate_ccw (input, output, 90);
+            break;
+        case LINCOLN:
+            lincoln(input, output, 2);
+            break;
+        case FISHEYE:
+            fisheye(input, output);
+            break;
+        case EINSTEIN:
+            einstein(input, output);
+            break;
+        case OIL_TRANSFER:
+            oil_transfer(input, output);
+            break;
+        case TILING:
+            tiling(input, output);
+            break;
+        default:
+            fill(output, 1, 0, 0);
+            break;
+    }
     
-    //some image processing
-    lincoln(&texture00, &texture01, 2);
-    
-    image_to_color_buffer(&texture01);
+    image_to_color_buffer(output);
 }
 
 

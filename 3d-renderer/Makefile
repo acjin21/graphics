@@ -8,14 +8,18 @@ MODULES = image.c post-processing.c fourier.c $(BUFFERS) $(UTILS) $(OBJECTS) $(R
 run-basic: 
 	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model BASIC
 
-run-benchmark: 
-	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model BENCHMARK
+run-image:
+	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model IMAGE
 
 run-scene:
 	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model SCENE $(file)
 
 run-fourier:
 	gcc -framework OpenGL -framework GLUT $(MODULES) -o build/model && ./build/model FOURIER
+
+
+
+
 
 debug:
 	gcc -g -framework OpenGL -framework GLUT $(MODULES) -o build/model-debug && lldb build/model-debug

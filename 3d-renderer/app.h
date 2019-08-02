@@ -38,15 +38,14 @@ void set_texture (void);
 /* rendering */
 void render_object(OBJECT *o);
 
-void display_benchmark_mode (int num_samples);
+void display_image_mode (void);
 void display_basic_mode (void);
 void display_scene_mode (void);
-void display_obj_mode (void);
 
 void key_callback (unsigned char key);
 
+void init_image_program (void);
 void init_basic_program(void);
-int init_obj_program (int argc, char **argv);
 int init_scene_program (int argc, char **argv);
 
 void apply_post_pipeline_fx (void);

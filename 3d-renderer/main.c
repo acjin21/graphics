@@ -111,6 +111,11 @@ void display(void)
     {
         case BASIC: display_basic_mode();                       break;
         case SCENE: display_scene_mode();                       break;
+        case IMAGE_PROCESSING:
+        {
+            display_image_mode();            break;
+            printf("hihi\n");
+        }
         default: display_basic_mode();                          break;
     }
     
@@ -227,10 +232,11 @@ void mouse (int button, int state, int x, int y)
 
 int main(int argc, char **argv)
 {
+    set_default_render_state (&current_rs);
+    set_default_app_state (&current_as);
     if(argc == 2 && !strcmp("BASIC", argv[1]))
     {
         current_as.program_type = BASIC;
-
     }
     else if(argc > 2 && !strcmp("SCENE", argv[1]))
     {
@@ -257,6 +263,10 @@ int main(int argc, char **argv)
         write_ppm ("dft/checkerboard_dft.ppm", &texture);
         
         current_as.program_type = BASIC;
+    }
+    else if(argc == 2 && !strcmp("IMAGE", argv[1]))
+    {
+        current_as.program_type = IMAGE_PROCESSING;
     }
     else if(argc < 3)
     {
@@ -292,6 +302,10 @@ int main(int argc, char **argv)
     {
         init_scene_program(argc, argv);
     }
+    else if(current_as.program_type == IMAGE_PROCESSING)
+    {
+        init_image_program ();
+    }
     else
     {
         printf("Invalid input file type. Should be \"SCENE\"\n");
@@ -300,8 +314,7 @@ int main(int argc, char **argv)
     /************************/
     /* pre-renderloop setup */
     /************************/
-    set_default_render_state (&current_rs);
-    set_default_app_state (&current_as);
+
     /* load necessary resources */
     read_ppm("ppm/ashcanyon_rt.ppm", &cube_map[0]);
     read_ppm("ppm/ashcanyon_lf.ppm", &cube_map[1]);

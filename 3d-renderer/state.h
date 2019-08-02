@@ -36,13 +36,20 @@ typedef struct app_state {
     int manipulator_mode;
     int projection_mode;    // "app only"
     
+    int post_processing_mode;
+    
     int texture_idx;
 } APP_STATE;
+
+typedef struct image_processing_state {
+    int processing_mode;
+    char *ppm_file;
+} IMAGE_PROCESSING_STATE;
 
 /*************************************************************************/
 /* ENUMS */
 /*************************************************************************/
-enum Program_Type { BASIC, SCENE};
+enum Program_Type { BASIC, SCENE, IMAGE_PROCESSING};
 
 enum Projection_Mode { ORTHO, PERSPECT };
 
@@ -66,9 +73,10 @@ enum Draw_Normals_Mode { NO_NORMALS,  F_NORMALS, V_NORMALS};
 
 enum Render_Mode { FORWARD, DEFERRED };
 
-#define NUM_TEX_MODES 6
+#define NUM_TEX_MODES 7
 enum Texture_Mode {
     TEXTURE_OFF = 0,
+    MANUAL, 
     NAIVE,
     CYLINDRICAL,
     SPHERICAL,
@@ -94,7 +102,25 @@ enum Object_Type {
     TREE
 };
 
-
+#define N_IP_MODES 15
+enum Image_Processing_Mode
+{
+    NO_FX,
+    NEGATIVE,
+    FLIP_VERTICAL,
+    FLIP_HORIZONTAL,
+    LUMINOSITY,
+    SEPIA,
+    AVG,
+    MIN,
+    MAX,
+    ROTATE_CCW,
+    LINCOLN,
+    FISHEYE,
+    EINSTEIN,
+    OIL_TRANSFER,
+    TILING
+};
 
 void set_default_render_state (RENDER_STATE *rs);
 void set_default_app_state (APP_STATE *as);

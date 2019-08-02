@@ -26,9 +26,9 @@ void set_default_app_state (APP_STATE *as)
     as->framebuffer_source      = COLOR;
     as->program_type            = BASIC;
     as->selected_objectID       = 0;
-    as->stencil_bufferID       = 0;
+    as->stencil_bufferID        = 0;
     as->draw_normals_mode       = NO_NORMALS;
     as->manipulator_mode        = ROTATE;
     as->projection_mode         = PERSPECT;
-
+    as->post_processing_mode    = LINCOLN;
 }

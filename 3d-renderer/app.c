@@ -22,7 +22,7 @@
 #include "frustum.h" // for setup_clip_frustum
 #include "opengl.h"
 #include "light.h"
-
+#include "image.h"
 #include "window.h"
 /*************************************************************************/
 /* externs                                                               */
@@ -39,6 +39,7 @@ extern float window_size;
 /* -- vtx stage */
 RENDER_STATE current_rs;
 APP_STATE current_as;
+IMAGE_PROCESSING_STATE current_ips;
 
 float init_scale = 1.0;         // for obj files from the internet
 
@@ -266,36 +267,116 @@ void display_scene_mode (void)
         current_rs.texturing_mode = objects[i].tex_gen_mode;
         current_rs.perspective_correction = objects[i].persp_corr;
         
-//        set_texture();
-        
         objects[i].scale_vec[X] =
         (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
         objects[i].scale_vec[Y] =
         (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] =
         (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+        
         current_as.stencil_bufferID = i;
         render_object(&objects[i]);
     }
 }
 
 /********************************************/
-/* for BENCHMARK mode */
+/* for IMAGE mode */
 /********************************************/
-/* apply specific benchmark function (called once per frame) */
-//void apply_benchmark_animation (OBJECT *o, int num_samples)
-//{
-//    o->rotation[Y] += (360.0 / num_samples); //rotate total of 360
-//}
+void init_image_program (void)
+{
+    set_camera (&camera, eye, lookat, world_up);
+    setup_clip_frustum(near, far);
+}
+void display_image_mode (void)
+{
+    clear_texture(&texture, 0, 0, 0, 1);
+    char *ppm_file = "ppm/blackbuck.ascii.ppm";
+    read_ppm(ppm_file, &texture);
+    
+    current_rs.texturing_mode = MANUAL;
+    current_as.projection_mode = ORTHO;
+    current_rs.draw_mode = FILL;
 
+    OBJECT *o = &objects[0];
+    o->type = QUAD;
+    o->scale = 1;
+    o->rotation[X] = 0;
+    
+    o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
+    o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
+    o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
+    o->center[Z] = near + 2.0;
+    
+    render_object(o);
+}
 /********************************************/
 /* IO */
 /********************************************/
+void image_key_callback (unsigned char key)
+{
 
+    switch(key)
+    {
+        case '0':
+            current_ips.processing_mode = NO_FX;
+            break;
+        case '1':
+            current_ips.processing_mode = NEGATIVE;
+            break;
+        case '2':
+            current_ips.processing_mode = FLIP_VERTICAL;
+            break;
+        case '3':
+            current_ips.processing_mode = FLIP_HORIZONTAL;
+            break;
+        case '4':
+            current_ips.processing_mode = LUMINOSITY;
+            break;
+        case '5':
+            current_ips.processing_mode = SEPIA;
+            break;
+        case '6':
+            current_ips.processing_mode = AVG;
+            break;
+        case '7':
+            current_ips.processing_mode = MIN;
+            break;
+        case '8':
+            current_ips.processing_mode = MAX;
+            break;
+        case '9':
+            current_ips.processing_mode = ROTATE_CCW;
+            break;
+        case 'a':
+            current_ips.processing_mode = LINCOLN;
+            break;
+        case 'b':
+            current_ips.processing_mode = FISHEYE;
+            break;
+        case 'c':
+            current_ips.processing_mode = EINSTEIN;
+            break;
+        case 'd':
+            current_ips.processing_mode = OIL_TRANSFER;
+            break;
+        case 'e':
+            current_ips.processing_mode = TILING;
+            break;
+        case 'q':
+        case '\033':
+            exit(0);
+            break;
+    }
+}
 void key_callback (unsigned char key)
 {
     char scene_name[MAX_FILE_NAME - 4] = "";
     OBJECT *curr_object = get_curr_object(current_as.selected_objectID);
+    if(current_as.program_type == IMAGE_PROCESSING)
+    {
+            image_key_callback(key);
+            return;
+    }
     
     switch (key)
     {
@@ -482,6 +563,9 @@ void key_callback (unsigned char key)
         case '3':
             post_processing = 1 - post_processing;
             break;
+        case '#':
+            current_as.post_processing_mode = (current_as.post_processing_mode + 1) % N_IP_MODES;
+            break;
         case '4':
             dof_mode = 1 - dof_mode;
             break;
@@ -540,9 +624,14 @@ void key_callback (unsigned char key)
 /* after render pipeline, called in main */
 void apply_post_pipeline_fx (void)
 {
+    if(current_as.program_type == IMAGE_PROCESSING)
+    {
+        apply_post_processing(current_ips.processing_mode);
+        return;
+    }
     if(post_processing == ON)
     {
-        apply_post_processing();
+        apply_post_processing(current_as.post_processing_mode);
     }
     if (dof_mode == ON)
     {
