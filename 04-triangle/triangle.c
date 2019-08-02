@@ -9,8 +9,9 @@ int Mojave_WorkAround = 1;
 int draw_one_frame = 1;
 int draw_prog = 1;
 
-int span[800][2];
+POINT span[800][2];
 int edge_counts[800];
+
 /*************************************************************************/
 /* utility functions                                                     */
 /*************************************************************************/
@@ -55,38 +56,6 @@ void set_color (POINT *p, float r, float g, float b, float a)
     p->color[A] = a;
 }
 
-/*
- * print point *p
- */
-void print_point (POINT *p)
-{
-    printf("POINT: (%.2f, %.2f)\n", p->position[X], p->position[Y]);
-}
-
-/*
- * print table of edge counts
- */
-void print_edge_counts (void)
-{
-    for(int i = 0; i < 800; i++)
-    {
-        printf("row %i, y = %i, count = %i\n", i, i - 400, edge_counts[i]);
-    }
-}
-
-/*
- * print entire span
- */
-void print_span (void)
-{
-    printf("\n=====================================================\n");
-    for(int i = 0; i < 800; i++)
-    {
-        printf("- row = %i, [0] = %i, [1] = %i, count = %i\n",
-               i, span[i][0], span[i][1], edge_counts[i]);
-        
-    }
-}
 
 /*************************************************************************/
 /* draw_line                                                             */
@@ -106,21 +75,20 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
 {
     POINT start = *p1;
     POINT end = *p2;
-    POINT delta;
-    POINT step;
     
-    // overall change in position and in rgb values
+    POINT delta, step;
+    
+    // overall change in position
     vector_subtract(end.position, start.position, delta.position);
+    
     int x_major = ABS(delta.position[X]) > ABS(delta.position[Y]);
     
-    printf("\nstart: (%.2f, %.2f) || end: (%.2f, %.2f)\n",
-           start.position[X], start.position[Y],
-           end.position[X], end.position[Y]);
-    
-    if((delta.position[X] < 0 && x_major ) ||
-       (delta.position[Y] < 0 && !x_major) )
+    if(mode == DRAW && ((delta.position[X] < 0 && x_major) ||
+                        (delta.position[Y] < 0 && !x_major )))
     {
-        printf("SWAP\n");
+        start = *p1;
+        end = *p2;
+        
         SWAP(start.position[X], end.position[X]);
         SWAP(start.position[Y], end.position[Y]);
         SWAP(start.color[R], end.color[R]);
@@ -129,37 +97,72 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         
         /* recalculate delta */
         vector_subtract(end.position, start.position, delta.position);
+        
+        
     }
+    // calculate delta color
     vector_subtract(end.color, start.color, delta.color);
     
-    printf("after swap- start: (%.2f, %.2f) || end: (%.2f, %.2f)\n", start.position[X], start.position[Y],
-           end.position[X], end.position[Y]);
-    
-    //scale for color interpolation
-    float scale[4];
     POINT p;
     
-    glColor4f(start.color[R], start.color[G], start.color[B], 1.0);
-    
+    /*******************/
     /* horizontal line */
-    if(delta.position[Y] == 0) {
-        scalar_divide(fabsf(delta.position[X]), delta.position, step.position);
+    /*******************/
+    if(mode == DRAW && (int) delta.position[Y] == 0)
+    {
+        
+        scalar_divide(ABS(delta.position[X]), delta.position, step.position);
+        scalar_divide(ABS(delta.position[X]), delta.color, step.color);
+        for(p = start; p.position[X] < end.position[X];)
+        {
+            
+            /*
+             * CHANGE TWO
+             */
+            p.position[Y] = (int) p.position[Y];
+            draw_point(&p);
+            
+            vector_add(p.position, step.position, p.position);
+            vector_add(p.color, step.color, p.color);
+        }
+        return;
+    }
+    /* x-major diagonal line, i.e. 0 < |slope| < 1 */
+    else if(x_major && mode == DRAW)
+    {
+        printf("xmajor draw mode\n");
+        scalar_divide(ABS(delta.position[X]), delta.position, step.position); // dy/dx
+        scalar_divide(ABS(delta.position[X]), delta.color, step.color);
+        
+        for(p =  start; p.position[X] < end.position[X]; )
+        {
+            draw_point(&p);
+            
+            vector_add(p.position, step.position, p.position);
+            vector_add(p.color, step.color, p.color);
+        }
+        return;
+    }
+    
+    /*******************/
+    /* WALK */
+    /*******************/
+    int prev_row;
+    if ((int) delta.position[Y] == 0) {
+        scalar_divide(ABS(delta.position[X]), delta.position, step.position);
+        scalar_divide(ABS(delta.position[X]), delta.color, step.color);
     }
     else {
-        scalar_divide(fabsf(delta.position[Y]), delta.position, step.position);
+        scalar_divide(ABS(delta.position[Y]), delta.position, step.position);
+        scalar_divide(ABS(delta.position[Y]), delta.color, step.color);
     }
     
     for(p = start; (int) p.position[Y] < (int) end.position[Y];)
     {
         /* calculate scale based on Y coordinate for color interp. */
-        vector_subtract(p.position, start.position, scale);
-        scalar_divide(fabsf(delta.position[Y]), scale, scale);
-        scalar_multiply(scale[Y], delta.color, step.color);
-        vector_add(p.color, step.color, p.color);
-        
         if (mode == DRAW)
         {
-            glColor4f(p.color[0], p.color[1], p.color[2], 1.0);
+            /* should be y major and draw */
             draw_point(&p);
         }
         
@@ -169,12 +172,42 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
             int count = edge_counts[row];
             
             /* sanity check */
-            if(count < 0 || count > 2) printf("ERR: count out of bounds\n");
-
-            //fill in the walk data
-            span[row][count] = (int) p.position[X];
-            edge_counts[row]++;
+            if(count < 0 || count > 2) {
+                printf("ERR: row %i count %i out of bounds\n", row, count);
+            }
+            if(row != prev_row){
+                span[row][count] = p;
+                edge_counts[row]++;
+            }
+            prev_row = row;
         }
+        vector_add(p.color, step.color, p.color);
+        vector_add(p.position, step.position, p.position);
+    }
+    
+    for(p = start; (int) p.position[Y] > (int) end.position[Y];)
+    {
+        if (mode == DRAW)
+        {
+            /* should be y major and draw */
+            draw_point(&p);
+        }
+        
+        else if (mode == WALK)
+        {
+            int row = (int) p.position[Y] + 400;
+            int count = edge_counts[row];
+            
+            /* sanity check */
+            if(count < 0 || count > 2) {
+                printf("ERR: row %i count %i out of bounds\n", row, count);
+            }
+            if(row != prev_row){
+                span[row][count] = p;
+                edge_counts[row]++;
+            }
+        }
+        vector_add(p.color, step.color, p.color);
         vector_add(p.position, step.position, p.position);
     }
 }
@@ -184,29 +217,16 @@ void draw_spans(void)
 {
     for(int r = 0; r < 800; r++)
     {
-        int start_x = span[r][0];
+        POINT start_p = span[r][0];
         int count = edge_counts[r];
-        
-        POINT point;
-        
         if(count == 0) continue;
-//        if(count == 1) {
-//            draw_point(span[r][0], r-400);
-//        }
+        if(count == 1) {
+            draw_point(&start_p);
+        }
         else if(count == 2){
-            int end_x = span[r][count-1];
-            //start_x <= end_x
-            for(int c = start_x; c <= end_x; c++)
-            {
-                set_position(&point, c, r-400, 0, 0);
-                draw_point(&point);
-            }
-            //start_x > end_x
-            for(int c = start_x; c >= end_x; c--)
-            {
-                set_position(&point, c, r-400, 0, 0);
-                draw_point(&point);
-            }
+            POINT end_p = span[r][1];
+            end_p.position[Y] = start_p.position[Y];
+            draw_line_modal(&start_p, &end_p, DRAW);
         }
     }
 }
@@ -215,38 +235,29 @@ void draw_spans(void)
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
     reset_edge_counts();
-    print_point(v0);
-    print_point(v1);
-    print_point(v2);
-
     draw_line_modal(v0, v1, 1);
-    print_span();
     draw_line_modal(v1, v2, 1);
-    print_span();
     draw_line_modal(v2, v0, 1);
-    print_span();
 
     int row;
-    
     row = (int) v0->position[Y] + 400;
     if(edge_counts[row] == 0)
     {
         edge_counts[row] = 2;
-        span[row][0] = (span[row][1] = v0->position[X]);
+        span[row][0].position[X] = (span[row][1].position[X] = v0->position[X]);
     }
     row = (int) v1->position[Y] + 400;
     if(edge_counts[row] == 0)
     {
         edge_counts[row] = 2;
-        span[row][0] = (span[row][1] = v1->position[X]);
+        span[row][0].position[X] = (span[row][1].position[X] = v1->position[X]);
     }
     row = (int) v2->position[Y] + 400;
     if(edge_counts[row] < 1)
     {
         edge_counts[row] = 2;
-        span[row][0] = (span[row][1] = v2->position[X]);
+        span[row][0].position[X] = (span[row][1].position[X] = v2->position[X]);
     }
-    print_span();
 
     draw_spans();
 }
