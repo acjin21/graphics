@@ -132,27 +132,29 @@ void draw_one_tri_test (int i0, int i1, int i2)
     cpy_vec4(v1.color, colors[i1]);
     cpy_vec4(v2.color, colors[i2]);
     draw_triangle(&v0, &v1, &v2);
-//        draw_triangle(&v0, &v2, &v1);
-//        draw_triangle(&v1, &v0, &v2);
-    //    draw_triangle(&v1, &v2, &v0);
-    //    draw_triangle(&v2, &v0, &v1);
-    //    draw_triangle(&v2, &v1, &v0);
+
     
 }
 
 void draw_random_triangle (void)
 {
-    printf("random");
-    set_vec4(v0.position, random_float(-window_size, window_size),
+    set_vec4(v0.position,
+             random_float(-window_size, window_size),
              random_float(-window_size, window_size), 0, 0);
-    set_vec4(v1.position, random_float(-window_size, window_size),
+    set_vec4(v1.position,
+             random_float(-window_size, window_size),
              random_float(-window_size, window_size), 0, 0);
-    set_vec4(v2.position, random_float(-window_size, window_size),
+    set_vec4(v2.position,
+             random_float(-window_size, window_size),
              random_float(-window_size, window_size), 0, 0);
     
-    set_vec4(v0.color, random_float(0, 1), random_float(0, 1),
+    set_vec4(v0.color,
+             random_float(0, 1),
+             random_float(0, 1),
              random_float(0, 1), 1);
-    set_vec4(v1.color, random_float(0, 1), random_float(0, 1),
+    set_vec4(v1.color,
+             random_float(0, 1),
+             random_float(0, 1),
              random_float(0, 1), 1);
     set_vec4(v2.color, random_float(0, 1), random_float(0, 1),
              random_float(0, 1), 1);
@@ -164,23 +166,5 @@ void draw_random_triangle (void)
 /* multiple triangles, one screen */
 void draw_tri_test (void)
 {
-    
-//    draw_one_tri_test(0, 1, 2);
-//    draw_one_tri_test(3, 4, 5);
-//    draw_one_tri_test(6, 7, 8);
-//    draw_one_tri_test(9, 10, 11);
-//    draw_one_tri_test(12, 13, 14);
-//    draw_one_tri_test(15, 16, 17);
-//    random_tests();
     draw_random_triangle();
-    
-    /*********************/
-    /* draw calls        */
-    /*********************/
-    //    draw_triangle(&v0, &v2, &v1);
-    //    draw_triangle(&v1, &v0, &v2);
-    //    draw_triangle(&v1, &v2, &v0);
-    //    draw_triangle(&v2, &v0, &v1);
-    //    draw_triangle(&v2, &v1, &v0);
-
 }

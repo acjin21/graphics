@@ -30,6 +30,7 @@ float random_float( int low, int high )
 void draw_point (POINT *p)
 {
     glBegin(GL_POINTS);
+    glColor4f(p->color[R], p->color[G], p->color[B], p->color[A]);
         glVertex2f( p->position[X], p->position[Y]);
     glEnd();
 }
@@ -115,10 +116,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
         for(p = start; p.position[X] < end.position[X];)
         {
-            
-            /*
-             * CHANGE TWO
-             */
             p.position[Y] = (int) p.position[Y];
             draw_point(&p);
             
@@ -130,7 +127,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     /* x-major diagonal line, i.e. 0 < |slope| < 1 */
     else if(x_major && mode == DRAW)
     {
-        scalar_divide(ABS(delta.position[X]), delta.position, step.position); // dy/dx
+        scalar_divide(ABS(delta.position[X]), delta.position, step.position);
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
         
         for(p =  start; p.position[X] < end.position[X]; )
@@ -161,8 +158,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
         /* calculate scale based on Y coordinate for color interp. */
         if (mode == DRAW)
         {
-            /* should be y major and draw */
-            draw_point(&p);
+            draw_point(&p);          // should be y major and draw
         }
         
         else if (mode == WALK)
@@ -170,11 +166,8 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
             int row = (int) p.position[Y] + 400;
             int count = edge_counts[row];
             
-            /* sanity check */
-            if(count < 0 || count > 2) {
-                printf("ERR: row %i count %i out of bounds\n", row, count);
-            }
-            if(row != prev_row){
+
+            if(row != prev_row && edge_counts[row] < 2){
                 span[row][count] = p;
                 edge_counts[row]++;
             }
@@ -188,8 +181,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     {
         if (mode == DRAW)
         {
-            /* should be y major and draw */
-            draw_point(&p);
+            draw_point(&p);     // should be y major and draw
         }
         
         else if (mode == WALK)
@@ -197,11 +189,7 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
             int row = (int) p.position[Y] + 400;
             int count = edge_counts[row];
             
-            /* sanity check */
-            if(count < 0 || count > 2) {
-                printf("ERR: row %i count %i out of bounds\n", row, count);
-            }
-            if(row != prev_row){
+            if(row != prev_row && edge_counts[row] < 2){
                 span[row][count] = p;
                 edge_counts[row]++;
             }
@@ -234,30 +222,9 @@ void draw_spans(void)
 void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 {
     reset_edge_counts();
-    draw_line_modal(v0, v1, 1);
-    draw_line_modal(v1, v2, 1);
-    draw_line_modal(v2, v0, 1);
-
-    int row;
-    row = (int) v0->position[Y] + 400;
-    if(edge_counts[row] == 0)
-    {
-        edge_counts[row] = 2;
-        span[row][0].position[X] = (span[row][1].position[X] = v0->position[X]);
-    }
-    row = (int) v1->position[Y] + 400;
-    if(edge_counts[row] == 0)
-    {
-        edge_counts[row] = 2;
-        span[row][0].position[X] = (span[row][1].position[X] = v1->position[X]);
-    }
-    row = (int) v2->position[Y] + 400;
-    if(edge_counts[row] < 1)
-    {
-        edge_counts[row] = 2;
-        span[row][0].position[X] = (span[row][1].position[X] = v2->position[X]);
-    }
-
+    draw_line_modal(v0, v1, WALK);
+    draw_line_modal(v1, v2, WALK);
+    draw_line_modal(v2, v0, WALK);
     draw_spans();
 }
 
@@ -265,6 +232,7 @@ void draw_triangle(POINT *v0, POINT *v1, POINT *v2)
 /* GLUT functions                                                        */
 /*************************************************************************/
 extern void draw_tri_test(void);
+
 /*
  * display routine
  */
@@ -279,18 +247,12 @@ void display(void)
     if( draw_one_frame == 0 )
         return;
 	
-    /*
-     * clear color buffer
-     */
     glClear(GL_COLOR_BUFFER_BIT );
     
     draw_tri_test();
 
-    /*
-     * show results
-     */
     glutSwapBuffers();
-    glutPostRedisplay();//Necessary for Mojave.
+    glutPostRedisplay();
 
     draw_one_frame = 0;
 }
