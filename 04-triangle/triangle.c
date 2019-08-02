@@ -130,7 +130,6 @@ void draw_line_modal (POINT *p1, POINT *p2, int mode)
     /* x-major diagonal line, i.e. 0 < |slope| < 1 */
     else if(x_major && mode == DRAW)
     {
-        printf("xmajor draw mode\n");
         scalar_divide(ABS(delta.position[X]), delta.position, step.position); // dy/dx
         scalar_divide(ABS(delta.position[X]), delta.color, step.color);
         
@@ -273,7 +272,7 @@ void display(void)
 {
     if( Mojave_WorkAround )
     {
-        glutReshapeWindow(2 * window_size,2 * window_size);//Necessary for Mojave. Has to be different dimensions than in glutInitWindowSize();
+        glutReshapeWindow(2 * window_size,2 * window_size);
 		Mojave_WorkAround = 0;
     }
 
