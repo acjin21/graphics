@@ -53,7 +53,7 @@ float dz = INIT_DZ;             // init dz in world space for persp projection
 
 IMAGE texture;                  // final display texture
 int post_processing = OFF;
-int dof_mode = OFF;             // depth_of_field
+//int dof_mode = OFF;             // depth_of_field
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
@@ -393,7 +393,7 @@ void key_callback (unsigned char key)
             current_rs.object_type = (current_rs.object_type + 1) % N_TYPES;
             break;
             
-            /* rotations */
+            /* manipulation */
         case 'x':
             if(current_as.manipulator_mode == ROTATE) curr_object->rotation[X] += 10;
             else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[X] += 0.5;
@@ -433,31 +433,23 @@ void key_callback (unsigned char key)
             break;
         }
         
-            
+            /* texturing */
         case 't':
-            if(current_as.program_type == SCENE)
-            {
-                curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);
-            }
-            else
-            {
-                current_rs.texturing_mode = (current_rs.texturing_mode + 1) % (NUM_TEX_MODES);
-            }
+            if(current_as.program_type == SCENE) curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);
+            else current_rs.texturing_mode = (current_rs.texturing_mode + 1) % (NUM_TEX_MODES);
             break;
             
         case 'T':
-            if(current_as.program_type == SCENE)
-            {
-                curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
-            }
+            if(current_as.program_type == SCENE) curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
             else current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
             set_texture();
-
             break;
             
+            /* alpha blending */
         case 'b':
             current_rs.alpha_blending = 1 - current_rs.alpha_blending;
             break;
+            /* depth testing */
         case 'D':
             current_rs.depth_testing = 1 - current_rs.depth_testing;
             break;
@@ -467,12 +459,14 @@ void key_callback (unsigned char key)
             break;
             
         case 'n':
-            current_as.draw_normals_mode = (current_as.draw_normals_mode + 1) % 3;
+            current_as.draw_normals_mode = 1 - current_as.draw_normals_mode;
             break;
         case 'h':
             current_rs.shading_mode = (current_rs.shading_mode + 1) % 3;
             break;
-//        case 'F':       fog = 1 - fog;                                  break;
+        case '0':
+            current_rs.fog_fx = 1 - current_rs.fog_fx;
+            break;
         case 'S':
             current_rs.reflection_mode = 1 - current_rs.reflection_mode;
             break;
@@ -481,14 +475,8 @@ void key_callback (unsigned char key)
             current_as.projection_mode = 1 - current_as.projection_mode;
             break;
         case 'c':
-            if(current_as.program_type == SCENE)
-            {
-                curr_object->persp_corr = 1 - curr_object->persp_corr;
-            }
-            else
-            {
-                current_rs.perspective_correction = 1 - current_rs.perspective_correction;
-            }
+            if(current_as.program_type == SCENE) curr_object->persp_corr = 1 - curr_object->persp_corr;
+            else current_rs.perspective_correction = 1 - current_rs.perspective_correction;
             break;
             
         case 'B':
@@ -557,13 +545,13 @@ void key_callback (unsigned char key)
             current_rs.material_type = (current_rs.material_type + 1) % NUM_MATERIALS;
             break;
         case '3':
-            post_processing = 1 - post_processing;
+            current_as.post_processing_mode = NO_FX;
             break;
         case '#':
             current_as.post_processing_mode = (current_as.post_processing_mode + 1) % N_IP_MODES;
             break;
         case '4':
-            dof_mode = 1 - dof_mode;
+            current_as.dof_mode = (current_as.dof_mode + 1) % 3;
             break;
         case '5':
             current_rs.bump_mapping = 1 - current_rs.bump_mapping;
@@ -581,15 +569,15 @@ void key_callback (unsigned char key)
             renderer = (renderer + 1) % 2;
             break;
         case '*':
-            backface_culling = 1 - backface_culling;
+            current_rs.backface_culling = 1 - current_rs.backface_culling;
             break;
         case '!':
             /* mode 1 */
             current_as.projection_mode = PERSPECT;
-            current_rs.perspective_correction = ON;
+            current_rs.perspective_correction = OFF;
             current_rs.depth_testing = ON;
             current_rs.draw_mode = FILL;
-            backface_culling = OFF;
+            current_rs.backface_culling = OFF;
             break;
         case '@':
             current_rs.object_type = TEAPOT;
@@ -597,7 +585,7 @@ void key_callback (unsigned char key)
             current_rs.perspective_correction = OFF;
             current_rs.depth_testing = ON;
             current_rs.draw_mode = FILL;
-            backface_culling = OFF;
+            current_rs.backface_culling = OFF;
             current_rs.texturing_mode = ON;
             current_rs.texturing_mode = CUBE_MAP;
             break;
@@ -625,13 +613,13 @@ void apply_post_pipeline_fx (void)
         apply_post_processing(current_ips.processing_mode);
         return;
     }
-    if(post_processing == ON)
+    if(current_as.post_processing_mode != NO_FX)
     {
         apply_post_processing(current_as.post_processing_mode);
     }
-    if (dof_mode == ON)
+    if(current_as.dof_mode != DOF_OFF)
     {
-        depth_of_field();
+        depth_of_field(current_as.dof_mode);
     }
 }
 

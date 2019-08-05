@@ -138,9 +138,11 @@ void display(void)
                 break;
             case BASIC:
                 gl_print_app_settings (&current_as);
+                gl_print_render_settings (&current_rs);
                 break;
             case SCENE:
                 gl_print_app_settings (&current_as);
+                gl_print_render_settings (&current_rs);
                 break;
         }
 
@@ -151,7 +153,7 @@ void display(void)
     /*******************************************************/
     
     char res[100];
-    float color[4] = {0, 0, 1, 1};
+    float color[4] = {1, 0, 0, 1};
     int next_line_y = 775;
     gl_printf(640, next_line_y, "BENCHMARK:", color);
     next_line_y -= 15;

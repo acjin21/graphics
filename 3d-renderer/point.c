@@ -152,7 +152,7 @@ void draw_point (POINT *p)
     }
     
     /* bump map */
-    if(current_as.draw_normals_mode != V_NORMALS && current_rs.bump_mapping)
+    if(current_as.draw_normals_mode != F_NORMALS && current_rs.bump_mapping)
     {
         float bump[4];
         int u, v;

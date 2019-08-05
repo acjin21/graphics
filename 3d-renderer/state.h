@@ -32,13 +32,14 @@ typedef struct render_state {
 typedef struct app_state {
     int framebuffer_source;
     int program_type;
-    int selected_objectID;// SCENE: value only changes when user clicks on a diff obejct
-    int stencil_bufferID; // SCENE: diff for every object; value changes every display loop
+    int selected_objectID;  // SCENE: value only changes when user clicks on a diff obejct
+    int stencil_bufferID;   // SCENE: diff for every object; value changes every display loop
     int draw_normals_mode;
     int manipulator_mode;
     int projection_mode;    // "app only"
     
     int post_processing_mode;
+    int dof_mode;
     
     int texture_idx;
 } APP_STATE;
@@ -71,9 +72,10 @@ enum Shading_Mode       { NO_SHADING, FLAT, PHONG };
 
 enum Light_Type         { POINT_LIGHT, GLOBAL_LIGHT };
 
-enum Draw_Normals_Mode  { NO_NORMALS,  F_NORMALS, V_NORMALS};
+enum Draw_Normals_Mode  { NO_NORMALS,  F_NORMALS};
 
 enum Render_Mode        { FORWARD, DEFERRED };
+
 
 #define NUM_TEX_MODES 7
 enum Texture_Mode {
@@ -124,6 +126,33 @@ enum Image_Processing_Mode
     TILING,
     EDGE
 };
+
+#define EMERALD             0
+#define JADE                1
+#define OBSIDIAN            2
+#define PEARL               3
+#define RUBY                4
+#define TURQUOISE           5
+#define BRASS               6
+#define BRONZE              7
+#define CHROME              8
+#define COPPER              9
+#define GOLD                10
+#define SILVER              11
+#define BLACK_PLASTIC       12
+#define CYAN_PLASTIC        13
+#define GREEN_PLASTIC       14
+#define RED_PLASTIC         15
+#define WHITE_PLASTIC       16
+#define YELLOW_PLASTIC      17
+#define BLACK_RUBBER        18
+#define CYAN_RUBBER         19
+#define GREEN_RUBBER        20
+#define RED_RUBBER          21
+#define WHITE_RUBBER        22
+#define YELLOW_RUBBER       23
+
+#define NUM_MATERIALS 24
 
 void set_default_render_state (RENDER_STATE *rs);
 void set_default_app_state (APP_STATE *as);

@@ -58,7 +58,6 @@ int face_normals_start_idx = 0;
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
-int backface_culling = ON;
 MAT4 cam, ortho, perspective, viewport;
 
 
@@ -1012,7 +1011,7 @@ void draw_model(int mode)
         }
         if(f.backface_factor < 0) //pointing away from us
         {
-            if(backface_culling)
+            if(current_rs.backface_culling)
             {
                 continue;
             }

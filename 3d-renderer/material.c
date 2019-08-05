@@ -1,6 +1,7 @@
 #include "material.h"
 
 #include "vector.h"
+#include "state.h"
 
 /*************************************************************************/
 /* global variables                                                      */

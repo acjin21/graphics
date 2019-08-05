@@ -67,16 +67,17 @@ void image_to_color_buffer (IMAGE *img)
 }
 
 /* store z 'byte' in red channel of img->data */
-void depth_buffer_to_image (IMAGE *img)
+void depth_buffer_to_image (IMAGE *img, int dof_mode)
 {
     img->width = window_width;
     img->height = window_height;
-    
+    int z;
     for(int j = 0; j < img->height; j++)
     {
         for(int i = 0; i < img->width; i++)
         {
-            int z = (int) (depth_buffer[j][i] * 255.0);
+            z = (int) (depth_buffer[j][i] * 255.0);
+            z = dof_mode == NEAR ? 255 - z : z;
             img->data[j][i][R] = CLAMP(z, 0, 255);
             img->data[j][i][G] = CLAMP(z, 0, 255);
             img->data[j][i][B] = CLAMP(z, 0, 255);
@@ -139,7 +140,7 @@ void blend_with_mask (IMAGE *blur, IMAGE *sharp, IMAGE *mask, IMAGE *out)
 }
 
 /* implement depth_of_field post proc effect using textures 00-03 */
-void depth_of_field (void)
+void depth_of_field (int dof_mode)
 {
     texture03.width = window_width;
     texture03.height = window_height;
@@ -148,7 +149,7 @@ void depth_of_field (void)
     color_buffer_to_image(&texture00); //sharp
     
     color_buffer_to_image(&texture01); //pingpong 1
-    depth_buffer_to_image(&texture02);
+    depth_buffer_to_image(&texture02, dof_mode);
 
     for(int i = 0; i < num_blurs; i++)
     {
@@ -168,7 +169,7 @@ void apply_post_processing (int mode)
     if(mode == NO_FX) return;
     IMAGE *input = &texture00;
     IMAGE *output = &texture01;
-
+    clear_texture(input, 1, 1, 1, 1);
     color_buffer_to_image(input);
     switch (mode)
     {

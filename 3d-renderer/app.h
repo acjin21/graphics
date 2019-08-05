@@ -28,10 +28,6 @@ extern IMAGE texture;                  // final display texture
 /*************/
 /* Functions */
 /*************/
-/* UI */
-//void gl_printf( int x, int y, char *s );
-//void print_settings(void);
-//void gl_print_settings (void);
 char *object_name (int object_type);
 
 /* textures */

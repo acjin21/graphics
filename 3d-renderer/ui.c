@@ -111,6 +111,35 @@ char *ips_mode_strings[N_IP_MODES] =
     "OIL_TRANSFER",
     "TILING"
 };
+
+char *material_strings[NUM_MATERIALS] =
+{
+    "EMERALD",
+    "JADE",
+    "OBSIDIAN",
+    "PEARL",
+    "RUBY",
+    "TURQUOISE",
+    "BRASS",
+    "BRONZE",
+    "CHROME",
+    "COPPER",
+    "GOLD",
+    "SILVER",
+    "BLACK_PLASTIC",
+    "CYAN_PLASTIC",
+    "GREEN_PLASTIC",
+    "RED_PLASTIC",
+    "WHITE_PLASTIC",
+    "YELLOW_PLASTIC",
+    "BLACK_RUBBER",
+    "CYAN_RUBBER",
+    "GREEN_RUBBER",
+    "RED_RUBBER",
+    "WHITE_RUBBER",
+    "YELLOW_RUBBER"
+};
+
 /* print settings for image processing */
 void gl_print_image_settings (IMAGE_PROCESSING_STATE *ips)
 {
@@ -122,9 +151,6 @@ void gl_print_image_settings (IMAGE_PROCESSING_STATE *ips)
     gl_printf(120, next_y, settings_str, color);
     next_y += 15;
 }
-
-
-
 
 char *framebuffer_src_strings[3] =
 {
@@ -145,31 +171,86 @@ void gl_print_app_settings (APP_STATE *as)
 {
     float color[4] = {0, 0, 1, 1};
     
-    int next_y = 200;
+    int next_y = 100;
     sprintf(settings_str, "%s", framebuffer_src_strings[as->framebuffer_source]);
-    gl_printf(5, next_y, "Framebuffer Source: ", color);
-    gl_printf(120, next_y, settings_str, color);
+    gl_printf(5, next_y, "Framebuffer Source (B): ", color);
+    gl_printf(130, next_y, settings_str, color);
     next_y -= 15;
     
     sprintf(settings_str, "%s", manip_mode_strings[as->manipulator_mode]);
-    gl_printf(5, next_y, "Manipulator Mode: ", color);
-    gl_printf(120, next_y, settings_str, color);
+    gl_printf(5, next_y, "Manipulator ([tab]): ", color);
+    gl_printf(130, next_y, settings_str, color);
     next_y -= 15;
     
     sprintf(settings_str, "%s", as->projection_mode ? "PERSPECT" : "ORTHO");
-    gl_printf(5, next_y, "Projection Mode: ", color);
-    gl_printf(120, next_y, settings_str, color);
+    gl_printf(5, next_y, "Projection (p): ", color);
+    gl_printf(130, next_y, settings_str, color);
     next_y -= 15;
     
     sprintf(settings_str, "%s", ips_mode_strings[as->post_processing_mode]);
-    gl_printf(5, next_y, "Image Proc. Mode: ", color);
-    gl_printf(120, next_y, settings_str, color);
+    gl_printf(5, next_y, "Image Proc. (3, #): ", color);
+    gl_printf(130, next_y, settings_str, color);
     next_y -= 15;
     
-    sprintf(settings_str, "%s", current_rs.render_mode ? "DEFERRED" : "FORWARD");
-    gl_printf(5, next_y, "Render Mode: ", color);
-    gl_printf(120, next_y, settings_str, color);
+    
+    sprintf(settings_str, "%s", as->dof_mode ? "NEAR" : "FAR");
+    gl_printf(5, next_y, "DOF (4): ", color);
+    gl_printf(130, next_y, settings_str, color);
     next_y -= 15;
 
 }
+
+void gl_print_render_settings (RENDER_STATE *rs)
+{
+    float color[4] = {0, 0.4, 1, 1};
+
+    int next_y = 100;
+    
+    sprintf(settings_str, "%s", rs->render_mode ? "DEFERRED" : "FORWARD");
+    gl_printf(220, next_y, "Texturing (t, T) / Mod (m): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+    sprintf(settings_str, "%s", rs->light_source ? "GLOBAL" : "POINT");
+    gl_printf(220, next_y, "Light Source (7): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+    sprintf(settings_str, "%s", rs->perspective_correction ? "ON" : "OFF");
+    gl_printf(220, next_y, "Perspective Correction (C): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+    sprintf(settings_str, "%s / %s", rs->depth_testing ? "ON" : "OFF", rs->alpha_blending ? "ON" : "OFF");
+    gl_printf(220, next_y, "Depth Test (D) / Alpha Blend (b): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+    sprintf(settings_str, "%s", rs->backface_culling ? "ON" : "OFF");
+    gl_printf(220, next_y, "Backface Culling (*): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+    gl_printf(220, next_y, "Material (1, 2): ", color);
+    if(rs->material_properties)
+    {
+        sprintf(settings_str, "%s", material_strings[rs->material_type]);
+        gl_printf(380, next_y, settings_str, color);
+    }
+    else
+    {
+        gl_printf(380, next_y, "OFF", color);
+    }
+    next_y -= 15;
+
+    
+    sprintf(settings_str, "%s", rs->render_mode ? "DEFERRED" : "FORWARD");
+    gl_printf(220, next_y, "Render Mode (8): ", color);
+    gl_printf(380, next_y, settings_str, color);
+    next_y -= 15;
+    
+
+    
+}
+
 
