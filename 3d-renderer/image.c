@@ -489,8 +489,6 @@ void oil_transfer (IMAGE *input, IMAGE *output)
 #define TILE_SIZE 50
 void tiling (IMAGE *input, IMAGE *output)
 {
-//    clear_texture(output, 1, 1, 1, 1);
-
     int x, y, dx, dy;
     int ox, oy, nx, ny;
     
