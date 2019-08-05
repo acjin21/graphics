@@ -1,6 +1,6 @@
 # ignore benchmarking and build files
-*/benchmarking
-*/build
+*/benchmarking/*
+*/build/*
 
 # unignore the makefile
 !*/Makefile
