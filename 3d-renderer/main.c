@@ -31,7 +31,7 @@
 #include "vector.h"
 #include "opengl.h"
 #include "state.h"
-
+#include "ui.h"
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
@@ -109,25 +109,39 @@ void display(void)
     start_timer(&framerate_timer);
     switch (current_as.program_type)
     {
-        case BASIC: display_basic_mode();                       break;
-        case SCENE: display_scene_mode();                       break;
+        case BASIC: display_basic_mode();
+            break;
+        case SCENE: display_scene_mode();
+            break;
         case IMAGE_PROCESSING:
-        {
-            display_image_mode();            break;
-            printf("hihi\n");
-        }
-        default: display_basic_mode();                          break;
+            display_image_mode();
+            break;
+        default:
+            display_basic_mode();
+            break;
     }
     
     if(renderer == ALL_SW)
     {
         apply_post_pipeline_fx();
-        if(current_rs.render_mode)    draw_g_buffer();
+        if(current_rs.render_mode)                  draw_g_buffer();
         switch(current_as.framebuffer_source)
         {
             case COLOR: draw_color_buffer();        break;
             case STENCIL: draw_stencil_buffer();    break;
             case DEPTH: draw_depth_buffer();        break;
+        }
+        switch(current_as.program_type)
+        {
+            case IMAGE_PROCESSING:
+                gl_print_image_settings(&current_ips);
+                break;
+            case BASIC:
+                gl_print_app_settings (&current_as);
+                break;
+            case SCENE:
+                gl_print_app_settings (&current_as);
+                break;
         }
 
     }
@@ -135,25 +149,28 @@ void display(void)
     /*******************************************************/
     /* print on screen */
     /*******************************************************/
-//    gl_print_settings();
-//    
-//    char res[100];
-//    int next_line_y = 775;
-//    gl_printf(640, next_line_y, "BENCHMARK:");
-//    next_line_y -= 15;
-//
-//    sprintf(res, "Framerate: %.5f fps", 1.0 / elapsed_time(&framerate_timer));
-//    gl_printf(650, next_line_y, res);
-//    next_line_y -= 15;
-//
-//    sprintf(res, "Vertex: %.5f seconds", elapsed_time(&vtx_timer));
-//    gl_printf(650, next_line_y, res);
-//    next_line_y -= 15;
-//
-//    sprintf(res, "Pixel: %.5f seconds", elapsed_time(&px_timer));
-//    gl_printf(650, next_line_y, res);
-//    next_line_y -= 15;
+    
+    char res[100];
+    float color[4] = {0, 0, 1, 1};
+    int next_line_y = 775;
+    gl_printf(640, next_line_y, "BENCHMARK:", color);
+    next_line_y -= 15;
 
+    sprintf(res, "Framerate: %.5f fps", 1.0 / elapsed_time(&framerate_timer));
+    gl_printf(650, next_line_y, res, color);
+    next_line_y -= 15;
+
+    sprintf(res, "Vertex: %.5f seconds", elapsed_time(&vtx_timer));
+    gl_printf(650, next_line_y, res, color);
+    next_line_y -= 15;
+
+    sprintf(res, "Pixel: %.5f seconds", elapsed_time(&px_timer));
+    gl_printf(650, next_line_y, res, color);
+    next_line_y -= 15;
+
+    /*******************************************************/
+    /* GLUT management */
+    /*******************************************************/
     /* show results */
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.

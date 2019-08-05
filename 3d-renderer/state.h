@@ -3,7 +3,7 @@
 
 typedef struct render_state {
     /* > 2 options; note: must be EITHER/OR */
-    int draw_mode;          //done
+    int draw_mode;          //FRAME/FILL
     int object_type;
     /* note: combined texturing and texturing_mode into one var */
     int texturing_mode;     // NONE, NAIVE, CYLINDRICAL, SPHERICAL, ENVIRONMENTAL, CUBE_MAP
@@ -25,6 +25,8 @@ typedef struct render_state {
     
     int material_type;
     int render_mode;
+    
+    
 } RENDER_STATE;
 
 typedef struct app_state {
@@ -49,29 +51,29 @@ typedef struct image_processing_state {
 /*************************************************************************/
 /* ENUMS */
 /*************************************************************************/
-enum Program_Type { BASIC, SCENE, IMAGE_PROCESSING};
+enum Program_Type       { BASIC, SCENE, IMAGE_PROCESSING};
 
-enum Projection_Mode { ORTHO, PERSPECT };
+enum Projection_Mode    { ORTHO, PERSPECT };
 
-enum Manipulator { ROTATE, TRANSLATE, SCALE };
+enum Manipulator        { ROTATE, TRANSLATE, SCALE };
 
-enum Rotation_Mode { GLOBAL = 0, LOCAL = 1 };
+enum Rotation_Mode      { GLOBAL, LOCAL };
 
-enum Reflection_Mode { DIFFUSE = 0, SPECULAR = 1 };
+enum Reflection_Mode    { DIFFUSE, SPECULAR };
 
-enum Draw_Mode { FRAME, FILL };
+enum Draw_Mode          { FRAME, FILL };
 
 enum Framebuffer_Source { COLOR, DEPTH, STENCIL};
 
-enum Modulate_Mode { MOD_OFF, MOD_COLOR, MOD_LIGHT };
+enum Modulate_Mode      { MOD_OFF, MOD_COLOR, MOD_LIGHT };
 
-enum Shading_Mode { NO_SHADING, FLAT, PHONG };
+enum Shading_Mode       { NO_SHADING, FLAT, PHONG };
 
-enum Light_Type { POINT_LIGHT = 0, GLOBAL_LIGHT = 1 };
+enum Light_Type         { POINT_LIGHT, GLOBAL_LIGHT };
 
-enum Draw_Normals_Mode { NO_NORMALS,  F_NORMALS, V_NORMALS};
+enum Draw_Normals_Mode  { NO_NORMALS,  F_NORMALS, V_NORMALS};
 
-enum Render_Mode { FORWARD, DEFERRED };
+enum Render_Mode        { FORWARD, DEFERRED };
 
 #define NUM_TEX_MODES 7
 enum Texture_Mode {

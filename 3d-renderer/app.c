@@ -264,8 +264,8 @@ void display_scene_mode (void)
         /* set draw state */
         current_rs.texturing_mode = objects[i].texturing;
         current_as.texture_idx = objects[i].texture_idx;
-        current_rs.texturing_mode = objects[i].tex_gen_mode;
         current_rs.perspective_correction = objects[i].persp_corr;
+        current_rs.alpha_blending = objects[i].alpha_blend;
         
         objects[i].scale_vec[X] =
         (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
@@ -434,7 +434,7 @@ void key_callback (unsigned char key)
         case 't':
             if(current_as.program_type == SCENE)
             {
-                curr_object->texturing = 1 - curr_object->texturing;
+                curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);
             }
             else
             {
@@ -547,13 +547,6 @@ void key_callback (unsigned char key)
             else light[Z] += 0.5;
             break;
             
-        case '0':
-            if(current_as.program_type == SCENE)
-            {
-                curr_object->tex_gen_mode = (curr_object->tex_gen_mode + 1) % NUM_TEX_MODES;
-            }
-            else current_rs.texturing_mode = (current_rs.texturing_mode + 1) % NUM_TEX_MODES;
-            break;
         case '1':
             current_rs.material_properties = 1 - current_rs.material_properties;
             break;

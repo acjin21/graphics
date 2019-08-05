@@ -215,8 +215,7 @@ void apply_post_processing (int mode)
             tiling(input, output);
             break;
         default:
-            fill(output, 1, 0, 0);
-            break;
+            return; // don't do anything
     }
     
     image_to_color_buffer(output);

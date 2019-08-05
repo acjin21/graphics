@@ -33,8 +33,8 @@ typedef struct object {
     
     int texturing;
     int texture_idx;
-    int tex_gen_mode;
     int persp_corr;
+    int alpha_blend;
     
 } OBJECT;
 

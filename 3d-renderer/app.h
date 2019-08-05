@@ -13,6 +13,8 @@
 
 extern RENDER_STATE current_rs;
 extern APP_STATE current_as;
+extern IMAGE_PROCESSING_STATE current_ips;
+
 /****************/
 /* Var Externs */
 /****************/
