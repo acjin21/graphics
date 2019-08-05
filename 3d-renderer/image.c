@@ -529,4 +529,98 @@ void tiling (IMAGE *input, IMAGE *output)
     }
 }
 
+unsigned char horizontal_mask[3][3] =
+{
+    {-1, -1, -1},
+    {2, 2, 2},
+    {-1, -1, -1}
+};
+
+unsigned char sobel_gx[3][3] =
+{
+    {-1, 0, 1},
+    {-2, 0, 2},
+    {-1, 0, 1}
+};
+
+unsigned char sobel_gy[3][3] =
+{
+    {1, 2, 1},
+    {0, 0, 0},
+    {-1, -2, 1}
+};
+void edge_detection (IMAGE *input, IMAGE  *output, unsigned char mask[3][3])
+{
+    output->width = input->width;
+    output->height = input->height;
+    
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            unsigned char new_c = 0;
+            for(int dj = -1; dj <= 1; dj++)
+            {
+                for(int di = -1; di <= 1; di++)
+                {
+                    new_c += (mask[1 + dj][1 + di] * input->data[j + dj][i + di][R]);
+                }
+            }
+            output->data[j][i][R] = new_c;
+            output->data[j][i][G] = new_c;
+            output->data[j][i][B] = new_c;
+            output->data[j][i][A] = 1;
+        }
+    }
+}
+void combine_approx_magnitude (IMAGE *in1, IMAGE *in2, IMAGE *output)
+{
+    output->width = in1->width;
+    output->height = in1->height;
+    
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            unsigned char new_c = ABS(in1->data[j][i][R]) + ABS(in2->data[j][i][R]);
+            
+            output->data[j][i][R] = new_c;
+            output->data[j][i][G] = new_c;
+            output->data[j][i][B] = new_c;
+            output->data[j][i][A] = 1;
+        }
+    }
+}
+
+void combine_absolute_magnitude (IMAGE *in1, IMAGE *in2, IMAGE *output)
+{
+    output->width = in1->width;
+    output->height = in1->height;
+    unsigned char gx, gy, new_c;
+    for (int j = 0; j < output->height; j++)
+    {
+        for (int i = 0; i < output->width; i++)
+        {
+            gx = in1->data[j][i][R];
+            gy = in2->data[j][i][R];
+            new_c = ABS(gx) + ABS(gy);
+//            new_c = sqrt(gx * gx + gy * gy);
+            
+            output->data[j][i][R] = new_c;
+            output->data[j][i][G] = new_c;
+            output->data[j][i][B] = new_c;
+            output->data[j][i][A] = 1;
+        }
+    }
+}
+void edge_detection_wrapper (IMAGE *input, IMAGE  *output)
+{
+    IMAGE grayscale, sobel_x, sobel_y;
+    luminosity (input, &grayscale);
+    edge_detection (&grayscale, &sobel_x, sobel_gx);
+    edge_detection (&grayscale, &sobel_y, sobel_gy);
+    combine_approx_magnitude (&sobel_x, &sobel_y, output);
+
+}
+
 

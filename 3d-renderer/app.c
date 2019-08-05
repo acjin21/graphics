@@ -290,7 +290,7 @@ void init_image_program (void)
 void display_image_mode (void)
 {
     clear_texture(&texture, 0, 0, 0, 1);
-    char *ppm_file = "ppm/blackbuck.ascii.ppm";
+    char *ppm_file = "ppm/mona_lisa.ascii.pgm";
     read_ppm(ppm_file, &texture);
     
     current_rs.texturing_mode = MANUAL;
@@ -361,6 +361,9 @@ void image_key_callback (unsigned char key)
             break;
         case 'e':
             current_ips.processing_mode = TILING;
+            break;
+        case 'f':
+            current_ips.processing_mode = EDGE;
             break;
         case 'q':
         case '\033':

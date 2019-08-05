@@ -214,6 +214,9 @@ void apply_post_processing (int mode)
         case TILING:
             tiling(input, output);
             break;
+        case EDGE:
+            edge_detection_wrapper(input, output);
+            break;
         default:
             return; // don't do anything
     }

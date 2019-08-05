@@ -24,4 +24,6 @@ void fisheye (IMAGE *input, IMAGE *output);
 void einstein (IMAGE *input, IMAGE *output);
 void oil_transfer (IMAGE *input, IMAGE *output);
 void tiling (IMAGE *input, IMAGE *output);
+void edge_detection_wrapper (IMAGE *input, IMAGE  *output);
+
 #endif

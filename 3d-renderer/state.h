@@ -104,7 +104,7 @@ enum Object_Type {
     TREE
 };
 
-#define N_IP_MODES 15
+#define N_IP_MODES 16
 enum Image_Processing_Mode
 {
     NO_FX,
@@ -121,7 +121,8 @@ enum Image_Processing_Mode
     FISHEYE,
     EINSTEIN,
     OIL_TRANSFER,
-    TILING
+    TILING,
+    EDGE
 };
 
 void set_default_render_state (RENDER_STATE *rs);
