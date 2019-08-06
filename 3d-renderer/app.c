@@ -384,89 +384,33 @@ void key_callback (unsigned char key)
     switch (key)
     {
             /* draw wire frame or fill */
-        case 'f':
-            current_rs.draw_mode = 1 - current_rs.draw_mode;
-            break;
+        case 'f':   current_rs.draw_mode = 1 - current_rs.draw_mode;                    break;
             
-            /* toggle object_type or curr_object */
-        case ' ':
-            current_rs.object_type = (current_rs.object_type + 1) % N_TYPES;
-            break;
+        /* toggle object_type or curr_object */
+        case ' ':   current_rs.object_type = (current_rs.object_type + 1) % N_TYPES;    break;
             
-            /* manipulation */
-        case 'x':
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[X] += 10;
-            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[X] += 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[X] += 0.25;
-            break;
-        case 'y':
-        {
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Y] += 10;
-            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[Y] += 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Y] += 0.25;
-            break;
-        }
-        case 'z':
-        {
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Z] += 10;
-            else if(current_as.manipulator_mode == TRANSLATE && current_as.projection_mode == PERSPECT) curr_object->translate[Z] += 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Z] += 0.25;
-            break;
-        }
-        case 'X':
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[X] -= 10;
-            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[X] -= 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[X] -= 0.25;
-            break;
-        case 'Y':
-        {
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Y] -= 10;
-            else if(current_as.manipulator_mode == TRANSLATE) curr_object->translate[Y] -= 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Y] -= 0.25;
-            break;
-        }
-        case 'Z':
-        {
-            if(current_as.manipulator_mode == ROTATE) curr_object->rotation[Z] -= 10;
-            else if(current_as.manipulator_mode == TRANSLATE && current_as.projection_mode == PERSPECT) curr_object->translate[Z] -= 0.5;
-            else if(current_as.manipulator_mode == SCALE) curr_object->scale_vec[Z] -= 0.25;
-            break;
-        }
-        
-            /* texturing */
+        /* texturing */
         case 't':
             if(current_as.program_type == SCENE) curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);
             else current_rs.texturing_mode = (current_rs.texturing_mode + 1) % (NUM_TEX_MODES);
             break;
-            
         case 'T':
             if(current_as.program_type == SCENE) curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
             else current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
             set_texture();
             break;
+        case 'm':   current_rs.modulation_mode = (current_rs.modulation_mode + 1) % 3;  break;
+
+        /* alpha blending */
+        case 'b':   current_rs.alpha_blending = 1 - current_rs.alpha_blending;          break;
+        /* depth testing */
+        case 'D':   current_rs.depth_testing = 1 - current_rs.depth_testing;            break;
             
-            /* alpha blending */
-        case 'b':
-            current_rs.alpha_blending = 1 - current_rs.alpha_blending;
-            break;
-            /* depth testing */
-        case 'D':
-            current_rs.depth_testing = 1 - current_rs.depth_testing;
-            break;
             
-        case 'm':
-            current_rs.modulation_mode = (current_rs.modulation_mode + 1) % 3;
-            break;
-            
-        case 'n':
-            current_as.draw_normals_mode = 1 - current_as.draw_normals_mode;
-            break;
         case 'h':
             current_rs.shading_mode = (current_rs.shading_mode + 1) % 3;
             break;
-        case '0':
-            current_rs.fog_fx = 1 - current_rs.fog_fx;
-            break;
+
         case 'S':
             current_rs.reflection_mode = 1 - current_rs.reflection_mode;
             break;
@@ -483,20 +427,18 @@ void key_callback (unsigned char key)
             current_as.framebuffer_source = (current_as.framebuffer_source + 1) % 3;
             break;
             
-        case 'A':
-            draw_coord_axes = 1 - draw_coord_axes;
-            break;
-        case 'u':
-            draw_bounding_box = 1 - draw_bounding_box;
-            break;
+        case 'n':   current_as.draw_normals_mode = 1 - current_as.draw_normals_mode;    break;
+        case 'A':   draw_coord_axes = 1 - draw_coord_axes;                              break;
+        case 'u':   draw_bounding_box = 1 - draw_bounding_box;                          break;
         
+        /* IO */
         case 'W':
             strcat(scene_name, strtok(scene_file, "."));
             write_scene(strcat(scene_name,"_out.txt"));
             break;
-            
         case 'O': write_obj_file("obj/out.obj");                        break;
         
+        /* camera controls */
         case 'a':   rotate_camera (&camera, 0, 5, 0);   break;
         case 'd':   rotate_camera (&camera, 0, -5, 0);  break;
         case 'w':   rotate_camera (&camera, -5, 0, 0);  break;
@@ -511,6 +453,7 @@ void key_callback (unsigned char key)
         case '+':   translate_camera (&camera, 0, 0, camera_transl);    break;
         case '-':   translate_camera (&camera, 0, 0, -camera_transl);   break;
 
+        /* light controls */
         case 'I':
             if(current_rs.light_source == POINT_LIGHT) light_pos[Y] += 10;
             else light[Y] += 0.5;
@@ -538,6 +481,8 @@ void key_callback (unsigned char key)
             else light[Z] += 0.5;
             break;
             
+        /* misc */
+        case '0':   current_rs.fog_fx = 1 - current_rs.fog_fx;  break;
         case '1':
             current_rs.material_properties = 1 - current_rs.material_properties;
             break;
@@ -571,29 +516,10 @@ void key_callback (unsigned char key)
         case '*':
             current_rs.backface_culling = 1 - current_rs.backface_culling;
             break;
-        case '!':
-            /* mode 1 */
-            current_as.projection_mode = PERSPECT;
-            current_rs.perspective_correction = OFF;
-            current_rs.depth_testing = ON;
-            current_rs.draw_mode = FILL;
-            current_rs.backface_culling = OFF;
-            break;
-        case '@':
-            current_rs.object_type = TEAPOT;
-            current_as.projection_mode = PERSPECT;
-            current_rs.perspective_correction = OFF;
-            current_rs.depth_testing = ON;
-            current_rs.draw_mode = FILL;
-            current_rs.backface_culling = OFF;
-            current_rs.texturing_mode = ON;
-            current_rs.texturing_mode = CUBE_MAP;
-            break;
-        case '\t':
-            current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;
-            break;
-        case 'q':       exit(0);                                        break;
-        case '\033':    exit(0);                                        break;
+
+        case '\t':      current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;      break;
+        case 'q':       exit(0);                                                                                break;
+        case '\033':    exit(0);                                                                                break;
     }
     if(renderer != ALL_SW)
     {
