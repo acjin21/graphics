@@ -682,13 +682,17 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        z_min = 0;
+        z_max = 20;
+    }
     set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
     
     for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
-        vertex_list[i].position[Z] = 0;
-
+        
         vertex_list[i].position[W] = 1.0;
     }
     for(int i = 0; i < num_peripherals; i++)

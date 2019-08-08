@@ -19,6 +19,10 @@ void set_default_render_state (RENDER_STATE *rs)
     rs->post_processing         = OFF;
     rs->depth_of_field          = OFF;
     rs->backface_culling        = OFF;
+    
+    rs->material_type           = EMERALD;
+    rs->render_mode             = FORWARD;
+    rs->render_pass_type        = COLOR_PASS;
 }
 
 void set_default_app_state (APP_STATE *as)

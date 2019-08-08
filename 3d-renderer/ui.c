@@ -152,11 +152,12 @@ void gl_print_image_settings (IMAGE_PROCESSING_STATE *ips)
     next_y += 15;
 }
 
-char *framebuffer_src_strings[3] =
+char *framebuffer_src_strings[4] =
 {
     "COLOR",
     "DEPTH",
-    "STENCIL"
+    "STENCIL",
+    "SHADOW"
 };
 
 char *manip_mode_strings[3] =

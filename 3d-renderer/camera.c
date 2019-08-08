@@ -3,18 +3,19 @@
 #include "vector.h"
 #include "macros.h"
 #include "math_lib/mat4.h"
-
+#include "app.h"
 #include <stdio.h>
 
 float eye[4] = { 0, 0, 0, 1 };
 
 CAMERA camera;
-
+CAMERA light_camera;
 void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
 {
     float u[4], v[4];
     float col3[4] = {0, 0, 0, 1};
-
+    float local_up[4];
+    cpy_vec4(local_up, up);
     if(pos[X] == lookat[X] && pos[Y] == lookat[Y] && pos[Z] == lookat[Z])
     {
         printf("camera error: pos == lookat\n");
@@ -22,13 +23,21 @@ void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
     }
     else
     {
-        vector_subtract(lookat, pos, v);
-        normalize(v);
+        if(current_rs.render_pass_type == SHADOW_PASS)
+        {
+            cpy_vec4(v, lookat);
+
+            normalize(v);
+        }
+        else
+        {
+            vector_subtract(lookat, pos, v);
+            normalize(v);
+        }
+        vector_cross (local_up, v, u);
+        normalize (u);
         
-        vector_cross (up, v, u);
-        normalize(u);
-        
-        vector_cross (v, u, up);
+        vector_cross (v, u, local_up);
         normalize(up);
         
         u[W] = 0.0;
@@ -38,12 +47,12 @@ void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
         cpy_vec4(c->orig_pos, pos);
         cpy_vec4(c->orig_u, u);
         cpy_vec4(c->orig_v, v);
-        cpy_vec4(c->orig_up, up);
+        cpy_vec4(c->orig_up, local_up);
         
         cpy_vec4(c->pos, pos);
         cpy_vec4(c->u, u);
         cpy_vec4(c->v, v);
-        cpy_vec4(c->up, up);
+        cpy_vec4(c->up, local_up);
     }
 }
 

@@ -141,6 +141,9 @@ void draw_point (POINT *p)
     {
         depth_buffer[r][c] = p->position[Z];
     }
+    /* only need to write to depth buffer if in shadow pass of shadow map rendering */
+    if(current_rs.render_pass_type == SHADOW_PASS) return;
+    
     stencil_buffer[r][c] = current_as.stencil_bufferID;
 
     /* write to g buffer if deferred rendering */

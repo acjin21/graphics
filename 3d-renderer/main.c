@@ -101,7 +101,7 @@ void display(void)
         }
         clear_depth_buffer(1.0);
     }
-
+    
     counter++;
     
     /*******************************************************/
@@ -110,27 +110,22 @@ void display(void)
     start_timer(&framerate_timer);
     switch (current_as.program_type)
     {
-        case BASIC: display_basic_mode();
-            break;
-        case SCENE: display_scene_mode();
-            break;
-        case IMAGE_PROCESSING:
-            display_image_mode();
-            break;
-        default:
-            display_basic_mode();
-            break;
+        case BASIC:             display_basic_mode();   break;
+        case SCENE:             display_scene_mode();   break;
+        case IMAGE_PROCESSING:  display_image_mode();   break;
+        default:                display_basic_mode();   break;
     }
     
-    if(current_as.renderer == ALL_SW)
+    if(current_as.renderer == ALL_SW && current_rs.render_pass_type == COLOR_PASS)
     {
         apply_post_pipeline_fx();
-        if(current_rs.render_mode)                  draw_g_buffer();
+        if(current_rs.render_mode == DEFERRED)                      draw_g_buffer();
         switch(current_as.framebuffer_source)
         {
-            case COLOR: draw_color_buffer();        break;
-            case STENCIL: draw_stencil_buffer();    break;
-            case DEPTH: draw_depth_buffer();        break;
+            case COLOR:     draw_color_buffer();        break;
+            case STENCIL:   draw_stencil_buffer();      break;
+            case DEPTH:     draw_depth_buffer();        break;
+            case SHADOW:    draw_shadow_buffer();       break;
         }
         switch(current_as.program_type)
         {

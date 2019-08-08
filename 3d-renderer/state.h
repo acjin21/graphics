@@ -27,6 +27,7 @@ typedef struct render_state {
     int material_type;
     int render_mode;
     
+    int render_pass_type;
     
 } RENDER_STATE;
 
@@ -66,7 +67,7 @@ enum Reflection_Mode    { DIFFUSE, SPECULAR };
 
 enum Draw_Mode          { FRAME, FILL };
 
-enum Framebuffer_Source { COLOR, DEPTH, STENCIL};
+enum Framebuffer_Source { COLOR, DEPTH, STENCIL, SHADOW };
 
 enum Modulate_Mode      { MOD_OFF, MOD_COLOR, MOD_LIGHT };
 
@@ -80,6 +81,7 @@ enum Render_Mode        { FORWARD, DEFERRED };
 
 enum Renderer           { ALL_SW, SW_HW };
 
+enum Render_Pass        { SHADOW_PASS, COLOR_PASS };
 
 #define NUM_TEX_MODES 7
 enum Texture_Mode {
