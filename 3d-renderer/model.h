@@ -55,6 +55,7 @@ void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
 /* functions that rely on world space coords */
+void set_distances_from_light (void);
 void set_backface_flags (CAMERA *c);
 void set_view_rays (CAMERA *c);
 
@@ -66,7 +67,9 @@ void set_triangle_clip_flags (void);
 void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max);
-
+void ortho_xform_shadow (float x_min, float x_max,
+                         float y_min, float y_max,
+                         float z_min, float z_max);
 /* perspective transformations */
 int cull_model (float near, float far);
 float perspective_xform(float near, float far,

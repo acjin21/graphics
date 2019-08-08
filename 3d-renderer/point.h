@@ -18,11 +18,11 @@ typedef struct point {
     float world[4]; //used to store world and eye space coords
     float ndc[4];
     float position[4];
+    float world_pos[4];
+    float light_space[4];
+    
     float color[4];
     float tex[4];
-    
-    float world_pos[4];
-    
     float view[4];
     
     int tri_list[100]; // indices of neighboring triangles
@@ -31,7 +31,8 @@ typedef struct point {
     float v_normal[4];
     float light[4]; // direction to light
     
-    int rendered_flag; 
+    int rendered_flag;
+    float distance_to_light;
 //    MAT4 tbn;
 } POINT;
 

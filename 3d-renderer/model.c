@@ -58,7 +58,8 @@ int face_normals_start_idx = 0;
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
-MAT4 cam, ortho, perspective, viewport;
+MAT4 cam, ortho, perspective, viewport, light_cam;
+MAT4 *current_cam_mat;
 
 
 /****************************************************************/
@@ -656,20 +657,34 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 void camera_xform (CAMERA *c)
 {
-    set_camera_mat (&cam, c);
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_camera_mat (&light_cam, c);
+        current_cam_mat = &light_cam;
+    }
+    else
+    {
+        set_camera_mat (&cam, c);
+        current_cam_mat = &cam;
+    }
+
     for(int i = 0; i < num_vertices; i++)
     {
         cpy_vec4(vertex_list[i].world_pos, vertex_list[i].world); //save world coords for lighting calculations later
-        mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
+        mat_vec_mul (current_cam_mat, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
+        if(current_rs.render_pass_type == COLOR_PASS)
+        {
+            mat_vec_mul (&light_cam, vertex_list[i].world, vertex_list[i].light_space);
+        }
     }
     for(int i = 0; i < num_peripherals; i++)
     {
-        mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
+        mat_vec_mul (current_cam_mat, peripherals[i].world, peripherals[i].world);
         peripherals[i].world[W] = 1.0;
     }
     light_pos[W] = 1.0;
-    mat_vec_mul (&cam, light_pos, light_pos_screen);
+    mat_vec_mul (current_cam_mat, light_pos, light_pos_screen);
     light_pos[W] = 1.0;
 }
 
@@ -692,7 +707,7 @@ void xform_model(float x_min, float x_max,
     for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
-        
+
         vertex_list[i].position[W] = 1.0;
     }
     for(int i = 0; i < num_peripherals; i++)
@@ -701,6 +716,20 @@ void xform_model(float x_min, float x_max,
         peripherals[i].position[W] = 1.0;
     }
 }
+
+void ortho_xform_shadow (float x_min, float x_max,
+                         float y_min, float y_max,
+                         float z_min, float z_max)
+{
+    set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
+    
+    for(int i = 0; i < num_vertices; i++)
+    {
+        mat_vec_mul (&ortho, vertex_list[i].light_space, vertex_list[i].light_space);
+        vertex_list[i].light_space[W] = 1.0;
+    }
+}
+
 
 void viewport_mat_xform (int vp_w, int vp_h)
 {
@@ -713,12 +742,16 @@ void viewport_mat_xform (int vp_w, int vp_h)
         cpy_vec4(vertex_list[i].ndc, vertex_list[i].position);
 
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
-        
+        mat_vec_mul (&viewport, vertex_list[i].light_space, vertex_list[i].light_space);
+
         // do translation separately so that position[W] = 1/w for persp corr.
         //      does not interfere with viewport_x, viewport_y calculation
         // TODO: do we always want to add this translation vector regardless of
         //      whether we're working with points or directions?
         vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
+        vector_add(vertex_list[i].light_space, translation_vec, vertex_list[i].light_space);
+        print_vec4(vertex_list[i].light_space);
+
     }
     for(int i = 0; i < num_peripherals; i++)
     {
@@ -832,6 +865,21 @@ void unproject_screen_to_world (float out[4], float in[4], float w, int proj_mod
 /***************************************************************************/
 /* setter functions */
 /***************************************************************************/
+void set_distances_from_light (void)
+{
+    float surface_to_light_eye[4];
+    for(int i = 0; i < num_vertices; i++)
+    {
+        POINT *p = &vertex_list[i];
+        
+        vector_subtract(p->world, light_eye, surface_to_light_eye);
+        float distance = vector_dot(surface_to_light_eye, light);
+        distance *= (1.0 / 20.0);
+        printf("normalized distance to light: %.2f\n", distance);
+        p->distance_to_light = distance;
+        
+    }
+}
 /* called when everything is in world space */
 void set_backface_flags (CAMERA *c)
 {

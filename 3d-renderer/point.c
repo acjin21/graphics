@@ -33,6 +33,7 @@ IMAGE texture;
 IMAGE *texture_ptr = &texture;
 int cube_map_index;
 
+float max_z_from_light = 0.0;
 /*************************************************************************/
 /* helper functions                                                      */
 /*************************************************************************/
@@ -129,20 +130,37 @@ void draw_point (POINT *p)
 {
     int r = (int) (p->position[Y]);//+ WIN_H / 2);
     int c = (int) (p->position[X]);// + WIN_W / 2);
-    
+
+    int shadow_buffer_r = (int) (p->light_space[Y]);
+    int shadow_buffer_c = (int) (p->light_space[X]);
     /* if not within window size, do not draw */
     if(r >= window_height || r < 0 || c >= window_width || c < 0) return;
-    
     float blend_weight = 0.50; //for alpha blending
     
     /* early return if fail depth test */
-    if(current_rs.depth_testing && p->position[Z] > depth_buffer[r][c]) return;
+    if(current_rs.depth_testing && p->position[Z] > depth_buffer[r][c])
+    {
+        return;
+    }
     if(current_rs.depth_testing)
     {
         depth_buffer[r][c] = p->position[Z];
     }
-    /* only need to write to depth buffer if in shadow pass of shadow map rendering */
     if(current_rs.render_pass_type == SHADOW_PASS) return;
+    print_vec4(p->light_space);
+    if(shadow_buffer_r >= window_height || shadow_buffer_r < 0 || shadow_buffer_c >= window_width || shadow_buffer_c < 0)
+    {
+//        printf("out of bounds\n");
+        return;
+    }
+    shadow_buffer[shadow_buffer_r][shadow_buffer_c] = 0;
+
+//    if(p->distance_to_light > shadow_buffer[shadow_buffer_r][shadow_buffer_c])
+//    {
+//        set_vec4(color_buffer[r][c], 1, 0, 0, 1);
+//        return;
+//    }
+    /* only need to write to depth buffer if in shadow pass of shadow map rendering */
     
     stencil_buffer[r][c] = current_as.stencil_bufferID;
 

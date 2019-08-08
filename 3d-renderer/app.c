@@ -133,14 +133,11 @@ void render_object(OBJECT *o, CAMERA *c)
     }
     build_model(o);
 
-
     /* set material property vecs */
     set_material(current_rs.material_type);
     /* all OBJ models are at the end of the list */
     reading_obj = o->type >= TEAPOT;
-    draw_peripherals = current_as.program_type != SCENE ||
-                        (current_as.program_type == SCENE &&
-                         o->ID == current_as.selected_objectID);
+    draw_peripherals = current_as.program_type != SCENE || (current_as.program_type == SCENE && o->ID == current_as.selected_objectID);
     /*******************/
     /* WORLD SPACE */
     /*******************/
@@ -152,22 +149,21 @@ void render_object(OBJECT *o, CAMERA *c)
         calculate_vertex_normals();
         get_tex_coords();
     }
-    if(draw_coord_axes && draw_peripherals)
-    {
-        insert_coord_axes(o->center[X], o->center[Y], o->center[Z], o->scale);
-    }
+    if(draw_coord_axes && draw_peripherals)             insert_coord_axes(o->center[X], o->center[Y], o->center[Z], o->scale);
+
     world_xforms(o);
     
     /* rotated face and vertex normals */
     calculate_face_normals();
     calculate_vertex_normals();
     
+    if(current_rs.light_source == POINT_LIGHT)          calculate_light_vectors();
     
-    if(current_rs.light_source == POINT_LIGHT) calculate_light_vectors();
+    set_backface_flags (current_camera);
+    set_view_rays (current_camera);
+    set_distances_from_light ();
     
-    set_backface_flags(current_camera);
-    set_view_rays(current_camera);
-    if(current_as.draw_normals_mode == F_NORMALS)         insert_normal_coords();
+    if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
 
     camera_xform (current_camera);
 
@@ -176,7 +172,10 @@ void render_object(OBJECT *o, CAMERA *c)
     /*******************/
     set_triangle_clip_flags();
     insert_bb_coords();
-
+    if(current_rs.render_pass_type == COLOR_PASS)
+    {
+        ortho_xform_shadow(-10, 10, -10, 10, 0, 20);
+    }
     switch(current_as.projection_mode)
     {
         case ORTHO:
