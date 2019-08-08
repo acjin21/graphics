@@ -89,17 +89,19 @@ void display(void)
 //    }
     glClearDepth( 1.0 );
     glClearColor(1, 1, 1, 1.0);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    if(renderer == ALL_SW)
+    glPointSize(2.0);
+
+    if(current_as.renderer == ALL_SW)
     {
         clear_color_buffer(1, 1, 1, 1);
-        if(current_rs.render_mode)    clear_g_buffer(1, 1, 1, 1);
+        if(current_rs.render_mode == DEFERRED)
+        {
+            clear_g_buffer(1, 1, 1, 1);
+        }
         clear_depth_buffer(1.0);
     }
 
-    glPointSize(2.0);
     counter++;
     
     /*******************************************************/
@@ -120,7 +122,7 @@ void display(void)
             break;
     }
     
-    if(renderer == ALL_SW)
+    if(current_as.renderer == ALL_SW)
     {
         apply_post_pipeline_fx();
         if(current_rs.render_mode)                  draw_g_buffer();
@@ -398,7 +400,6 @@ int main(int argc, char **argv)
     /* open output file for benchmarking */
     char file_name[MAX_FILE_NAME] = "benchmarking/rotate.txt";
     benchmark_output = fopen(file_name, "w");
-
     fprintf(benchmark_output, "%i\n\n", num_samples);
     if (benchmark_output == NULL)
     {

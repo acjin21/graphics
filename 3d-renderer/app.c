@@ -27,14 +27,16 @@
 /*************************************************************************/
 /* externs                                                               */
 /*************************************************************************/
-extern FILE *benchmark_output;
-//extern int object_type;
-extern int counter;
-extern float window_size;
+extern FILE     *benchmark_output;
+extern int      counter;
+extern float    window_size;
 
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
+char obj_file[MAX_FILE_NAME];   // when current_as.program_type == OBJ, "obj_name.obj"
+char scene_file[MAX_FILE_NAME];
+
 /* for render pipeline */
 /* -- vtx stage */
 RENDER_STATE current_rs;
@@ -44,36 +46,33 @@ IMAGE_PROCESSING_STATE current_ips;
 float init_scale = 1.0;         // for obj files from the internet
 
 MAT4 camera_mat;
-float lookat[4] = {0, 0, 100, 0};
-float k[4] = {0, 0, 1, 0};
-float world_up[4] = {0, 1, 0, 0};
+float lookat[4]     = {0, 0, 100, 0};
+float k[4]          = {0, 0, 1, 0};
+float world_up[4]   = {0, 1, 0, 0};
 
-float ortho_vp_scale = 50;
+float ortho_vp_scale    = 50;
 float dz = INIT_DZ;             // init dz in world space for persp projection
 
 IMAGE texture;                  // final display texture
-int post_processing = OFF;
-//int dof_mode = OFF;             // depth_of_field
+int post_processing     = OFF;
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
-int reading_obj = FALSE;        // whether reading in an OBJ file
+int reading_obj         = FALSE;        // whether reading in an OBJ file
 
 /* for drawing peripheral components */
-int draw_coord_axes = OFF;      // draw object space coord axes
-int draw_bounding_box = OFF;    // draw 3D bounding box
+int draw_coord_axes     = OFF;      // draw object space coord axes
+int draw_bounding_box   = OFF;    // draw 3D bounding box
 
-int calculate_all_vns = OFF;
+int calculate_all_vns   = OFF;
 
-char obj_file[MAX_FILE_NAME];   // when current_as.program_type == OBJ, "obj_name.obj"
-char scene_file[MAX_FILE_NAME];
 
-float near = 1;
-float far = 40.0;
+
+float near              = 1;
+float far               = 40.0;
 int skip;
-float camera_transl = 0.05;
-
-int draw_peripherals = OFF;
+float camera_transl     = 0.05;
+int draw_peripherals    = OFF;
 
 /*******************************************************/
 /* Reading in texture files */
@@ -84,7 +83,7 @@ int draw_peripherals = OFF;
 char file_names[N_PPM_FILES][100] =
 {
     "ppm/rocks_color.ppm",
-    "ppm/blackbuck.ascii.ppm",
+    "ppm/grid.ppm",
     "ppm/out.ppm",
     "ppm/feep.ascii.ppm",
     "ppm/feep2.ascii.ppm",
@@ -228,6 +227,7 @@ void init_basic_program (void)
 
 void display_basic_mode (void)
 {
+//    printf("%i\n", current_as.renderer);
     OBJECT *o = &objects[0];
     o->type = current_rs.object_type;
     o->scale = 1;
@@ -511,7 +511,7 @@ void key_callback (unsigned char key)
             current_rs.render_mode = 1 - current_rs.render_mode;
             break;
         case '9':
-            renderer = (renderer + 1) % 2;
+            current_as.renderer = (current_as.renderer + 1) % 2;
             break;
         case '*':
             current_rs.backface_culling = 1 - current_rs.backface_culling;
@@ -521,7 +521,7 @@ void key_callback (unsigned char key)
         case 'q':       exit(0);                                                                                break;
         case '\033':    exit(0);                                                                                break;
     }
-    if(renderer != ALL_SW)
+    if(current_as.renderer != ALL_SW)
     {
         change_gl_state();
     }

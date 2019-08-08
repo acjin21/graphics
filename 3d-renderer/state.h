@@ -5,6 +5,7 @@ typedef struct render_state {
     /* > 2 options; note: must be EITHER/OR */
     int draw_mode;          //FRAME/FILL
     int object_type;
+    
     /* note: combined texturing and texturing_mode into one var */
     int texturing_mode;     // NONE, NAIVE, CYLINDRICAL, SPHERICAL, ENVIRONMENTAL, CUBE_MAP
     int modulation_mode;    // NONE, LIGHT, COLOR
@@ -42,6 +43,7 @@ typedef struct app_state {
     int dof_mode;
     
     int texture_idx;
+    int renderer;
 } APP_STATE;
 
 typedef struct image_processing_state {
@@ -75,6 +77,8 @@ enum Light_Type         { POINT_LIGHT, GLOBAL_LIGHT };
 enum Draw_Normals_Mode  { NO_NORMALS,  F_NORMALS};
 
 enum Render_Mode        { FORWARD, DEFERRED };
+
+enum Renderer           { ALL_SW, SW_HW };
 
 
 #define NUM_TEX_MODES 7

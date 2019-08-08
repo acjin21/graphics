@@ -155,8 +155,8 @@ void init_quad(MAT4 *model)
     set_vec4(tex_list[2],  0.9,  0.9, 0, 1);
     set_vec4(tex_list[3], 0,  0.9, 0, 1);
     //          v           c           t           n
-    add_face(0, 1, 2,    2, 2, 2,    0, 1, 2,   0, 0, 0);
-    add_face(0, 2, 3,    2, 2, 2,    0, 2, 3,   0, 0, 0);
+    add_face(0, 1, 2,    3, 3, 3,    0, 1, 2,   0, 0, 0);
+    add_face(0, 2, 3,    3, 3, 3,    0, 2, 3,   0, 0, 0);
     
     num_face_normals = num_triangles;
 

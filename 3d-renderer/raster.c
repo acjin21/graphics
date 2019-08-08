@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include "opengl.h"
 #include "window.h"
+#include "state.h"
+#include "app.h"
+
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -28,14 +31,12 @@ void reset_edge_counts (void);
 /* to choose between our draw_triangle and opengl's draw_triangle */
 void draw_line_wrapper (POINT *start, POINT *end, int mode)
 {
-    if(renderer == SW_HW)
+    if(current_as.renderer == SW_HW)
     {
         draw_line_gl(start, end);
     }
-    else if(renderer == ALL_SW)
+    else if(current_as.renderer == ALL_SW)
     {
-//        printf("START: ");
-//        print_vec4(start->ndc);
         draw_line( start, end, mode );
     }
 }
@@ -238,11 +239,11 @@ float edgeFunction( float a[4], float b[4], float c[4] )
 /* to choose between our draw_triangle and opengl's draw_triangle */
 void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2)
 {
-    if(renderer == SW_HW)
+    if(current_as.renderer == SW_HW)
     {
         draw_triangle_gl(v0, v1, v2);
     }
-    else if(renderer == ALL_SW)
+    else if(current_as.renderer == ALL_SW)
     {
         draw_triangle_barycentric(v0, v1, v2);
     }

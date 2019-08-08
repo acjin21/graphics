@@ -31,4 +31,10 @@ void set_default_app_state (APP_STATE *as)
     as->manipulator_mode        = ROTATE;
     as->projection_mode         = PERSPECT;
     as->post_processing_mode    = NO_FX;
+    as->renderer                = ALL_SW;
+}
+
+void set_benchmarking_state (APP_STATE *as, RENDER_STATE *rs)
+{
+    
 }
