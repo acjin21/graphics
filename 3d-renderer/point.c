@@ -147,19 +147,17 @@ void draw_point (POINT *p)
         depth_buffer[r][c] = p->position[Z];
     }
     if(current_rs.render_pass_type == SHADOW_PASS) return;
-    print_vec4(p->light_space);
+    
     if(shadow_buffer_r >= window_height || shadow_buffer_r < 0 || shadow_buffer_c >= window_width || shadow_buffer_c < 0)
     {
-//        printf("out of bounds\n");
         return;
     }
-    shadow_buffer[shadow_buffer_r][shadow_buffer_c] = 0;
 
-//    if(p->distance_to_light > shadow_buffer[shadow_buffer_r][shadow_buffer_c])
-//    {
-//        set_vec4(color_buffer[r][c], 1, 0, 0, 1);
-//        return;
-//    }
+    if(p->light_space[Z] > shadow_buffer[shadow_buffer_r][shadow_buffer_c])
+    {
+        set_vec4(color_buffer[r][c], 1, 0, 0, 1);
+        return;
+    }
     /* only need to write to depth buffer if in shadow pass of shadow map rendering */
     
     stencil_buffer[r][c] = current_as.stencil_bufferID;
@@ -280,14 +278,10 @@ void draw_point (POINT *p)
     {
         float new_r, new_g, new_b, new_a;
         
-        new_r = (1 - blend_weight) * color_buffer[r][c][R] +
-                blend_weight * p->color[R];
-        new_g = (1 - blend_weight) * color_buffer[r][c][G] +
-                blend_weight * p->color[G];
-        new_b = (1 - blend_weight) * color_buffer[r][c][B] +
-                blend_weight * p->color[B];
-        new_a = (1 - blend_weight) * color_buffer[r][c][A] +
-                blend_weight * p->color[A];
+        new_r = (1 - blend_weight) * color_buffer[r][c][R] + blend_weight * p->color[R];
+        new_g = (1 - blend_weight) * color_buffer[r][c][G] + blend_weight * p->color[G];
+        new_b = (1 - blend_weight) * color_buffer[r][c][B] + blend_weight * p->color[B];
+        new_a = (1 - blend_weight) * color_buffer[r][c][A] + blend_weight * p->color[A];
         
         /* write blended color to color_buffer */
         set_vec4(color_buffer[r][c], new_r, new_g, new_b, new_a);

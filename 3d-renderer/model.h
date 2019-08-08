@@ -55,7 +55,6 @@ void calculate_face_normals (void);
 void calculate_vertex_normals (void);
 
 /* functions that rely on world space coords */
-void set_distances_from_light (void);
 void set_backface_flags (CAMERA *c);
 void set_view_rays (CAMERA *c);
 

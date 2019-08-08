@@ -32,7 +32,6 @@ typedef struct point {
     float light[4]; // direction to light
     
     int rendered_flag;
-    float distance_to_light;
 //    MAT4 tbn;
 } POINT;
 

@@ -34,7 +34,7 @@ char *object_name (int object_type);
 void set_texture (void);
 
 /* rendering */
-void render_object(OBJECT *o, CAMERA *c);
+void render_object(OBJECT *o);
 
 void display_image_mode (void);
 void display_basic_mode (void);

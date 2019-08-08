@@ -119,7 +119,7 @@ void set_texture (void)
 /*******************************************************/
 /* Render object using 3d graphics pipeline */
 /*******************************************************/
-void render_object(OBJECT *o, CAMERA *c)
+void render_object(OBJECT *o)
 {
     normalize(light);
     /*-------------------------------*/         /* start vertex processing */
@@ -136,8 +136,9 @@ void render_object(OBJECT *o, CAMERA *c)
     /* set material property vecs */
     set_material(current_rs.material_type);
     /* all OBJ models are at the end of the list */
-    reading_obj = o->type >= TEAPOT;
-    draw_peripherals = current_as.program_type != SCENE || (current_as.program_type == SCENE && o->ID == current_as.selected_objectID);
+    reading_obj         = o->type >= TEAPOT;
+    draw_peripherals    = current_as.program_type != SCENE || (current_as.program_type == SCENE && o->ID == current_as.selected_objectID);
+    
     /*******************/
     /* WORLD SPACE */
     /*******************/
@@ -161,10 +162,8 @@ void render_object(OBJECT *o, CAMERA *c)
     
     set_backface_flags (current_camera);
     set_view_rays (current_camera);
-    set_distances_from_light ();
     
     if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
-
     camera_xform (current_camera);
 
     /*******************/
@@ -179,12 +178,15 @@ void render_object(OBJECT *o, CAMERA *c)
     switch(current_as.projection_mode)
     {
         case ORTHO:
-            xform_model(-10, 10, -10, 10, near, far);                   break;
+            if (current_rs.render_pass_type == SHADOW_PASS) xform_model(-10, 10, -10, 10, 0, 20);
+            else xform_model(-10, 10, -10, 10, near, far);
+            break;
             
         case PERSPECT:
             skip = cull_model(near, far);
 //            if(skip) return;
-            o->w = perspective_xform(near, far, -1, 1, -1, 1);      break;
+            o->w = perspective_xform(near, far, -1, 1, -1, 1);
+            break;
     }
     
     /*******************/
@@ -237,7 +239,7 @@ void display_basic_mode (void)
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     o->center[Z] = near + 2.0;
     current_camera = &camera;
-    render_object(o, &camera);
+    render_object(o);
 }
 
 /********************************************/
@@ -265,7 +267,7 @@ void display_scene_mode (void)
         objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
         objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-        render_object(&objects[i], &light_camera);
+        render_object(&objects[i]);
     }
     
     copy_depth_to_shadow_buffer();
@@ -294,7 +296,7 @@ void display_scene_mode (void)
         objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
 
         current_as.stencil_bufferID = i;
-        render_object(&objects[i], &camera);
+        render_object(&objects[i]);
     }
 //    draw_shadow_buffer();
 
@@ -328,7 +330,7 @@ void display_image_mode (void)
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
     o->center[Z] = near + 2.0;
     current_camera = &camera;
-    render_object(o, &camera);
+    render_object(o);
 }
 /********************************************/
 /* IO */

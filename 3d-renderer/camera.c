@@ -26,7 +26,6 @@ void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4])
         if(current_rs.render_pass_type == SHADOW_PASS)
         {
             cpy_vec4(v, lookat);
-
             normalize(v);
         }
         else
