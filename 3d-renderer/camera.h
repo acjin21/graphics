@@ -16,6 +16,7 @@ typedef struct camera
     float up[4];
     
     float rot[3]; //current orientation of camera
+    float transl[3];
 } CAMERA;
 
 extern float eye[4];

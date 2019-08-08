@@ -157,13 +157,14 @@ void render_object(OBJECT *o)
     /* rotated face and vertex normals */
     calculate_face_normals();
     calculate_vertex_normals();
-    
     if(current_rs.light_source == POINT_LIGHT)          calculate_light_vectors();
-    
+    if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
+
     set_backface_flags (current_camera);
     set_view_rays (current_camera);
     
-    if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
+    
+    translate_camera(current_camera, current_camera->transl[X], current_camera->transl[Y], current_camera->transl[Z]);
     camera_xform (current_camera);
 
     /*******************/
@@ -257,6 +258,7 @@ int init_scene_program (int argc, char **argv)
 
 void display_scene_mode (void)
 {
+    int temp_proj_mode = current_as.projection_mode;
     /* prepare for shadow pass */
     current_rs.render_pass_type = SHADOW_PASS;
     current_as.projection_mode  = ORTHO;
@@ -274,7 +276,8 @@ void display_scene_mode (void)
 //    draw_shadow_buffer();
     /* switch to color render pass */
     current_rs.render_pass_type = COLOR_PASS;
-    current_as.projection_mode  = PERSPECT;
+//    current_as.projection_mode  = PERSPECT;
+    current_as.projection_mode = temp_proj_mode;
     setup_clip_frustum(near, far);
     set_camera (&camera, eye, lookat, world_up);
     current_camera = &camera;
@@ -427,12 +430,13 @@ void key_callback (unsigned char key)
         case 'e':   rotate_camera (current_camera, 0, 0, -5);                                                                       break;
         case 'r':   rotate_camera (current_camera, 0, 0, 5);                                                                        break;
             
-        case 'j':   translate_camera (current_camera, -camera_transl, 0, 0);                                                        break;
-        case 'l':   translate_camera (current_camera, camera_transl, 0, 0);                                                         break;
-        case 'i':   translate_camera (current_camera, 0, camera_transl, 0);                                                         break;
-        case 'k':   translate_camera (current_camera, 0, -camera_transl, 0);                                                        break;
-        case '+':   translate_camera (current_camera, 0, 0, camera_transl);                                                         break;
-        case '-':   translate_camera (current_camera, 0, 0, -camera_transl);                                                        break;
+//        case 'j':   translate_camera (current_camera, -camera_transl, 0, 0);                                                        break;
+        case 'j':   current_camera->transl[X] -= camera_transl;                                                                     break;
+        case 'l':   current_camera->transl[X] += camera_transl;                                                                     break;
+        case 'i':   current_camera->transl[Y] += camera_transl;                                                                     break;
+        case 'k':   current_camera->transl[Y] -= camera_transl;                                                                     break;
+        case '+':   current_camera->transl[Z] += camera_transl;                                                                     break;
+        case '-':   current_camera->transl[Z] -= camera_transl;                                                                     break;
         /* texturing */
         case 't':
             if(current_as.program_type == SCENE) curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);

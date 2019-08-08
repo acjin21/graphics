@@ -39,6 +39,7 @@ int max_n_addl_tris = 1000;
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
 POINT bottom_left, top_right;
+float distances_from_light[MAX_N_VERTS];
 
 float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
@@ -58,7 +59,8 @@ int face_normals_start_idx = 0;
 
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
-MAT4 cam, ortho, perspective, viewport, light_cam;
+MAT4 cam, ortho, perspective, viewport;
+MAT4 light_cam, ortho_cam, viewport_cam;
 MAT4 *current_cam_mat;
 
 
@@ -673,6 +675,7 @@ void camera_xform (CAMERA *c)
         cpy_vec4(vertex_list[i].world_pos, vertex_list[i].world); //save world coords for lighting calculations later
         mat_vec_mul (current_cam_mat, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
+        
         if(current_rs.render_pass_type == COLOR_PASS)
         {
             mat_vec_mul (&light_cam, vertex_list[i].world, vertex_list[i].light_space);
@@ -696,6 +699,10 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_ortho_mat (&ortho_cam, x_min, x_max, y_min, y_max, z_min, z_max);
+    }
     set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
     
     for(int i = 0; i < num_vertices; i++)
@@ -719,7 +726,7 @@ void ortho_xform_shadow (float x_min, float x_max,
     
     for(int i = 0; i < num_vertices; i++)
     {
-        mat_vec_mul (&ortho, vertex_list[i].light_space, vertex_list[i].light_space);
+        mat_vec_mul (&ortho_cam, vertex_list[i].light_space, vertex_list[i].light_space);
         vertex_list[i].light_space[W] = 1.0;
     }
 }
@@ -727,6 +734,10 @@ void ortho_xform_shadow (float x_min, float x_max,
 
 void viewport_mat_xform (int vp_w, int vp_h)
 {
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_viewport_mat (&viewport_cam, vp_w, vp_h);
+    }
     set_viewport_mat (&viewport, vp_w, vp_h);
     float translation_vec[4] = {window_width / 2.0, window_height / 2.0, 0, 0};
 
@@ -740,9 +751,13 @@ void viewport_mat_xform (int vp_w, int vp_h)
 
         if(current_rs.render_pass_type == COLOR_PASS)
         {
-            mat_vec_mul (&viewport, vertex_list[i].light_space, vertex_list[i].light_space);
+            mat_vec_mul (&viewport_cam, vertex_list[i].light_space, vertex_list[i].light_space);
             vector_add(vertex_list[i].light_space, translation_vec, vertex_list[i].light_space);
-            if(vertex_list[i].light_space[X] > 800 || vertex_list[i].light_space[Y] > 800) print_vec4(vertex_list[i].light_space);
+            if(vertex_list[i].light_space[X] > 800 || vertex_list[i].light_space[Y] > 800)
+            {
+                printf("object type: %i\n", current_rs.object_type);
+                print_vec4(vertex_list[i].light_space);
+            }
         }
 
 

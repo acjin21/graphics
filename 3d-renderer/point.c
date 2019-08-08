@@ -155,7 +155,7 @@ void draw_point (POINT *p)
 
     if(p->light_space[Z] > shadow_buffer[shadow_buffer_r][shadow_buffer_c])
     {
-        set_vec4(color_buffer[r][c], 1, 0, 0, 1);
+        set_vec4(color_buffer[r][c], 0.8,  0.8,  0.8, 1);
         return;
     }
     /* only need to write to depth buffer if in shadow pass of shadow map rendering */
