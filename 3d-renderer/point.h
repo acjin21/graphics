@@ -21,6 +21,11 @@ typedef struct point {
     float world_pos[4];
     float light_space[4];
     
+    //world space
+    //camera space
+    //ndc space
+    //viewport coords
+    
     float color[4];
     float tex[4];
     float view[4];

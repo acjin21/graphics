@@ -131,10 +131,11 @@ void render_object(OBJECT *o)
         case WOLF:  o->scale *= 0.01;  break;
         case DEER:  o->scale *= 0.005; break;
     }
-    build_model(o);
+    build_model(o);                             /* OBJECT -> WORLD SPACE */
 
     /* set material property vecs */
     set_material(current_rs.material_type);
+    
     /* all OBJ models are at the end of the list */
     reading_obj         = o->type >= TEAPOT;
     draw_peripherals    = current_as.program_type != SCENE || (current_as.program_type == SCENE && o->ID == current_as.selected_objectID);
@@ -152,7 +153,7 @@ void render_object(OBJECT *o)
     }
     if(draw_coord_axes && draw_peripherals)             insert_coord_axes(o->center[X], o->center[Y], o->center[Z], o->scale);
 
-    world_xforms(o);
+    world_xforms(o);                            /* WORLD SPACE COORDS AFTER TRANSFORMATIONS: store these in point.world */
     
     /* rotated face and vertex normals */
     calculate_face_normals();
@@ -163,9 +164,9 @@ void render_object(OBJECT *o)
     set_backface_flags (current_camera);
     set_view_rays (current_camera);
     
-    
-    translate_camera(current_camera, current_camera->transl[X], current_camera->transl[Y], current_camera->transl[Z]);
-    camera_xform (current_camera);
+    rotate_camera   ( current_camera, current_camera->rot[X],    current_camera->rot[Y],     current_camera->rot[Z] );
+    translate_camera( current_camera, current_camera->transl[X], current_camera->transl[Y],  current_camera->transl[Z] );
+    camera_xform    ( current_camera );
 
     /*******************/
     /* CAMERA SPACE */
@@ -421,22 +422,21 @@ void key_callback (unsigned char key)
         case 'n':   current_as.draw_normals_mode = 1 - current_as.draw_normals_mode;                                                break;
         case 'A':   draw_coord_axes = 1 - draw_coord_axes;                                                                          break;
         case 'u':   draw_bounding_box = 1 - draw_bounding_box;                                                                      break;
-        case 'O': write_obj_file("obj/out.obj");                                                                                    break;
-            /* camera controls */
-        case 'a':   rotate_camera (current_camera, 0, 5, 0);                                                                        break;
-        case 'd':   rotate_camera (current_camera, 0, -5, 0);                                                                       break;
-        case 'w':   rotate_camera (current_camera, -5, 0, 0);                                                                       break;
-        case 's':   rotate_camera (current_camera, 5, 0, 0);                                                                        break;
-        case 'e':   rotate_camera (current_camera, 0, 0, -5);                                                                       break;
-        case 'r':   rotate_camera (current_camera, 0, 0, 5);                                                                        break;
-            
-//        case 'j':   translate_camera (current_camera, -camera_transl, 0, 0);                                                        break;
+        case 'O':   write_obj_file("obj/out.obj");                                                                                  break;
+        case 'a':   current_camera->rot[Y] += 5;                                                                                    break;
+        case 'd':   current_camera->rot[Y] -= 5;                                                                                    break;
+        case 'w':   current_camera->rot[X] -= 5;                                                                                    break;
+        case 's':   current_camera->rot[X] += 5;                                                                                    break;
+        case 'e':   current_camera->rot[Z] -= 5;                                                                                    break;
+        case 'r':   current_camera->rot[Z] += 5;                                                                                    break;
         case 'j':   current_camera->transl[X] -= camera_transl;                                                                     break;
         case 'l':   current_camera->transl[X] += camera_transl;                                                                     break;
         case 'i':   current_camera->transl[Y] += camera_transl;                                                                     break;
         case 'k':   current_camera->transl[Y] -= camera_transl;                                                                     break;
         case '+':   current_camera->transl[Z] += camera_transl;                                                                     break;
         case '-':   current_camera->transl[Z] -= camera_transl;                                                                     break;
+        case 'z': curr_object->translate[Z] += 0.5;                        break;
+        case 'Z': curr_object->translate[Z] -= 0.5;                        break;
         /* texturing */
         case 't':
             if(current_as.program_type == SCENE) curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);

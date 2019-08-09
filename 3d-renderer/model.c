@@ -722,7 +722,7 @@ void ortho_xform_shadow (float x_min, float x_max,
                          float y_min, float y_max,
                          float z_min, float z_max)
 {
-    set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
+    set_ortho_mat (&ortho_cam, x_min, x_max, y_min, y_max, z_min, z_max);
     
     for(int i = 0; i < num_vertices; i++)
     {
