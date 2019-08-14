@@ -34,7 +34,7 @@ extern float    window_size;
 /*************************************************************************/
 /* global variables                                                      */
 /*************************************************************************/
-char obj_file[MAX_FILE_NAME];   // when current_as.program_type == OBJ, "obj_name.obj"
+char obj_file[MAX_FILE_NAME];       // when current_as.program_type == OBJ, "obj_name.obj"
 char scene_file[MAX_FILE_NAME];
 
 /* for render pipeline */
@@ -43,7 +43,7 @@ RENDER_STATE current_rs;
 APP_STATE current_as;
 IMAGE_PROCESSING_STATE current_ips;
 
-float init_scale = 1.0;         // for obj files from the internet
+float init_scale = 1.0;             // for obj files from the internet
 
 MAT4 camera_mat;
 float lookat[4]     = {0, 0, 100, 0};
@@ -51,19 +51,18 @@ float k[4]          = {0, 0, 1, 0};
 float world_up[4]   = {0, 1, 0, 0};
 
 float ortho_vp_scale    = 50;
-float dz = INIT_DZ;             // init dz in world space for persp projection
+float dz = INIT_DZ;                 // init dz in world space for persp projection
 
-IMAGE texture;                  // final display texture
+IMAGE texture;                      // final display texture
 int post_processing     = OFF;
 
 /* misc */
 //todo: diff texture_idx and material_types for each object in a scene
-int reading_obj         = FALSE;        // whether reading in an OBJ file
+int reading_obj         = FALSE;    // whether reading in an OBJ file
 
 /* for drawing peripheral components */
 int draw_coord_axes     = OFF;      // draw object space coord axes
-int draw_bounding_box   = OFF;    // draw 3D bounding box
-
+int draw_bounding_box   = OFF;      // draw 3D bounding box
 int calculate_all_vns   = OFF;
 
 CAMERA *current_camera;
@@ -165,7 +164,7 @@ void render_object(OBJECT *o)
     set_view_rays (current_camera);
     
     rotate_camera   ( current_camera, current_camera->rot[X],    current_camera->rot[Y],     current_camera->rot[Z] );
-    translate_camera( current_camera, current_camera->transl[X], current_camera->transl[Y],  current_camera->transl[Z] );
+//    translate_camera( current_camera, current_camera->transl[X], current_camera->transl[Y],  current_camera->transl[Z] );
     camera_xform    ( current_camera );
 
     /*******************/
@@ -430,14 +429,14 @@ void key_callback (unsigned char key)
         case 's':   current_camera->rot[X] += 5;                                                                                    break;
         case 'e':   current_camera->rot[Z] -= 5;                                                                                    break;
         case 'r':   current_camera->rot[Z] += 5;                                                                                    break;
-        case 'j':   current_camera->transl[X] -= camera_transl;                                                                     break;
-        case 'l':   current_camera->transl[X] += camera_transl;                                                                     break;
-        case 'i':   current_camera->transl[Y] += camera_transl;                                                                     break;
-        case 'k':   current_camera->transl[Y] -= camera_transl;                                                                     break;
-        case '+':   current_camera->transl[Z] += camera_transl;                                                                     break;
-        case '-':   current_camera->transl[Z] -= camera_transl;                                                                     break;
-        case 'z': curr_object->translate[Z] += 0.5;                        break;
-        case 'Z': curr_object->translate[Z] -= 0.5;                        break;
+        case 'j':   translate_camera( current_camera, -camera_transl, 0, 0 );                                                       break;
+        case 'l':   translate_camera( current_camera, camera_transl, 0, 0 );                                                        break;
+        case 'i':   translate_camera( current_camera, 0, camera_transl, 0 );                                                        break;
+        case 'k':   translate_camera( current_camera, 0, -camera_transl, 0 );                                                       break;
+        case '+':   translate_camera( current_camera, 0, 0, camera_transl );                                                        break;
+        case '-':   translate_camera( current_camera, 0, 0, -camera_transl );                                                       break;
+        case 'z':   curr_object->translate[Z] += 0.5;                                                                               break;
+        case 'Z':   curr_object->translate[Z] -= 0.5;                                                                               break;
         /* texturing */
         case 't':
             if(current_as.program_type == SCENE) curr_object->texturing = (curr_object->texturing + 1) % (NUM_TEX_MODES);
@@ -448,7 +447,7 @@ void key_callback (unsigned char key)
             else
             {
                 current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
-                set_texture();
+                set_texture(); //cannot do this for scene mode-- for scene mode, you must reload (new/diff) texture multiple times per display()
             }
             break;
         case 'c':
