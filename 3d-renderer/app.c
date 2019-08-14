@@ -259,32 +259,32 @@ int init_scene_program (int argc, char **argv)
 
 void display_scene_mode (void)
 {
-    int temp_proj_mode = current_as.projection_mode;
-    /* prepare for shadow pass */
-    current_rs.render_pass_type = SHADOW_PASS;
-    current_as.projection_mode  = ORTHO;
-    set_camera (&light_camera, light_eye, light, world_up);// light lookat is just the directional light
-    current_camera = &light_camera;
-    for(int i = 0; i < num_objects; i++)
-    {
-        objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
-        objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
-        objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
-        render_object(&objects[i]);
-    }
-    
-    copy_depth_to_shadow_buffer();
+//    int temp_proj_mode = current_as.projection_mode;
+//    /* prepare for shadow pass */
+//    current_rs.render_pass_type = SHADOW_PASS;
+//    current_as.projection_mode  = ORTHO;
+//    set_camera (&light_camera, light_eye, light, world_up);// light lookat is just the directional light
+//    current_camera = &light_camera;
+//    for(int i = 0; i < num_objects; i++)
+//    {
+//        objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
+//        objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
+//        objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+//        render_object(&objects[i]);
+//    }
+//
+//    copy_depth_to_shadow_buffer();
 //    draw_shadow_buffer();
     /* switch to color render pass */
     current_rs.render_pass_type = COLOR_PASS;
 //    current_as.projection_mode  = PERSPECT;
-    current_as.projection_mode = temp_proj_mode;
+//    current_as.projection_mode = temp_proj_mode;
     setup_clip_frustum(near, far);
     set_camera (&camera, eye, lookat, world_up);
     current_camera = &camera;
 
-    clear_depth_buffer(1);
-    clear_color_buffer(1, 1, 1, 1);
+//    clear_depth_buffer(1);
+//    clear_color_buffer(1, 1, 1, 1);
     clear_stencil_buffer();
 
     for(int i = 0; i < num_objects; i++)
@@ -294,10 +294,11 @@ void display_scene_mode (void)
         current_as.texture_idx = objects[i].texture_idx;
         current_rs.perspective_correction = objects[i].persp_corr;
         current_rs.alpha_blending = objects[i].alpha_blend;
-
+        
         objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
         objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
         objects[i].scale_vec[Z] = (objects[i].scale_vec[Z] ? objects[i].scale_vec[Z] : 1);
+        set_texture();
 
         current_as.stencil_bufferID = i;
         render_object(&objects[i]);
@@ -444,8 +445,11 @@ void key_callback (unsigned char key)
             break;
         case 'T':
             if(current_as.program_type == SCENE) curr_object->texture_idx = (curr_object->texture_idx + 1) % N_TEXTURES;
-            else current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
-            set_texture();
+            else
+            {
+                current_as.texture_idx = (current_as.texture_idx + 1) % N_TEXTURES;
+                set_texture();
+            }
             break;
         case 'c':
             if(current_as.program_type == SCENE) curr_object->persp_corr = 1 - curr_object->persp_corr;
