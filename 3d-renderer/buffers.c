@@ -2,6 +2,7 @@
 #include "window.h"
 #include "vector.h"
 #include "app.h"
+#include "scene.h"
 #include <stdio.h>
 
 float color_buffer[MAX_WIN_H][MAX_WIN_W][4];
@@ -136,9 +137,9 @@ void draw_stencil_buffer(void)
     {
         for(int x = 0; x < window_width; x++)
         {
-            glColor4f(0.5 + stencil_buffer[y][x] / 3.0,
-                      0.5 + stencil_buffer[y][x] / 3.0,
-                      0.5 + stencil_buffer[y][x] / 3.0, 1);
+            glColor4f((1 + stencil_buffer[y][x]) / (float) num_objects,
+                      (1 + stencil_buffer[y][x]) / (float) num_objects,
+                      (1 + stencil_buffer[y][x]) / (float) num_objects, 1);
             glVertex2f(x - window_width / 2, y - window_height / 2);
         }
     }
