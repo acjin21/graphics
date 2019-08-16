@@ -156,15 +156,14 @@ void render_object(OBJECT *o)
     
     /* rotated face and vertex normals */
     calculate_face_normals();
+    if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
+
     calculate_vertex_normals();
     if(current_rs.light_source == POINT_LIGHT)          calculate_light_vectors();
-    if(current_as.draw_normals_mode == F_NORMALS)       insert_normal_coords();
 
     set_backface_flags (current_camera);
     set_view_rays (current_camera);
-    
-    rotate_camera   ( current_camera, current_camera->rot[X],    current_camera->rot[Y],     current_camera->rot[Z] );
-//    translate_camera( current_camera, current_camera->transl[X], current_camera->transl[Y],  current_camera->transl[Z] );
+
     camera_xform    ( current_camera );
 
     /*******************/
@@ -172,10 +171,10 @@ void render_object(OBJECT *o)
     /*******************/
     set_triangle_clip_flags();
     insert_bb_coords();
-    if(current_rs.render_pass_type == COLOR_PASS)
-    {
-        ortho_xform_shadow(-10, 10, -10, 10, 0, 20);
-    }
+//    if(current_rs.render_pass_type == COLOR_PASS)
+//    {
+//        ortho_xform_shadow(-10, 10, -10, 10, 0, 20);
+//    }
     switch(current_as.projection_mode)
     {
         case ORTHO:
@@ -293,6 +292,8 @@ void display_scene_mode (void)
         current_as.texture_idx = objects[i].texture_idx;
         current_rs.perspective_correction = objects[i].persp_corr;
         current_rs.alpha_blending = objects[i].alpha_blend;
+        current_rs.material_properties = objects[i].use_material;
+        current_rs.material_type = objects[i].material_type;
         
         objects[i].scale_vec[X] = (objects[i].scale_vec[X] ? objects[i].scale_vec[X] : 1);
         objects[i].scale_vec[Y] = (objects[i].scale_vec[Y] ? objects[i].scale_vec[Y] : 1);
@@ -423,12 +424,24 @@ void key_callback (unsigned char key)
         case 'A':   draw_coord_axes = 1 - draw_coord_axes;                                                                          break;
         case 'u':   draw_bounding_box = 1 - draw_bounding_box;                                                                      break;
         case 'O':   write_obj_file("obj/out.obj");                                                                                  break;
-        case 'a':   current_camera->rot[Y] += 5;                                                                                    break;
-        case 'd':   current_camera->rot[Y] -= 5;                                                                                    break;
-        case 'w':   current_camera->rot[X] -= 5;                                                                                    break;
-        case 's':   current_camera->rot[X] += 5;                                                                                    break;
-        case 'e':   current_camera->rot[Z] -= 5;                                                                                    break;
-        case 'r':   current_camera->rot[Z] += 5;                                                                                    break;
+        case 'a':
+            rotate_camera   ( current_camera, 0, 5, 0);
+            break;
+        case 'd':
+            rotate_camera   ( current_camera, 0, -5, 0);
+            break;
+        case 'w':
+            rotate_camera   ( current_camera, 5, 0, 0);
+            break;
+        case 's':
+            rotate_camera   ( current_camera, -5, 0, 0);
+            break;
+        case 'e':
+            rotate_camera   ( current_camera, 0, 0, 5);
+            break;
+        case 'r':
+            rotate_camera   ( current_camera, 0, 0, -5);
+            break;
         case 'j':   translate_camera( current_camera, -camera_transl, 0, 0 );                                                       break;
         case 'l':   translate_camera( current_camera, camera_transl, 0, 0 );                                                        break;
         case 'i':   translate_camera( current_camera, 0, camera_transl, 0 );                                                        break;
@@ -486,21 +499,25 @@ void key_callback (unsigned char key)
             break;
             
         /* misc */
-        case '0':   current_rs.fog_fx = 1 - current_rs.fog_fx;                                                  break;
-        case '1':   current_rs.material_properties = 1 - current_rs.material_properties;                        break;
-        case '2':   current_rs.material_type = (current_rs.material_type + 1) % NUM_MATERIALS;                  break;
-        case '3':   current_as.post_processing_mode = NO_FX;                                                    break;
-        case '#':   current_as.post_processing_mode = (current_as.post_processing_mode + 1) % N_IP_MODES;       break;
-        case '4':   current_as.dof_mode = (current_as.dof_mode + 1) % 3;                                        break;
-        case '5':   current_rs.bump_mapping = 1 - current_rs.bump_mapping;                                      break;
-        case '6':   reset_camera(current_camera);                                                               break;
-        case '7':   current_rs.light_source = 1 - current_rs.light_source;                                      break;
-        case '8':   current_rs.render_mode = 1 - current_rs.render_mode;                                        break;
-        case '9':   current_as.renderer = (current_as.renderer + 1) % 2;                                        break;
-        case '*':   current_rs.backface_culling = 1 - current_rs.backface_culling;                              break;
-        case '\t':  current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;          break;
-        case 'q':   exit(0);                                                                                    break;
-        case '\033':exit(0);                                                                                    break;
+        case '0':   current_rs.fog_fx = 1 - current_rs.fog_fx;                                                                  break;
+        case '1':
+            if(current_as.program_type == SCENE)    curr_object->use_material = 1 - curr_object->use_material;
+            else    current_rs.material_properties = 1 - current_rs.material_properties;                                        break;
+        case '2':
+            if(current_as.program_type == SCENE)    curr_object->material_type = (curr_object->material_type + 1) % NUM_MATERIALS;
+            else    current_rs.material_type = (current_rs.material_type + 1) % NUM_MATERIALS;                                  break;
+        case '3':   current_as.post_processing_mode = NO_FX;                                                                    break;
+        case '#':   current_as.post_processing_mode = (current_as.post_processing_mode + 1) % N_IP_MODES;                       break;
+        case '4':   current_as.dof_mode = (current_as.dof_mode + 1) % 3;                                                        break;
+        case '5':   current_rs.bump_mapping = 1 - current_rs.bump_mapping;                                                      break;
+        case '6':   reset_camera(current_camera);                                                                               break;
+        case '7':   current_rs.light_source = 1 - current_rs.light_source;                                                      break;
+        case '8':   current_rs.render_mode = 1 - current_rs.render_mode;                                                        break;
+        case '9':   current_as.renderer = (current_as.renderer + 1) % 2;                                                        break;
+        case '*':   current_rs.backface_culling = 1 - current_rs.backface_culling;                                              break;
+        case '\t':  current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;                          break;
+        case 'q':   exit(0);                                                                                                    break;
+        case '\033':exit(0);                                                                                                    break;
     }
     if(current_as.renderer != ALL_SW)
     {

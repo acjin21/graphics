@@ -511,9 +511,9 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
     axes_start_idx = 0;
     set_vec4(peripherals[0].world, cx, cy, cz, 1 );
-    set_vec4(peripherals[1].world, cx + 1, cy, cz, 1);
-    set_vec4(peripherals[2].world, cx, cy + 1, cz, 1);
-    set_vec4(peripherals[3].world, cx, cy, cz + 1, 1);
+    set_vec4(peripherals[1].world, cx + 5, cy, cz, 1);
+    set_vec4(peripherals[2].world, cx, cy + 5, cz, 1);
+    set_vec4(peripherals[3].world, cx, cy, cz + 5, 1);
 }
 
 // do this in world space
