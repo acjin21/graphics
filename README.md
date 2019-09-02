@@ -33,7 +33,7 @@ A simplified version of a 3D graphics API like OpenGL, with some 3D modeling app
 * camera movement 
 
 ## Some Screenshots
-![Image of teapot frame](assets/teapot_frame.png)
+![Image of teapot frame](assets/teapot_frame.png)\
 **Teapot frame** 
 
 ![Image of alpha-blended teapot](assets/teapot_alpha_blend.png)
