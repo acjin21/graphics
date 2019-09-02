@@ -16,10 +16,12 @@ typedef struct camera
     float up[4];
     
     float rot[3]; //current orientation of camera
+    float transl[3];
 } CAMERA;
 
 extern float eye[4];
 extern CAMERA camera;
+extern CAMERA light_camera;
 
 void set_camera (CAMERA *c, float pos[4], float lookat[4], float up[4]);
 void rotate_camera (CAMERA *c, float rx, float ry, float rz);

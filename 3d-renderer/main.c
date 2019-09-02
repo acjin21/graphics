@@ -68,7 +68,6 @@ void display(void)
     }
 
     if( draw_one_frame == 0 ) return;
-    
     /*******************************************************/
     /* animation switching */
     /*******************************************************/
@@ -90,17 +89,19 @@ void display(void)
 //    }
     glClearDepth( 1.0 );
     glClearColor(1, 1, 1, 1.0);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    if(renderer == ALL_SW)
+    glPointSize(2.0);
+
+    if(current_as.renderer == ALL_SW)
     {
         clear_color_buffer(1, 1, 1, 1);
-        if(current_rs.render_mode)    clear_g_buffer(1, 1, 1, 1);
+        if(current_rs.render_mode == DEFERRED)
+        {
+            clear_g_buffer(1, 1, 1, 1);
+        }
         clear_depth_buffer(1.0);
     }
-
-    glPointSize(2.0);
+    
     counter++;
     
     /*******************************************************/
@@ -109,27 +110,22 @@ void display(void)
     start_timer(&framerate_timer);
     switch (current_as.program_type)
     {
-        case BASIC: display_basic_mode();
-            break;
-        case SCENE: display_scene_mode();
-            break;
-        case IMAGE_PROCESSING:
-            display_image_mode();
-            break;
-        default:
-            display_basic_mode();
-            break;
+        case BASIC:             display_basic_mode();   break;
+        case SCENE:             display_scene_mode();   break;
+        case IMAGE_PROCESSING:  display_image_mode();   break;
+        default:                display_basic_mode();   break;
     }
     
-    if(renderer == ALL_SW)
+    if(current_as.renderer == ALL_SW && current_rs.render_pass_type == COLOR_PASS)
     {
         apply_post_pipeline_fx();
-        if(current_rs.render_mode)                  draw_g_buffer();
+        if(current_rs.render_mode == DEFERRED)                      draw_g_buffer();
         switch(current_as.framebuffer_source)
         {
-            case COLOR: draw_color_buffer();        break;
-            case STENCIL: draw_stencil_buffer();    break;
-            case DEPTH: draw_depth_buffer();        break;
+            case COLOR:     draw_color_buffer();        break;
+            case STENCIL:   draw_stencil_buffer();      break;
+            case DEPTH:     draw_depth_buffer();        break;
+            case SHADOW:    draw_shadow_buffer();       break;
         }
         switch(current_as.program_type)
         {
@@ -177,7 +173,7 @@ void display(void)
     glutSwapBuffers();
     glutPostRedisplay(); // Necessary for Mojave.
     draw_one_frame = 0;  // if not animating
-    printf("======= END DISPLAY CALL =========\n");
+//    printf("======= END DISPLAY CALL =========\n");
 }
 
 /*******************************************************/
@@ -225,8 +221,47 @@ void motion(int x, int y)
     float ws_dx = ws_stop[X] - ws_start[X];
     float ws_dy = ws_stop[Y] - ws_start[Y];
     
-    curr_object->translate[X] += ws_dx;
-    curr_object->translate[Y] += ws_dy;
+    float vs_dx = stop[X] - start[X];
+    float vs_dy = stop[Y] - start[Y];
+    
+    
+    if(current_as.manipulator_mode == TRANSLATE)
+    {
+//        if((int)(vs_dx / 3) == (int)(vs_dy / 3))
+//        {
+//            curr_object->translate[Z] += 0.3;
+//
+//        }
+//        else
+//        {
+            curr_object->translate[X] += ws_dx;
+            curr_object->translate[Y] += ws_dy;
+//        }
+        
+    }
+    else if(current_as.manipulator_mode == ROTATE)
+    {
+        if(ABS(vs_dx) > ABS(vs_dy))
+        {
+            curr_object->rotation[Y] += vs_dx;
+        }
+        else
+        {
+            curr_object->rotation[X] += vs_dy;
+        }
+    }
+    else //scale
+    {
+        if(ABS(vs_dx) > ABS(vs_dy))
+        {
+            curr_object->scale_vec[X] += (vs_dx / window_width);
+        }
+        else
+        {
+            curr_object->scale_vec[Y] += (vs_dy / window_height);
+        }
+    }
+
     start[X] = x;
     start[Y] = y;
     
@@ -341,14 +376,14 @@ int main(int argc, char **argv)
     read_ppm("ppm/ashcanyon_dn.ppm", &cube_map[3]);
     read_ppm("ppm/ashcanyon_bk.ppm", &cube_map[4]);
     read_ppm("ppm/ashcanyon_ft.ppm", &cube_map[5]);
-    
+
     read_ppm("ppm/test_right.ppm", &cube_map[0]);
     read_ppm("ppm/test_left.ppm", &cube_map[1]);
     read_ppm("ppm/test_top.ppm", &cube_map[2]);
     read_ppm("ppm/test_bottom.ppm", &cube_map[3]);
     read_ppm("ppm/test_back.ppm", &cube_map[4]);
     read_ppm("ppm/test_front.ppm", &cube_map[5]);
-    
+
     read_ppm("ppm/rocks_bump.ppm", &bump_map);
     
     set_texture();
@@ -360,7 +395,6 @@ int main(int argc, char **argv)
     /* open output file for benchmarking */
     char file_name[MAX_FILE_NAME] = "benchmarking/rotate.txt";
     benchmark_output = fopen(file_name, "w");
-    
     fprintf(benchmark_output, "%i\n\n", num_samples);
     if (benchmark_output == NULL)
     {

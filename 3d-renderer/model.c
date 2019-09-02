@@ -39,6 +39,7 @@ int max_n_addl_tris = 1000;
 POINT vertex_list[MAX_N_VERTS];
 FACE face_list[MAX_N_FACES];
 POINT bottom_left, top_right;
+float distances_from_light[MAX_N_VERTS];
 
 float tex_list[MAX_N_VERTS][4];
 float color_list[MAX_N_VERTS][4];
@@ -59,6 +60,8 @@ int face_normals_start_idx = 0;
 int bb_start_idx = 0;           // starting index of bounding box vertices in vertex_list
 
 MAT4 cam, ortho, perspective, viewport;
+MAT4 light_cam, ortho_cam, viewport_cam;
+MAT4 *current_cam_mat;
 
 
 /****************************************************************/
@@ -155,8 +158,8 @@ void init_quad(MAT4 *model)
     set_vec4(tex_list[2],  0.9,  0.9, 0, 1);
     set_vec4(tex_list[3], 0,  0.9, 0, 1);
     //          v           c           t           n
-    add_face(0, 1, 2,    2, 2, 2,    0, 1, 2,   0, 0, 0);
-    add_face(0, 2, 3,    2, 2, 2,    0, 2, 3,   0, 0, 0);
+    add_face(0, 1, 2,    3, 3, 3,    0, 1, 2,   0, 0, 0);
+    add_face(0, 2, 3,    3, 3, 3,    0, 2, 3,   0, 0, 0);
     
     num_face_normals = num_triangles;
 
@@ -508,9 +511,9 @@ void insert_coord_axes (float cx, float cy, float cz, float scale)
 {
     axes_start_idx = 0;
     set_vec4(peripherals[0].world, cx, cy, cz, 1 );
-    set_vec4(peripherals[1].world, cx + 1, cy, cz, 1);
-    set_vec4(peripherals[2].world, cx, cy + 1, cz, 1);
-    set_vec4(peripherals[3].world, cx, cy, cz + 1, 1);
+    set_vec4(peripherals[1].world, cx + 5, cy, cz, 1);
+    set_vec4(peripherals[2].world, cx, cy + 5, cz, 1);
+    set_vec4(peripherals[3].world, cx, cy, cz + 5, 1);
 }
 
 // do this in world space
@@ -656,20 +659,34 @@ void calculate_vertex_normals (void)
 /****************************************************************/
 void camera_xform (CAMERA *c)
 {
-    set_camera_mat (&cam, c);
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_camera_mat (&light_cam, c);
+        current_cam_mat = &light_cam;
+    }
+    else
+    {
+        set_camera_mat (&cam, c);
+        current_cam_mat = &cam;
+    }
+
     for(int i = 0; i < num_vertices; i++)
     {
         cpy_vec4(vertex_list[i].world_pos, vertex_list[i].world); //save world coords for lighting calculations later
-        mat_vec_mul (&cam, vertex_list[i].world, vertex_list[i].world);
+        mat_vec_mul (current_cam_mat, vertex_list[i].world, vertex_list[i].world);
         vertex_list[i].world[W] = 1.0;
+        
+        if(current_rs.render_pass_type == COLOR_PASS)
+        {
+            mat_vec_mul (&light_cam, vertex_list[i].world, vertex_list[i].light_space);
+        }
     }
     for(int i = 0; i < num_peripherals; i++)
     {
-        mat_vec_mul (&cam, peripherals[i].world, peripherals[i].world);
+        mat_vec_mul (current_cam_mat, peripherals[i].world, peripherals[i].world);
         peripherals[i].world[W] = 1.0;
     }
-    light_pos[W] = 1.0;
-    mat_vec_mul (&cam, light_pos, light_pos_screen);
+    mat_vec_mul (current_cam_mat, light_pos, light_pos_screen);
     light_pos[W] = 1.0;
 }
 
@@ -682,12 +699,15 @@ void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max)
 {
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_ortho_mat (&ortho_cam, x_min, x_max, y_min, y_max, z_min, z_max);
+    }
     set_ortho_mat (&ortho, x_min, x_max, y_min, y_max, z_min, z_max);
     
     for(int i = 0; i < num_vertices; i++)
     {
         mat_vec_mul (&ortho, vertex_list[i].world, vertex_list[i].position);
-        vertex_list[i].position[Z] = 0;
 
         vertex_list[i].position[W] = 1.0;
     }
@@ -698,8 +718,26 @@ void xform_model(float x_min, float x_max,
     }
 }
 
+void ortho_xform_shadow (float x_min, float x_max,
+                         float y_min, float y_max,
+                         float z_min, float z_max)
+{
+    set_ortho_mat (&ortho_cam, x_min, x_max, y_min, y_max, z_min, z_max);
+    
+    for(int i = 0; i < num_vertices; i++)
+    {
+        mat_vec_mul (&ortho_cam, vertex_list[i].light_space, vertex_list[i].light_space);
+        vertex_list[i].light_space[W] = 1.0;
+    }
+}
+
+
 void viewport_mat_xform (int vp_w, int vp_h)
 {
+    if(current_rs.render_pass_type == SHADOW_PASS)
+    {
+        set_viewport_mat (&viewport_cam, vp_w, vp_h);
+    }
     set_viewport_mat (&viewport, vp_w, vp_h);
     float translation_vec[4] = {window_width / 2.0, window_height / 2.0, 0, 0};
 
@@ -709,12 +747,20 @@ void viewport_mat_xform (int vp_w, int vp_h)
         cpy_vec4(vertex_list[i].ndc, vertex_list[i].position);
 
         mat_vec_mul (&viewport, vertex_list[i].position, vertex_list[i].position);
-        
-        // do translation separately so that position[W] = 1/w for persp corr.
-        //      does not interfere with viewport_x, viewport_y calculation
-        // TODO: do we always want to add this translation vector regardless of
-        //      whether we're working with points or directions?
         vector_add(vertex_list[i].position, translation_vec, vertex_list[i].position);
+
+        if(current_rs.render_pass_type == COLOR_PASS)
+        {
+            mat_vec_mul (&viewport_cam, vertex_list[i].light_space, vertex_list[i].light_space);
+            vector_add(vertex_list[i].light_space, translation_vec, vertex_list[i].light_space);
+            if(vertex_list[i].light_space[X] > 800 || vertex_list[i].light_space[Y] > 800)
+            {
+                printf("object type: %i\n", current_rs.object_type);
+                print_vec4(vertex_list[i].light_space);
+            }
+        }
+
+
     }
     for(int i = 0; i < num_peripherals; i++)
     {

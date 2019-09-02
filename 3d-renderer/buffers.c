@@ -2,11 +2,15 @@
 #include "window.h"
 #include "vector.h"
 #include "app.h"
+#include "scene.h"
+#include <stdio.h>
 
 float color_buffer[MAX_WIN_H][MAX_WIN_W][4];
 float depth_buffer[MAX_WIN_H][MAX_WIN_W];
 int stencil_buffer[MAX_WIN_H][MAX_WIN_W];
 POINT g_buffer[MAX_WIN_H][MAX_WIN_W];
+float shadow_buffer[MAX_WIN_H][MAX_WIN_W];
+
 /****************************************************************************/
 /* clear functions */
 /****************************************************************************/
@@ -93,8 +97,7 @@ void draw_depth_buffer (void)
     {
         for(int x = 0; x < window_width; x++)
         {
-            glColor4f(depth_buffer[y][x], depth_buffer[y][x],
-                      depth_buffer[y][x], 1);
+            glColor4f(depth_buffer[y][x], depth_buffer[y][x], depth_buffer[y][x], 1);
             glVertex2f(x - window_width / 2, y - window_height / 2);
         }
     }
@@ -134,9 +137,35 @@ void draw_stencil_buffer(void)
     {
         for(int x = 0; x < window_width; x++)
         {
-            glColor4f(0.5 + stencil_buffer[y][x] / 3.0,
-                      0.5 + stencil_buffer[y][x] / 3.0,
-                      0.5 + stencil_buffer[y][x] / 3.0, 1);
+            glColor4f((1 + stencil_buffer[y][x]) / (float) num_objects,
+                      (1 + stencil_buffer[y][x]) / (float) num_objects,
+                      (1 + stencil_buffer[y][x]) / (float) num_objects, 1);
+            glVertex2f(x - window_width / 2, y - window_height / 2);
+        }
+    }
+    glEnd();
+}
+
+void copy_depth_to_shadow_buffer(void)
+{
+    for(int r = 0; r < window_height; r++)
+    {
+        for(int c = 0; c < window_width; c++)
+        {
+            shadow_buffer[r][c] = depth_buffer[r][c];
+        }
+    }
+}
+
+/* draw shadow buffer to screen using OpenGL */
+void draw_shadow_buffer (void)
+{
+    glBegin(GL_POINTS);
+    for(int y = 0; y < window_height; y++)
+    {
+        for(int x = 0; x < window_width; x++)
+        {
+            glColor4f(shadow_buffer[y][x], shadow_buffer[y][x], shadow_buffer[y][x], 1);
             glVertex2f(x - window_width / 2, y - window_height / 2);
         }
     }

@@ -35,6 +35,8 @@ typedef struct object {
     int texture_idx;
     int persp_corr;
     int alpha_blend;
+    int use_material;
+    int material_type;
     
 } OBJECT;
 

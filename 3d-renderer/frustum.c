@@ -67,7 +67,7 @@ void setup_clip_frustum(float near, float far)
 
     /* near */
     set_vec4(frustum[4].normal, 0, 0, 1, 0);
-    frustum[4].distance = 0;
+    frustum[4].distance = 0; //0 for going into teapot, near to view clipping
     
     /* bottom */
     set_vec4(frustum[5].normal, 0, 0, -1, 0);

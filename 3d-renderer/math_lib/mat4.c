@@ -304,11 +304,14 @@ void set_ortho_mat (MAT4 *ortho,
                     float y_min, float y_max,
                     float z_min, float z_max)
 {
+    float dx = x_max - x_min;
+    float dy = y_max - y_min;
+    float dz = z_max - z_min;
     set(ortho,
-       2.0 / (x_max - x_min), 0, 0, (x_max + x_min) / (x_min - x_max),
-       0, 2.0 / (y_max - y_min), 0, (y_max + y_min) / (y_min - y_max),
-       0, 0, 2.0 / (z_max - z_min), (z_max + z_min) / (z_min - z_max),
-       0, 0, 0, 1);
+       2.0 / dx,    0,          0,          (x_max + x_min) / (x_min - x_max),
+       0,           2.0 / dy,   0,          (y_max + y_min) / (y_min - y_max),
+       0,           0,          2.0 / dz,   (z_max + z_min) / (z_min - z_max),
+       0,           0,          0,          1);
 }
 
 //TODO: what to do if view_w and/or view_h are odd numbers?

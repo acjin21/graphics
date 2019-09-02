@@ -5,6 +5,7 @@ typedef struct render_state {
     /* > 2 options; note: must be EITHER/OR */
     int draw_mode;          //FRAME/FILL
     int object_type;
+    
     /* note: combined texturing and texturing_mode into one var */
     int texturing_mode;     // NONE, NAIVE, CYLINDRICAL, SPHERICAL, ENVIRONMENTAL, CUBE_MAP
     int modulation_mode;    // NONE, LIGHT, COLOR
@@ -26,6 +27,7 @@ typedef struct render_state {
     int material_type;
     int render_mode;
     
+    int render_pass_type;
     
 } RENDER_STATE;
 
@@ -42,6 +44,7 @@ typedef struct app_state {
     int dof_mode;
     
     int texture_idx;
+    int renderer;
 } APP_STATE;
 
 typedef struct image_processing_state {
@@ -64,7 +67,7 @@ enum Reflection_Mode    { DIFFUSE, SPECULAR };
 
 enum Draw_Mode          { FRAME, FILL };
 
-enum Framebuffer_Source { COLOR, DEPTH, STENCIL};
+enum Framebuffer_Source { COLOR, DEPTH, STENCIL, SHADOW };
 
 enum Modulate_Mode      { MOD_OFF, MOD_COLOR, MOD_LIGHT };
 
@@ -76,6 +79,9 @@ enum Draw_Normals_Mode  { NO_NORMALS,  F_NORMALS};
 
 enum Render_Mode        { FORWARD, DEFERRED };
 
+enum Renderer           { ALL_SW, SW_HW };
+
+enum Render_Pass        { SHADOW_PASS, COLOR_PASS };
 
 #define NUM_TEX_MODES 7
 enum Texture_Mode {
@@ -156,5 +162,7 @@ enum Image_Processing_Mode
 
 void set_default_render_state (RENDER_STATE *rs);
 void set_default_app_state (APP_STATE *as);
+
+void set_explore_teapot_state (APP_STATE *as, RENDER_STATE *rs);
 
 #endif

@@ -152,11 +152,12 @@ void gl_print_image_settings (IMAGE_PROCESSING_STATE *ips)
     next_y += 15;
 }
 
-char *framebuffer_src_strings[3] =
+char *framebuffer_src_strings[4] =
 {
     "COLOR",
     "DEPTH",
-    "STENCIL"
+    "STENCIL",
+    "SHADOW"
 };
 
 char *manip_mode_strings[3] =
@@ -166,6 +167,16 @@ char *manip_mode_strings[3] =
     "SCALE"
 };
 
+char *texture_mode_strings[NUM_TEX_MODES] =
+{
+    "TEXTURE_OFF",
+    "MANUAL",
+    "NAIVE",
+    "CYLINDRICAL",
+    "SPHERICAL",
+    "REFLECTION",
+    "CUBE_MAP"
+};
 /* print app settings */
 void gl_print_app_settings (APP_STATE *as)
 {
@@ -206,7 +217,7 @@ void gl_print_render_settings (RENDER_STATE *rs)
 
     int next_y = 100;
     
-    sprintf(settings_str, "%s", rs->render_mode ? "DEFERRED" : "FORWARD");
+    sprintf(settings_str, "%s", texture_mode_strings[rs->texturing_mode]);
     gl_printf(220, next_y, "Texturing (t, T) / Mod (m): ", color);
     gl_printf(380, next_y, settings_str, color);
     next_y -= 15;

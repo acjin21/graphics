@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include "opengl.h"
 #include "window.h"
+#include "state.h"
+#include "app.h"
+
 /*************************************************************************/
 /* defines                                                               */
 /*************************************************************************/
@@ -28,14 +31,12 @@ void reset_edge_counts (void);
 /* to choose between our draw_triangle and opengl's draw_triangle */
 void draw_line_wrapper (POINT *start, POINT *end, int mode)
 {
-    if(renderer == SW_HW)
+    if(current_as.renderer == SW_HW)
     {
         draw_line_gl(start, end);
     }
-    else if(renderer == ALL_SW)
+    else if(current_as.renderer == ALL_SW)
     {
-//        printf("START: ");
-//        print_vec4(start->ndc);
         draw_line( start, end, mode );
     }
 }
@@ -238,11 +239,11 @@ float edgeFunction( float a[4], float b[4], float c[4] )
 /* to choose between our draw_triangle and opengl's draw_triangle */
 void draw_triangle_wrapper(POINT *v0, POINT *v1, POINT *v2)
 {
-    if(renderer == SW_HW)
+    if(current_as.renderer == SW_HW)
     {
         draw_triangle_gl(v0, v1, v2);
     }
-    else if(renderer == ALL_SW)
+    else if(current_as.renderer == ALL_SW)
     {
         draw_triangle_barycentric(v0, v1, v2);
     }
@@ -309,86 +310,12 @@ void draw_triangle_barycentric( POINT *v0, POINT *v1, POINT *v2 )
                 p.view[Y] = w[0] * v0->view[Y] + w[1] * v1->view[Y] + w[2] * v2->view[Y];
                 p.view[Z] = w[0] * v0->view[Z] + w[1] * v1->view[Z] + w[2] * v2->view[Z];
                 
-                draw_point(&p);
-            }
-        }
-    }
-}
-
-void draw_triangle_barycentric_incremental( POINT *v0, POINT *v1, POINT *v2 )
-{
-    int     minx = MIN3(v0->position[X],v1->position[X],v2->position[X]);
-    int     miny = MIN3(v0->position[Y],v1->position[Y],v2->position[Y]);
-    int     maxx = MAX3(v0->position[X],v1->position[X],v2->position[X]);
-    int     maxy = MAX3(v0->position[Y],v1->position[Y],v2->position[Y]);
-    float   area = edgeFunction(v0->position, v1->position, v2->position);
-    int     x, y;
-    float   w[4], init_w[4];
-    POINT   p;
-    
-    /*
-     * for all the points in triangle bounding box
-     */
-    for( y = miny-1; y < maxy+2; y++ )
-    {
-        float init_x = minx-1;
-        set_vec4(p.position, init_x+0.5, y+0.5, 0, 1 );
-        /* (c[X] - a[X]) * (b[Y] - a[Y]) - (c[Y] - a[Y]) * (b[X] - a[X]  */
-
-        w[0] = edgeFunction(v1->position, v2->position, p.position);
-        w[1] = edgeFunction(v2->position, v0->position, p.position);
-        w[2] = edgeFunction(v0->position, v1->position, p.position);
-        w[3] = 0.0;
-
-        for( x = minx-1; x < maxx+2; x++ )
-        {
-            set_vec4(p.position, x+0.5, y+0.5, 0, 1 );
-            /*
-             * compute barycentric weights
-             */
-            
-//            w[0] = edgeFunction(v1->position, v2->position, p.position);
-//            w[1] = edgeFunction(v2->position, v0->position, p.position);
-//            w[2] = edgeFunction(v0->position, v1->position, p.position);
-//            w[3] = 0.0;
-//
-            if( w[0] >= 0 && w[1] >= 0 && w[2] >= 0 )
-            {
-                /*
-                 * if point inside triangle, compute barycentric weighting of vertex attributes (e.g. z, color, s, t)
-                 */
-                scalar_divide(area, w, w);
-                
-                p.position[Z] = w[0] * v0->position[Z] + w[1] * v1->position[Z] + w[2] * v2->position[Z];
-                
-                //interpolate 1/w for perspective correct
-                p.position[W] = w[0] * v0->position[W] + w[1] * v1->position[W] + w[2] * v2->position[W];
-                
-                p.color[R] = w[0] * v0->color[R] + w[1] * v1->color[R] + w[2] * v2->color[R];
-                p.color[G] = w[0] * v0->color[G] + w[1] * v1->color[G] + w[2] * v2->color[G];
-                p.color[B] = w[0] * v0->color[B] + w[1] * v1->color[B] + w[2] * v2->color[B];
-                
-                p.tex[S] = w[0] * v0->tex[S] + w[1] * v1->tex[S] + w[2] * v2->tex[S];
-                p.tex[T] = w[0] * v0->tex[T] + w[1] * v1->tex[T] + w[2] * v2->tex[T];
-                
-                p.v_normal[X] = w[0] * v0->v_normal[X] + w[1] * v1->v_normal[X] + w[2] * v2->v_normal[X];
-                p.v_normal[Y] = w[0] * v0->v_normal[Y] + w[1] * v1->v_normal[Y] + w[2] * v2->v_normal[Y];
-                p.v_normal[Z] = w[0] * v0->v_normal[Z] + w[1] * v1->v_normal[Z] + w[2] * v2->v_normal[Z];
-                
-                p.light[X] = w[0] * v0->light[X] + w[1] * v1->light[X] + w[2] * v2->light[X];
-                p.light[Y] = w[0] * v0->light[Y] + w[1] * v1->light[Y] + w[2] * v2->light[Y];
-                p.light[Z] = w[0] * v0->light[Z] + w[1] * v1->light[Z] + w[2] * v2->light[Z];
-                
-                p.view[X] = w[0] * v0->view[X] + w[1] * v1->view[X] + w[2] * v2->view[X];
-                p.view[Y] = w[0] * v0->view[Y] + w[1] * v1->view[Y] + w[2] * v2->view[Y];
-                p.view[Z] = w[0] * v0->view[Z] + w[1] * v1->view[Z] + w[2] * v2->view[Z];
+                p.light_space[X] = w[0] * v0->light_space[X] + w[1] * v1->light_space[X] + w[2] * v2->light_space[X];
+                p.light_space[Y] = w[0] * v0->light_space[Y] + w[1] * v1->light_space[Y] + w[2] * v2->light_space[Y];
+                p.light_space[Z] = w[0] * v0->light_space[Z] + w[1] * v1->light_space[Z] + w[2] * v2->light_space[Z];
                 
                 draw_point(&p);
             }
-            w[0] += (v1->position[Y] - v2->position[Y]);
-            w[1] += (v2->position[Y] - v0->position[Y]);
-            w[2] += (v0->position[Y] - v1->position[Y]);
-
         }
     }
 }

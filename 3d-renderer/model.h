@@ -66,7 +66,9 @@ void set_triangle_clip_flags (void);
 void xform_model(float x_min, float x_max,
                  float y_min, float y_max,
                  float z_min, float z_max);
-
+void ortho_xform_shadow (float x_min, float x_max,
+                         float y_min, float y_max,
+                         float z_min, float z_max);
 /* perspective transformations */
 int cull_model (float near, float far);
 float perspective_xform(float near, float far,
