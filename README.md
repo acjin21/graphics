@@ -12,21 +12,22 @@ A simplified version of a 3D graphics API like OpenGL, with some 3D modeling app
 ## Different Program Modes and How to Run Them
 To avoid code duplication while separating features with different core functionalities, I created three main program modes: BASIC, SCENE, and IMAGE PROCESSING mode.
 
-To `make` things easier (no pun intended), I included a make-file in the top-level directory. Unfortunately, I have only gotten the program to compile and run properly on Mac OS machines, but I hope to extend the program to different platforms in the future.
+To `make` things easier (no pun intended), I included a make-file in the top-level directory.\
+Unfortunately, I have only gotten the program to compile and run properly on Mac OS machines, but I hope to extend the program to different platforms in the future.
 
 After you `cd` into the `3d-renderer` directory:
 
 ### BASIC mode:
-Use to test 3D rendering techniques on a single object at a time.
+Use to test 3D rendering techniques on a single object at a time.\
 `make run-basic` 
 
 ### SCENE mode:
-Use to test 3D rendering techniques and modeling application features on multi-object scenes.
+Use to test 3D rendering techniques and modeling application features on multi-object scenes.\
 `make run-scene file="scenes/<file-name">` 
 
 ### IMAGE PROCESSING mode:
-Use to run various image processing algorithms on an image.
-`make run-image>` 
+Use to run various image processing algorithms on an image.\
+`make run-image` 
 
 ---
 
@@ -58,10 +59,10 @@ Use to run various image processing algorithms on an image.
 * camera movement 
 
 ## Some Screenshots
-![Image of teapot frame](assets/teapot_frame.png)\
+![Image of teapot frame](assets/teapot_frame.png)
 **Teapot frame** 
 
-![Image of alpha-blended teapot](assets/teapot_alpha_blend.png)\
+![Image of alpha-blended teapot](assets/teapot_alpha_blend.png)
 **Teapot with alpha blending enabled**
 
 ## Texture Mapping
