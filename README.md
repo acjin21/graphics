@@ -33,18 +33,18 @@ A simplified version of a 3D graphics API like OpenGL, with some 3D modeling app
 * camera movement 
 
 ## Some Screenshots
-Teapot frame
 ![Image of teapot frame](assets/teapot_frame.png)
+**Teapot frame** 
 
-Teapot with alpha blending enabled
 ![Image of alpha-blended teapot](assets/teapot_alpha_blend.png)
+**Teapot with alpha blending enabled**
 
 ## Texture Mapping
-Bump mapping
 ![Image of bump-mapped teapot](assets/teapot_bump_map.png)
+**Bump mapping**
 
-Cube mapping
 ![Image of cube-mapped teapot](assets/teapot_cube_map.png)
+**Cube mapping**
 
 ## Shading
 Flat shading
