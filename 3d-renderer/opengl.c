@@ -143,7 +143,7 @@ void change_gl_state(void)
     glShadeModel    (current_rs.shading_mode == FLAT ? GL_FLAT : GL_SMOOTH);
     current_rs.depth_testing ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 
-    float light_amb[4] =  {0.4, 0.4, 0.4, 1};
+    float light_amb[4] =  {0.7, 0.7, 0.7, 1};
     float light_diff[4] = {1, 1, 1, 1};
     float light_spec[4] = {1, 1, 1, 1};
     

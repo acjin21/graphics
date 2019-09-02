@@ -70,7 +70,7 @@ CAMERA *current_camera;
 float near              = 1;
 float far               = 40.0;
 int skip;
-float camera_transl     = 0.05;
+float camera_transl     = 0.2;
 int draw_peripherals    = OFF;
 
 /*******************************************************/
@@ -249,7 +249,9 @@ int init_scene_program (int argc, char **argv)
 {
     current_as.program_type     = SCENE;
     current_rs.light_source     = GLOBAL_LIGHT; /* to get shadow mapping to work */
-
+    set_camera (&camera, eye, lookat, world_up);
+    setup_clip_frustum(near, far);
+    current_camera = &camera;
     strcat(scene_file, argv[2]);
     read_scene(scene_file);
     return 0;
@@ -277,9 +279,7 @@ void display_scene_mode (void)
     current_rs.render_pass_type = COLOR_PASS;
 //    current_as.projection_mode  = PERSPECT;
 //    current_as.projection_mode = temp_proj_mode;
-    setup_clip_frustum(near, far);
-    set_camera (&camera, eye, lookat, world_up);
-    current_camera = &camera;
+
 
 //    clear_depth_buffer(1);
 //    clear_color_buffer(1, 1, 1, 1);
@@ -322,14 +322,14 @@ void display_image_mode (void)
     read_ppm(ppm_file, &texture);
     
     current_rs.texturing_mode = MANUAL;
-    current_as.projection_mode = ORTHO;
+    current_as.projection_mode = PERSPECT;
     current_rs.draw_mode = FILL;
 
     OBJECT *o = &objects[0];
     o->type = QUAD;
-    o->scale = 1;
+    o->scale = 5;
     o->rotation[X] = 0;
-    
+    o->center[Y] = -1;
     o->scale_vec[X] = (o->scale_vec[X] ? o->scale_vec[X] : 1);
     o->scale_vec[Y] = (o->scale_vec[Y] ? o->scale_vec[Y] : 1);
     o->scale_vec[Z] = (o->scale_vec[Z] ? o->scale_vec[Z] : 1);
@@ -515,6 +515,18 @@ void key_callback (unsigned char key)
         case '8':   current_rs.render_mode = 1 - current_rs.render_mode;                                                        break;
         case '9':   current_as.renderer = (current_as.renderer + 1) % 2;                                                        break;
         case '*':   current_rs.backface_culling = 1 - current_rs.backface_culling;                                              break;
+        case '!':
+            set_explore_teapot_state(&current_as, &current_rs);
+            translate_camera( current_camera, 0, 0, -10 );
+            break;
+        case '@':
+            read_ppm("ppm/lmcity_rt.ppm", &cube_map[0]);
+            read_ppm("ppm/lmcity_lf.ppm", &cube_map[1]);
+            read_ppm("ppm/lmcity_up.ppm", &cube_map[2]);
+            read_ppm("ppm/lmcity_dn.ppm", &cube_map[3]);
+            read_ppm("ppm/lmcity_bk.ppm", &cube_map[4]);
+            read_ppm("ppm/lmcity_ft.ppm", &cube_map[5]);
+            break;
         case '\t':  current_as.manipulator_mode = (current_as.manipulator_mode + 1) % NUM_MANIP_MODES;                          break;
         case 'q':   exit(0);                                                                                                    break;
         case '\033':exit(0);                                                                                                    break;

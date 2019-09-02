@@ -163,4 +163,6 @@ enum Image_Processing_Mode
 void set_default_render_state (RENDER_STATE *rs);
 void set_default_app_state (APP_STATE *as);
 
+void set_explore_teapot_state (APP_STATE *as, RENDER_STATE *rs);
+
 #endif
