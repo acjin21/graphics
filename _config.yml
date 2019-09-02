@@ -1,9 +1,6 @@
 theme: jekyll-theme-minimal
 
 title: [3D Graphics Software Renderer]
-description: [This project page includes a description of 3D graphics and 
-instructions for running the project locally,
-3D modeling features implemented in the program,  
- and some screenshots of rendered scenes]
+description: [This project page includes a description of 3D graphics and instructions for running the project locally, 3D modeling features implemented in the program, and some screenshots of rendered scenes]
 
 logo: [assets/site-logo.png] 
