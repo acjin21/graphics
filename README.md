@@ -18,15 +18,15 @@ Unfortunately, I have only gotten the program to compile and run properly on Mac
 After you `cd` into the `3d-renderer` directory:
 
 ### BASIC mode:
-Use to test 3D rendering techniques on a single object at a time.\
+Use to test 3D rendering techniques on a single object at a time.\ 
 `make run-basic` 
 
 ### SCENE mode:
-Use to test 3D rendering techniques and modeling application features on multi-object scenes.\
+Use to test 3D rendering techniques and modeling application features on multi-object scenes.\ 
 `make run-scene file="scenes/<file-name">` 
 
 ### IMAGE PROCESSING mode:
-Use to run various image processing algorithms on an image.\
+Use to run various image processing algorithms on an image.\ 
 `make run-image` 
 
 ---
