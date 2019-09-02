@@ -62,7 +62,7 @@ Use to run various image processing algorithms on an image.\
 ![Image of teapot frame](assets/teapot_frame.png)
 **Teapot frame** 
 
-![Image of alpha-blended teapot](assets/teapot_alpha_blend.png)
+![Image of alpha-blended teapot](assets/teapot_alpha_blend.png) <br />
 **Teapot with alpha blending enabled**
 
 ## Texture Mapping
